@@ -2,7 +2,6 @@ ifndef CROSS_COMPILE
 #CROSS_COMPILE	:= arm-none-linux-gnueabihf-
 CROSS_COMPILE	:= arm-linux-gnueabihf-
 endif
-#测试修改
 
 CC			:=	${CROSS_COMPILE}gcc
 CPP			:=	${CROSS_COMPILE}cpp
