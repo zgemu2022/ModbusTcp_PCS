@@ -28,7 +28,9 @@ typedef struct
 typedef struct
 {
 	unsigned short RegStart;//寄存器开始地址
-	unsigned short numData;//数据个数
+	unsigned short numData;//抄取数据个数
+	unsigned short totalData; //总数据个数
+
 }Pcs_Fun03_Struct;
 typedef struct
 {
