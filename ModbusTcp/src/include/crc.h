@@ -11,5 +11,7 @@
 #define CAL_BY_BYTE
 //#define CAL_BY_HALFBYTE
 
-unsigned short crc(unsigned char * ptr, unsigned int  len);
+// unsigned short crc(unsigned char * ptr, unsigned int  len);
+unsigned short crc16_check(unsigned char *puchMsg, unsigned int usDataLen);
+
 #endif /* CRC_H_ */

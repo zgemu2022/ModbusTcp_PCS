@@ -1,4 +1,5 @@
 #include "crc.h"
+#include "modbus.h"
 unsigned short PcsYxRegbas[]={0x1100,0x111d,0x113a,0x1157,0x1174,0x1190};
 int readYx(unsigned char devid,  unsigned char modid,unsigned char* pframe,unsigned int len)
 {

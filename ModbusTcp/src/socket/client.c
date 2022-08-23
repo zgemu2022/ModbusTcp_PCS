@@ -20,21 +20,21 @@ PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 
 Pcs_Fun03_Struct pcsYc[] = {
 	//遥测
-	{0x1103, 0x0A,0x1D}, //模块1
-	// {0x1120, 0x0A}, //模块2
-	// {0x113D, 0x0A}, //模块3
-	// {0x115A, 0x0A}, //模块4
-	// {0x1193, 0x0A}, //模块5
-	// {0x11B0, 0x0A}, //模块6
+	{0x1103, 0x0A, 0x1D}, //模块1
+	{0x1120, 0x0A, 0x1D}, //模块2
+	{0x113D, 0x0A, 0x1D}, //模块3
+	{0x115A, 0x0A, 0x1D}, //模块4
+	{0x1193, 0x0A, 0x1D}, //模块5
+	{0x11B0, 0x0A, 0x1D}, //模块6
 
 	//遥信
-	// {0x1200, 0x0F}, //模块1
-	// {0x1210, 0x0F}, //模块2
-	// {0x1220, 0x0F}, //模块3
-	// {0x1230, 0x0F}, //模块4
-	// {0x1240, 0x0F}, //整机
-	// {0x1250, 0x0F}, //模块5
-	// {0x1260, 0x0F}, //模块6
+	{0x1200, 0x0F, 0x0F}, //模块1
+	{0x1210, 0x0F, 0x0F}, //模块2
+	{0x1220, 0x0F, 0x0F}, //模块3
+	{0x1230, 0x0F, 0x0F}, //模块4
+	{0x1240, 0x0F, 0x0F}, //整机
+	{0x1250, 0x0F, 0x0F}, //模块5
+	{0x1260, 0x0F, 0x0F}, //模块6
 
 };
 
@@ -103,7 +103,7 @@ int AnalysModbus(void) // unsigned char *datain, unsigned short len, unsigned ch
 }
 
 int curTaskId = 0; //当前任务ID
-int curPcsId = 0;  //当前PCSID
+int curPcsId = 0;  //当前PcsID
 int wait_flag = 0;
 unsigned short g_num_frame = 1;
 static int createFun03Frame(int id_thread, int *taskid, int *pcsid,int *lenframe, unsigned char *framebuf)
@@ -114,7 +114,7 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid,int *lenframe
 	int _pcsid = *pcsid;
 	printf("_taskid:%d\n", _taskid);
 	printf("_pcsid:%d\n", _pcsid);
-		Pcs_Fun03_Struct pcs = pcsYc[_taskid];
+	Pcs_Fun03_Struct pcs = pcsYc[_taskid];
 
 	int pos = 0;
 
@@ -126,9 +126,8 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid,int *lenframe
 	framebuf[pos++] = 6;
 	framebuf[pos++] = Para_Modtcp.devNo[id_thread];
 	framebuf[pos++] = 3;	
-	// return 0;
 	framebuf[pos++] = (pcs.RegStart+ _pcsid*29)/ 256;
-	framebuf[pos++] = (pcs.RegStart +_pcsid * 29) % 256;
+	framebuf[pos++] = (pcs.RegStart+ _pcsid*29) % 256;
 
 	framebuf[pos++] = pcs.numData / 256;
 	framebuf[pos++] = pcs.numData % 256;
@@ -243,51 +242,51 @@ void *Modbus_clientSend_thread(void *arg) // 25
 		}
 		// usleep(100);
 	}
-}
+	}
 
-		static int recvFrame(int fd, int qid, MyData *recvbuf)
+	static int recvFrame(int fd, int qid, MyData *recvbuf)
+	{
+		int len, readlen;
+
+		int index = 0, length = 0, offset;
+		int i = 0;
+		// int i;
+		msgClient msg;
+		MyData *precv = (MyData *)&msg.data;
+		readlen = recv(fd, recvbuf->buf, MAX_MODBUS_FLAME, 0);
+		//		readlen = recv(fd, (recvbuf.buf + recvbuf.len),
+		//				(MAX_BUF_SIZE - recvbuf.len), 0);
+		//		printf("*****  F:%s L:%d recv readlen=%d\n", __FUNCTION__, __LINE__,	readlen);
+		if (readlen < 0)
 		{
-			int len, readlen;
-
-			int index = 0, length = 0, offset;
-			int i = 0;
-			// int i;
-			msgClient msg;
-			MyData *precv = (MyData *)&msg.data;
-			readlen = recv(fd, recvbuf->buf, MAX_MODBUS_FLAME, 0);
-			//		readlen = recv(fd, (recvbuf.buf + recvbuf.len),
-			//				(MAX_BUF_SIZE - recvbuf.len), 0);
-			//		printf("*****  F:%s L:%d recv readlen=%d\n", __FUNCTION__, __LINE__,	readlen);
-			if (readlen < 0)
-			{
-				printf("连接断开或异常\r\n");
-				return -1;
-			}
-			else if (readlen == 0)
-				return 1;
-
-			printf("收到一包数据 wait_flag=%d", wait_flag);
-			recvbuf->len = readlen;
-			myprintbuf(readlen, recvbuf->buf);
-			msg.msgtype = 1;
-			memcpy((char *)&msg.data, recvbuf->buf, readlen);
-			sleep(1);
-			wait_flag=0;
-				// if (msgsnd(qid, &msg, sizeof(msgClient), IPC_NOWAIT) != -1)
-				// {
-
-				// 	printf("succ succ succ succ !!!!!!!"); //连接主站的网络参数I
-				// }
-				// else
-				// {
-				// 	return 1;
-				// }
-
-				// for(i=0;i<readlen;i++)
-				// 	printf("0x%2x ",recvbuf->buf[i]);
-				// printf("\n");
-				return 0;
+			printf("连接断开或异常\r\n");
+			return -1;
 		}
+		else if (readlen == 0)
+			return 1;
+
+		printf("收到一包数据 wait_flag=%d", wait_flag);
+		recvbuf->len = readlen;
+		myprintbuf(readlen, recvbuf->buf);
+		msg.msgtype = 1;
+		memcpy((char *)&msg.data, recvbuf->buf, readlen);
+		sleep(1);
+		wait_flag=0;
+			// if (msgsnd(qid, &msg, sizeof(msgClient), IPC_NOWAIT) != -1)
+			// {
+
+			// 	printf("succ succ succ succ !!!!!!!"); //连接主站的网络参数I
+			// }
+			// else
+			// {
+			// 	return 1;
+			// }
+
+			// for(i=0;i<readlen;i++)
+			// 	printf("0x%2x ",recvbuf->buf[i]);
+			// printf("\n");
+			return 0;
+	}
 
 		void *Modbus_clientRecv_thread(void *arg) // 25
 		{
@@ -406,6 +405,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			printf("网络断开，重连！！！！");
 			goto loop;
 		}
+
 		// void *Modbus_clientRecv_thread(void *arg) // 25
 		// {
 		// 	int cfd;
@@ -476,6 +476,18 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			int i;
 			printf("pPara_Modtcp lcd数量:%d\n", pPara_Modtcp->lcdnum);
 			pPara_Modtcp->pcsnum[0] = 1;
+
+			//>>>>>CRCTest
+			// unsigned char sendMsg[] = {0x0a, 0x03, 0x11, 0x00, 0x00, 0x02};
+			// unsigned short a;
+			// // printf("sendMsg:%d\n",sendMsg);
+			// printf("sendMsg长度:%d\n", sizeof(sendMsg));
+			// a = crc16_check(sendMsg, sizeof(sendMsg));
+			// printf("CRC校验为:%x\n",a);
+			// exit(1);
+			//<<<<<CRCTest
+			
+
 			for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 			{
 				modbus_sockt_state[i] = STATUS_OFF;
