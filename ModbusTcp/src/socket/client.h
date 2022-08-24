@@ -40,9 +40,6 @@ typedef struct
 	unsigned short addr;
 	unsigned char recvdata[255];//收到的数据部分
 	unsigned int lenrecv;//收到的数据长度
-
-
-
 }PcsData;
 
 
