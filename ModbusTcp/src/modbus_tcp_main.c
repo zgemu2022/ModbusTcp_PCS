@@ -1,5 +1,5 @@
 #include "modbus_tcp_main.h"
-
+#include "modbus.h"
 #include <stdio.h>
 #include <unistd.h>
 #include "sys.h"

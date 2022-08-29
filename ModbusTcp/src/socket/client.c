@@ -8,190 +8,23 @@
 #include "crc.h"
 #include "my_socket.h"
 #include "modbus_tcp_main.h"
+#include "modbus.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
+int wait_flag = 0;
+int lcd_state[] = {LCD_INIT,LCD_INIT,LCD_INIT,LCD_INIT,LCD_INIT,LCD_INIT};
 char modbus_sockt_state[MAX_PCS_NUM];
 int modbus_client_sockptr[MAX_PCS_NUM];
 unsigned int modbus_sockt_timer[MAX_PCS_NUM];
 MyData clent_data_temp[MAX_PCS_NUM];
 int g_comm_qmegid[MAX_PCS_NUM];
 
-PARA_MODTCP Para_Modtcp;
-PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
-
-Pcs_Fun03_Struct pcsYc[] = {
-	//遥测
-	{0x1103, 0x0A,0x1D}, //模块1
-
-	//遥信
-	{0x1200,0x0F,0x10}, //模块1
-};
-
-int myprintbuf(int len, unsigned char *buf)
-{
-	int i = 0;
-	printf("\nbuflen=%d\n", len);
-	for (i = 0; i < len; i++)
-		printf("0x%x ", buf[i]);
-	printf("\n");
-}
-
-#if 0
-int AnalysModbus(unsigned char *datain, unsigned int len, int id_client)
-{
-	PcsData pcs;
-	int index = 0;
-	int flag_comm_succ = 0;
-	unsigned short addr;
-	unsigned short crccode = 0;
-	unsigned short lendata;
-	pcs.errflag = 0;
-	pcs.dev_id = datain[index++];
-	pcs.code_fun = datain[index++];
-
-	switch (pcs.code_fun)
-	{
-	case 0x90:
-	case 0x83:
-	case 0x86:
-		pcs.errflag = datain[index++];
-		crccode = crc(datain, 3);
-		if (datain[index] == crccode / 256 && datain[index + 1] == crccode % 256)
-		{
-			pcs.code_fun -= 0x80;
-			flag_comm_succ = 1;
-		}
-		break;
-	case 0x03:
-		pcs.addr = datain[index] * 256 + datain[index + 1];
-		index += 2;
-		lendata = datain[index] * 256 + datain[index];
-		//	if(lendata+)
-
-		break;
-	default:
-		break;
-	}
-	if (flag_comm_succ == 1)
-	{
-		// if(msgsnd(g_comm_qmegid, &pcs, sizeof(PcsData), IPC_NOWAIT) != -1)
-		// {
-		// 	printf("接收到完整modbus-tcp协议包，通过队列发送给发送任务处理！！")
-		// }
-	}
-
-	// unsigned char *dataout
-	return 0;
-}
-#endif
-//数据解析
-int AnalysModbus(void) // unsigned char *datain, unsigned short len, unsigned char *dataout
-{
-	printf("解析收到的PCS数据！！！！！");
-	return 0;
-}
 
 int curTaskId = 0; 
 int curPcsId = 0;  
-int wait_flag = 0;
+
 
 unsigned short g_num_frame = 1;
-static int createFun03Frame(int id_thread, int *taskid, int *pcsid,int *lenframe, unsigned char *framebuf)
-{
-	
-	int numTask = ARRAY_LEN(pcsYc);
-	int _taskid = *taskid;
-	int _pcsid = *pcsid;
-	unsigned short regStart; //寄存器起始地址
-	unsigned char pcsNum; //pcs的数量
-	Pcs_Fun03_Struct pcs = pcsYc[_taskid];
 
-	//对不同的任务进行对应的调整
-	if (_taskid == 0)
-	{
-		pcsNum = Para_Modtcp.pcsnum[id_thread];
-		if (_pcsid == 4 || _pcsid == 5)
-		{
-			regStart = pcs.RegStart + 0x1C;
-		}else{
-			regStart = pcs.RegStart;
-		}
-	}
-	else
-	{
-		pcsNum = Para_Modtcp.pcsnum[id_thread]+1;
-		regStart = pcs.RegStart;
-	}
-
-	int pos = 0;
-	printf("pos:%d\n", pos);
-	framebuf[pos++] = g_num_frame / 256;
-	framebuf[pos++] = g_num_frame % 256;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 6;
-	framebuf[pos++] = Para_Modtcp.devNo[id_thread];
-	framebuf[pos++] = 3;
-	framebuf[pos++] = (regStart + _pcsid * pcs.totalData) / 256;
-	framebuf[pos++] = (regStart + _pcsid * pcs.totalData) % 256;
-	framebuf[pos++] = pcs.numData / 256;
-	framebuf[pos++] = pcs.numData % 256;
-	// framebuf[pos++]=0;
-	// framebuf[pos++]=0;
-	*lenframe = pos;
-
-
-
-	_pcsid++;
-	printf("_pcsid：%d\n", _pcsid);
-	printf("_taskid:%d\n", _taskid);
-	if (_pcsid >= pcsNum)
-	{
-		_taskid++;
-		
-		if (_taskid >= numTask)
-			_taskid = 0;
-		_pcsid = 0;
-	}
-
-	g_num_frame++;
-	if (g_num_frame == 0x10000)
-		g_num_frame = 1;
-    *taskid=_taskid;
-	*pcsid=_pcsid;
-	return 0;
-}
-
-static int doFun03Tasks(int id_thread, int *taskid,int *pcsid)
-{
-	int numfail = 0;
-	unsigned char sendbuf[256];
-	int lensend = 0;
-
-	createFun03Frame(id_thread, taskid,pcsid, &lensend, sendbuf);
-	myprintbuf(lensend, sendbuf);
-	//	={0x00,0x01,0x00,0x00,0x00,0x06,0x0A,0x03,0x11,0x00,0x00,0x02};
-	
-
-	if (send(modbus_client_sockptr[id_thread], sendbuf, lensend, 0) < 0)
-	{
-		numfail++;
-		printf("发送失败！！！！id_thread=%d\n", id_thread);
-		return 0xffff;
-	}
-	else
-	{
-		wait_flag = 1;
-
-		printf("任务包发送成功！！！！");
-	}
-	return 0;
-
-	// if(funid>=numTask)
-	// {
-
-	// }
-}
 void *Modbus_clientSend_thread(void *arg) // 25
 {
 	int id_thread = (int)arg;
@@ -201,6 +34,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	MyData pcsdata;
 	int waittime = 0;
 	int id_frame;
+	int ret = 0;
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 
 	key_t key = 0;
@@ -229,7 +63,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			if ((id_frame != 0xffff && (g_num_frame - 1) == id_frame) || (id_frame == 0xffff && g_num_frame == 1))
 			{
 				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
-				AnalysModbus();
+				AnalysModbus(pcsdata.buf,pcsdata.len);
 			}
 			else
 				printf("检查是否发生丢包现象！！！！！g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
@@ -247,9 +81,20 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			continue;
 		}
 		if (wait_flag == 0)
+			continue;
+		if(lcd_state[id_thread]== LCD_RUNNING)
 		{
 			printf("do something!!!!\n");
-			doFun03Tasks(id_thread, &curTaskId, &curPcsId);
+			ret = doFun03Tasks(id_thread, &curTaskId, &curPcsId);
+			if(ret==0)
+			   		wait_flag = 1;
+		}
+		else if(lcd_state == LCD_INIT)
+		{
+			ret = ReadNumPCS(id_thread);
+			if(ret==0)
+					wait_flag = 1;
+
 		}
 		// usleep(100);
 	}
@@ -257,13 +102,12 @@ void *Modbus_clientSend_thread(void *arg) // 25
 
 	static int recvFrame(int fd, int qid, MyData *recvbuf)
 	{
-		int len, readlen;
+		int readlen;
 
-		int index = 0, length = 0, offset;
-		int i = 0;
+		//int index = 0, length = 0;
 		// int i;
 		msgClient msg;
-		MyData *precv = (MyData *)&msg.data;
+		//MyData *precv = (MyData *)&msg.data;
 		readlen = recv(fd, recvbuf->buf, MAX_MODBUS_FLAME, 0);
 		//		readlen = recv(fd, (recvbuf.buf + recvbuf.len),
 		//				(MAX_BUF_SIZE - recvbuf.len), 0);
@@ -310,11 +154,11 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			MyData recvbuf;
 			printf("PCS[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
 
-			printf("network parameters  connecting to server IP=%s   port=%d\n", Para_Modtcp.server_ip[id_thread], Para_Modtcp.server_port[id_thread]); //
+			printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 			_SERVER_SOCKET server_sock;
 			server_sock.protocol = TCP;
-			server_sock.port = htons(Para_Modtcp.server_port[id_thread]);
-			server_sock.addr = inet_addr(Para_Modtcp.server_ip[id_thread]);
+			server_sock.port = htons(pPara_Modtcp->server_port[id_thread]);
+			server_sock.addr = inet_addr(pPara_Modtcp->server_ip[id_thread]);
 			server_sock.fd = -1;
 			sleep(4);
 		loop:
@@ -329,8 +173,16 @@ void *Modbus_clientSend_thread(void *arg) // 25
 					break;
 			}
 			printf("连接服务器成功！！！！\n");
+
+			
 			modbus_client_sockptr[id_thread] = server_sock.fd;
 			modbus_sockt_state[id_thread] = STATUS_ON;
+			g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
+            g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
+            g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
+
+
+
 			jj = 0; //未接收到数据累计标志，大于1000清零
 			i = 0;
 
@@ -416,69 +268,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			printf("网络断开，重连！！！！");
 			goto loop;
 		}
-
-		// void *Modbus_clientRecv_thread(void *arg) // 25
-		// {
-		// 	int cfd;
-		// 	char *strIP = "192.168.4.24";
-		// 	int port = 502;
-		// 	char buf[1024];
-		// 	struct sockaddr_in serv_addr;
-		// 	socklen_t serv_addr_len;
-		// 	memset(&serv_addr, 0, sizeof(serv_addr));
-		// 	cfd = socket(AF_INET, SOCK_STREAM, 0);
-		// 	serv_addr.sin_family = AF_INET;
-		// 	serv_addr.sin_port = htons(port);
-		// 	inet_pton(AF_INET, strIP, &serv_addr.sin_addr.s_addr);
-		// 	int reval = connect(cfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
-		// 	if (reval == 0)
-		// 	{
-		// 		printf("connect sucess\n");
-		// 	}
-		// }
-
-		// 在这里插入代码 1 #include <stdio.h>
-		//   2 #include <stdlib.h>
-		//   3 #include <sys/socket.h>
-		//   4 #include <arpa/inet.h>
-		//   5 #include <string.h>
-		//   6 #include <unistd.h>
-		//   7
-		//   8 #define SERV_PORT 6666
-		//   9 #define SERV_IP  "127.0.0.1"
-		//  10
-		//  11 int main()
-		//  12 {
-		//  13         int cfd;
-		//  14         int n;
-		//  15         char buf[BUFSIZ];
-		//  16         struct sockaddr_in serv_addr;
-		//  17         socklen_t serv_addr_len;
-		//  18         memset(&serv_addr,0,sizeof(serv_addr));
-		//  19         cfd = socket(AF_INET,SOCK_STREAM,0);
-		//  20         serv_addr.sin_family = AF_INET;
-		//  21         serv_addr.sin_port = htons(SERV_PORT);
-		//  22         inet_pton(AF_INET,SERV_IP,&serv_addr.sin_addr.s_addr);
-		//  23         int reval = connect(cfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr));
-		//  24         if(reval == 0)
-		//  25         {
-		//  26                 printf("connect sucess\n");
-		//  27         }
-		//  28         while(1)
-		//  29         {
-		//  30                 printf("enter while\n");
-		//  31                 fgets(buf,sizeof(buf),stdin);//hello word----fgets--->"hello word\n\0"
-		//  32                 printf(buf);
-		//  33                 write(cfd,buf,strlen(buf));
-		//  34                 n = read(cfd,buf,sizeof(buf));
-		//  35                 printf("n = %d\n");
-		//  36                 write(STDOUT_FILENO,buf,n);
-		//  37                 //close(cfd);
-		//  38         }
-		//  39         close(cfd);
-		//  40
-		//  41         return 0;
-		//  42 }
 
 		void CreateThreads(void)
 		{
