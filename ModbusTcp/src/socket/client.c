@@ -20,10 +20,10 @@ PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 
 Pcs_Fun03_Struct pcsYc[] = {
 	//遥测
-	{0x1103, 0x0A,0x1D}, //模块1
+	{0x1103, 0x0A,0x1D},
 
 	//遥信
-	{0x1200,0x0F,0x10}, //模块1
+	{0x1200,0x0F,0x10}
 };
 
 int myprintbuf(int len, unsigned char *buf)
@@ -143,8 +143,8 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid,int *lenframe
 
 
 	_pcsid++;
-	printf("_pcsid：%d\n", _pcsid);
-	printf("_taskid:%d\n", _taskid);
+	// printf("_pcsid：%d\n", _pcsid);
+	// printf("_taskid:%d\n", _taskid);
 	if (_pcsid >= pcsNum)
 	{
 		_taskid++;
@@ -182,7 +182,6 @@ static int doFun03Tasks(int id_thread, int *taskid,int *pcsid)
 	else
 	{
 		wait_flag = 1;
-
 		printf("任务包发送成功！！！！");
 	}
 	return 0;
@@ -192,6 +191,7 @@ static int doFun03Tasks(int id_thread, int *taskid,int *pcsid)
 
 	// }
 }
+
 void *Modbus_clientSend_thread(void *arg) // 25
 {
 	int id_thread = (int)arg;
