@@ -7,6 +7,11 @@
 #include "crc.h"
 #include "my_socket.h"
 #include "sys.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/rtc.h>
 
 /*
 
@@ -45,6 +50,7 @@ EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 PcsData_send g_send_data[MAX_LCD_NUM];
+// int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
 int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
 int pqpcs_mode_set[]={0x3008,0x3018,0x3028,0x3038,0x3068,0x3078};
 int pcsId_pq_vsg[]={0,0,0,0,0,0};
@@ -63,6 +69,76 @@ int myprintbuf(int len, unsigned char *buf)
 	for (i = 0; i < len; i++)
 		printf("0x%x ", buf[i]);
 	printf("\n");
+	return 0;
+}
+
+int setTime(int id_thread)
+{
+	//获取系统时间
+	struct rtc_time time;
+	int timeFd = open("/dev/rtc", O_RDWR);
+	ioctl(timeFd, RTC_RD_TIME, &time);
+	printf("从系统里读取的时间为: %d-%d-%d %d:%d:%d\n",
+		   time.tm_year + 1900,
+		   time.tm_mon + 1,
+		   time.tm_mday,
+		   time.tm_hour,
+		   time.tm_min,
+		   time.tm_sec);
+
+	unsigned char sendbuf[256];
+	unsigned short crccode = 0;
+	unsigned short reg_start = 0x3050;
+	int pos = 0;
+	sendbuf[pos++] = g_num_frame / 256;
+	sendbuf[pos++] = g_num_frame % 256;
+	sendbuf[pos++] = 0;
+	sendbuf[pos++] = 0;
+	sendbuf[pos++] = 0;
+	sendbuf[pos++] = 19;
+	sendbuf[pos++] = (unsigned char)pPara_Modtcp->devNo[id_thread];
+	sendbuf[pos++] = 0x10;
+	sendbuf[pos++] = reg_start / 256;
+	sendbuf[pos++] = reg_start % 256;
+	sendbuf[pos++] = 0;
+	sendbuf[pos++] = 6;
+	sendbuf[pos++] = 12;
+	sendbuf[pos++] = (time.tm_year+1900) / 256;
+	sendbuf[pos++] = (time.tm_year+1900) % 256;
+	sendbuf[pos++] = (time.tm_mon+1) / 256;
+	sendbuf[pos++] = (time.tm_mon+1) % 256;
+	sendbuf[pos++] = time.tm_mday / 256;
+	sendbuf[pos++] = time.tm_mday % 256;
+	sendbuf[pos++] = time.tm_hour / 256;
+	sendbuf[pos++] = time.tm_hour % 256;
+	sendbuf[pos++] = time.tm_min / 256;
+	sendbuf[pos++] = time.tm_min % 256;
+	sendbuf[pos++] = time.tm_sec / 256;
+	sendbuf[pos++] = time.tm_sec % 256;
+
+	if (send(modbus_client_sockptr[id_thread], sendbuf, pos, 0) < 0)
+	{
+		printf("发送失败！！！！id_thread=%d\n", id_thread);
+		return 0xffff;
+	}
+	else
+	{
+		printf("时间已同步\n");
+		printf("任务包发送成功！！！！");
+		close(timeFd);
+		// exit(1);
+
+		g_send_data[id_thread].num_frame = g_num_frame;
+		g_send_data[id_thread].flag_waiting = 1;
+		g_send_data[id_thread].code_fun = 10;
+		g_send_data[id_thread].dev_id = pPara_Modtcp->devNo[id_thread];
+		g_send_data[id_thread].numdata = 6;
+		g_send_data[id_thread].regaddr = reg_start;
+		g_num_frame++;
+		if (g_num_frame == 0x10000)
+			g_num_frame = 1;
+	}
+	usleep(100000);
 	return 0;
 }
 
@@ -97,7 +173,7 @@ int ReadNumPCS(int id_thread)
 	}
 	else
 	{
-
+		printf("读取LCD数量\n");
 		printf("任务包发送成功！！！！");
 		g_send_data[id_thread].num_frame = g_num_frame;
 		g_send_data[id_thread].flag_waiting = 1;
@@ -111,6 +187,7 @@ int ReadNumPCS(int id_thread)
 	}
 	return 0;
 }
+
 
 
 int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val)
@@ -155,6 +232,7 @@ int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val)
 	}
 	return 0;
 }
+
 
 
 #if 0

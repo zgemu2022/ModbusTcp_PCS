@@ -26,8 +26,8 @@ int curPcsId = 0;
 
 unsigned short g_num_frame = 1;
 void RunAccordingtoStatus(int id_thread)
->>>>>>> 006a929270c91d0c3664c6748a15dc123d88538d
 {
+	printf("进入了RunAccordingtoStatus\n");
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -38,8 +38,15 @@ void RunAccordingtoStatus(int id_thread)
 
 	}
 	break;
+	case LCD_SET_TIME:
+	{
+		printf("时间初始化");
+		
+	}
+	break;
 	case LCD_INIT:
 	{
+		ret = setTime(id_thread);
 		ret = ReadNumPCS(id_thread);
 	}	
 	break;
@@ -64,6 +71,7 @@ void RunAccordingtoStatus(int id_thread)
 
 void *Modbus_clientSend_thread(void *arg) // 25
 {
+
 	int id_thread = (int)arg;
 
 	int ret_value = 0;
@@ -73,7 +81,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	int id_frame;
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
-
 	key_t key = 0;
 	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
 
@@ -90,7 +97,8 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	// printf("modbus_sockt_state[id_thread] == STATUS_ON\n") ;
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
-		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
+		// printf("wait_flag:%d\n", wait_flag);
+			ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
 		if (ret_value >= 0)
 		{
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
@@ -116,9 +124,15 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			}
 			continue;
 		}
+	
+
+		// if (wait_flag == 0)
+		// 	continue;
+
 		if (wait_flag == 0)
-			continue;
-		RunAccordingtoStatus(id_thread);
+		//进入状态机
+			RunAccordingtoStatus(id_thread);
+		
 		// usleep(100);
 	}
 	return NULL;
@@ -200,6 +214,7 @@ loop:
 
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	modbus_sockt_state[id_thread] = STATUS_ON;
+	printf("modbus_sockt_state[%d]aaa:%d\n", id_thread, STATUS_ON);
 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
@@ -247,7 +262,6 @@ loop:
 			if (FD_ISSET(fd, &maxFd))
 			{
 				ret = recvFrame(fd, g_comm_qmegid[id_thread], &recvbuf);
-				printf("recvFrame返回值:%d\n", ret);
 				if (ret == -1)
 				{
 					i++;

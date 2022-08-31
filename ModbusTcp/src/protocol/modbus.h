@@ -53,17 +53,31 @@ typedef struct
 extern PcsData_send g_send_data[];
 enum LCD_WORK_STATE //LCD当前工作状态
 {
-		LCD_INIT = 0,//首先读取PCS个数(功能码03)
-		LCD_SET_LCDMODE =1,//开机前整机模式参数设置(功能码06)
-		LCD_SET_LCDPARA_VSG =2,//开机前整机为VSG模式下整机参数设置(功能码06)	
+		LCD_SET_TIME=0,
+		LCD_INIT = 1,//首先读取PCS个数(功能码03)
+		LCD_SET_LCDMODE =2,//开机前整机模式参数设置(功能码06)
+		LCD_SET_LCDPARA_VSG =3,//开机前整机为VSG模式下整机参数设置(功能码06)	
 		
-		LCD_SET_PCSMODE_PQ =3,//开机前整机为PQ模式下模块模式参数设置(功能码06)
-		LCD_SET_PCSMODE_VSG =4,//开机前整机为VSG模式下模块模式参数设置(功能码06)
+		LCD_SET_PCSMODE_PQ =4,//开机前整机为PQ模式下模块模式参数设置(功能码06)
+		LCD_SET_PCSMODE_VSG =5,//开机前整机为VSG模式下模块模式参数设置(功能码06)
 
 
 		LCD_RUNNING=0xff,//正常工作中，循环抄取遥信遥测
-
 };
+
+/*enum LCD_WORK_STATE // LCD当前工作状态
+{
+	LCD_INIT = 0, //首先读取PCS个数(功能码03)
+	LCD_SET_LCDMODE = 1,		   //开机前整机模式参数设置(功能码06)
+	LCD_SET_LCDPARA_VSG = 2,	   //开机前整机为VSG模式下整机参数设置(功能码06)
+
+	LCD_SET_PCSMODE_PQ = 3,	 //开机前整机为PQ模式下模块模式参数设置(功能码06)
+	LCD_SET_PCSMODE_VSG = 4, //开机前整机为VSG模式下模块模式参数设置(功能码06)
+
+	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
+
+};*/
+
 typedef struct
 {
 	unsigned char mode[MAX_LCD_NUM];//PQ模式下模块工作模式 0
@@ -99,6 +113,7 @@ extern int lcd_state[] ;
 int AnalysModbus(int id_thread,unsigned char *pdata,int len);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
+int setTime(int id_threa);
 int doFun03Tasks(int id_thread, int *taskid,int *pcsid);
 int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val);
 #endif
