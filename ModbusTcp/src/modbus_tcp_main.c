@@ -1,9 +1,10 @@
 #include "modbus_tcp_main.h"
-
+#include "modbus.h"
 #include <stdio.h>
 #include <unistd.h>
 #include "sys.h"
 #include "client.h"
+#include <string.h>
 int modbus_tcp_main(void* para)
 {
   //PARA_MODTCP Para_Modtcp;
