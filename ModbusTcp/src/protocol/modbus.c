@@ -89,7 +89,7 @@ int setTime(int id_thread)
 	unsigned char sendbuf[256];
 	unsigned short crccode = 0;
 	unsigned short reg_start = 0x3050;
-	int pos = 0;
+	int pos = 0,i;
 	sendbuf[pos++] = g_num_frame / 256;
 	sendbuf[pos++] = g_num_frame % 256;
 	sendbuf[pos++] = 0;
@@ -103,8 +103,8 @@ int setTime(int id_thread)
 	sendbuf[pos++] = 0;
 	sendbuf[pos++] = 6;
 	sendbuf[pos++] = 12;
-	sendbuf[pos++] = (time.tm_year+1900) / 256;
-	sendbuf[pos++] = (time.tm_year+1900) % 256;
+	sendbuf[pos++] = ((time.tm_year+1900)-2000) / 256;
+	sendbuf[pos++] = ((time.tm_year+1900)-2000) % 256;
 	sendbuf[pos++] = (time.tm_mon+1) / 256;
 	sendbuf[pos++] = (time.tm_mon+1) % 256;
 	sendbuf[pos++] = time.tm_mday / 256;
@@ -116,6 +116,11 @@ int setTime(int id_thread)
 	sendbuf[pos++] = time.tm_sec / 256;
 	sendbuf[pos++] = time.tm_sec % 256;
 
+	printf("发送数据:");
+	for(i = 0; i<pos;i++){
+		printf("%#x ",sendbuf[i]);
+	}
+	printf("\n");
 	if (send(modbus_client_sockptr[id_thread], sendbuf, pos, 0) < 0)
 	{
 		printf("发送失败！！！！id_thread=%d\n", id_thread);
@@ -123,11 +128,10 @@ int setTime(int id_thread)
 	}
 	else
 	{
-		printf("时间已同步\n");
+		// printf("时间已同步\n");
 		printf("任务包发送成功！！！！");
 		close(timeFd);
-		// exit(1);
-
+	
 		g_send_data[id_thread].num_frame = g_num_frame;
 		g_send_data[id_thread].flag_waiting = 1;
 		g_send_data[id_thread].code_fun = 10;
