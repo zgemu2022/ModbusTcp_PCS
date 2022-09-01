@@ -51,19 +51,23 @@ typedef struct
 
 }PcsData_send;//当前发送到led数据，发送前记录，作为接收对比依据
 extern PcsData_send g_send_data[];
-enum LCD_WORK_STATE //LCD当前工作状态
+// extern unsigned short pq_pcspw_set[6][2];//整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
+// extern unsigned short pq_pcscur_set[6][2];//整机设置为PQ后、设置pcs为恒流模式，再设置电流值
+
+extern unsigned short pqpcs_mode_set[];//整机设置为PQ模式后，设置pcs模块模式
+extern unsigned short pqpcs_pw_set[];//恒功率模式 功率给定设置0.1kW正为放电，负为充电
+extern unsigned short pqpcs_cur_set[];//恒流模式 电流给定设置0.1A正为放电，负为充电
+enum LCD_WORK_STATE					  // LCD当前工作状态
 {
-		LCD_SET_TIME=0,
-		LCD_INIT = 1,//首先读取PCS个数(功能码03)
-		LCD_SET_LCDMODE =2,//开机前整机模式参数设置(功能码06)
-		LCD_SET_LCDPARA_VSG =3,//开机前整机为VSG模式下整机参数设置(功能码06)	
-		
-		LCD_SET_PCSMODE_PQ =4,//开机前整机为PQ模式下模块模式参数设置(功能码06)
-		LCD_SET_PCSMODE_VSG =5,//开机前整机为VSG模式下模块模式参数设置(功能码06)
+	LCD_INIT = 0,		 //首先读取PCS个数(功能码03)
+	LCD_SET_MODE = 1,	 //开机前整机模式参数设置(功能码06)
+	LCD_PQ_PCS_MODE = 2, //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
+	LCD_VSG_MODE = 3,	 //整机设置为VSG后、设置工作模式
 
 
-		LCD_RUNNING=0xff,//正常工作中，循环抄取遥信遥测
+	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
+// <<<<<<< HEAD
 
 /*enum LCD_WORK_STATE // LCD当前工作状态
 {
@@ -78,18 +82,14 @@ enum LCD_WORK_STATE //LCD当前工作状态
 
 };*/
 
-typedef struct
-{
-	unsigned char mode[MAX_LCD_NUM];//PQ模式下模块工作模式 0
-	unsigned short val[MAX_LCD_NUM];
+// typedef struct
+// {
+// 	unsigned char mode[MAX_LCD_NUM];//PQ模式下模块工作模式 0
+// 	unsigned short val[MAX_LCD_NUM];
 	
+// =======
+// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
-   	unsigned char LcdStatus[MAX_LCD_NUM];//当前LCD状态，整机运行前0 整机运行后 1
-	unsigned char LcdOperatingMode[MAX_LCD_NUM];//当前LCD工作模式，PQ=1 VSG=5
-	unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
-
-
-}PQ_PARA;//装置运行参数
 
 typedef struct
 {
@@ -97,6 +97,16 @@ typedef struct
    	unsigned char LcdStatus[MAX_LCD_NUM];//当前LCD状态，整机运行前0 整机运行后 1
 	unsigned char LcdOperatingMode[MAX_LCD_NUM];//当前LCD工作模式，PQ=1 VSG=5
 	unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
+	unsigned short pq_mode[MAX_LCD_NUM][MAX_PCS_NUM];//PQ模式下PCS模块工作模式
+
+	short pq_pw[MAX_LCD_NUM][MAX_PCS_NUM];//PQ，恒功率模式下pcs模块功率值
+	short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM];//PQ、恒流模式下pcs模块电流值
+
+	unsigned short vsg_mode[MAX_LCD_NUM];//VSG模式下LCD工作模式
+
+	short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM];//VSG模式，pcs模块有功功率
+	short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM];//VSG模式、pcs模块无功功率
+
 
 
 }EMU_OP_PARA;//装置运行参数
@@ -108,6 +118,8 @@ typedef struct
 
 
 }Pcs_Fun06_Struct;
+extern int curTaskId;
+extern int curPcsId ;
 extern unsigned short g_num_frame;
 extern int lcd_state[] ;
 int AnalysModbus(int id_thread,unsigned char *pdata,int len);
