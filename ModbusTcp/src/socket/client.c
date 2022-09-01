@@ -24,7 +24,7 @@ int g_comm_qmegid[MAX_PCS_NUM];
 unsigned short g_num_frame = 1;
 void RunAccordingtoStatus(int id_thread)
 {
-	printf("进入了RunAccordingtoStatus\n");
+	printf("StateMachine...\n");
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -34,9 +34,13 @@ void RunAccordingtoStatus(int id_thread)
 		ret = doFun03Tasks(id_thread, &curTaskId, &curPcsId);
 	}
 	break;
-	case LCD_INIT:
+	case LCD_SET_TIME :
 	{
 		ret = setTime(id_thread);
+	}
+	break;
+	case LCD_INIT:
+	{
 		ret = ReadNumPCS(id_thread);
 	}
 	break;
@@ -126,10 +130,13 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
 		// printf("wait_flag:%d\n", wait_flag);
-			ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
+		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
+		// printf("aaaaaaaaaaaaaaaaaaaaa  ret_value:%d\n", ret_value);
 		if (ret_value >= 0)
 		{
+			waittime = 0;
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
+
 			id_frame = pcsdata.buf[0] * 256 + pcsdata.buf[1];
 
 			if ((id_frame != 0xffff && (g_num_frame - 1) == id_frame) || (id_frame == 0xffff && g_num_frame == 1))
@@ -142,7 +149,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			wait_flag = 0;
 			continue;
 		}
-		else if (wait_flag == 1)
+
+
+		if (wait_flag == 1)
 		{
 			waittime++;
 			if (waittime == 1000)
@@ -154,12 +163,8 @@ void *Modbus_clientSend_thread(void *arg) // 25
 		}
 	
 
-		// if (wait_flag == 0)
-		// 	continue;
-
-		if (wait_flag == 0)
-			RunAccordingtoStatus(id_thread);
-			// continue;
+		RunAccordingtoStatus(id_thread);
+			continue;
 	}
 	return NULL;
 }
@@ -205,24 +210,33 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 	// 	printf("0x%2x ",recvbuf->buf[i]);
 	// printf("\n");
 }
+
+//参数初始化
 void init_emu_op_para(int id_thread)
 {
 	int i;
+	// LCD
 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
 	g_send_data[id_thread].flag_waiting = 0;
 	g_emu_op_para.vsg_mode[id_thread]=VSG_PQ_PP;
+
+	// PCS
 	for(i=0;i<MAX_PCS_NUM;i++)
 	{
+		//PQ
 		g_emu_op_para.pq_mode[id_thread][i]=PQ_STP;
 		g_emu_op_para.pq_pw[id_thread][i]=500;//50.0kW
 		g_emu_op_para.pq_cur[id_thread][i]=500;//50.0A
+
+		//VSG
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
 
 	}
 }
+
 void *Modbus_clientRecv_thread(void *arg) // 25
 {
 	int id_thread = (int)arg;

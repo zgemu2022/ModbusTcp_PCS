@@ -59,10 +59,12 @@ extern unsigned short pqpcs_pw_set[];//恒功率模式 功率给定设置0.1kW�
 extern unsigned short pqpcs_cur_set[];//恒流模式 电流给定设置0.1A正为放电，负为充电
 enum LCD_WORK_STATE					  // LCD当前工作状态
 {
-	LCD_INIT = 0,		 //首先读取PCS个数(功能码03)
-	LCD_SET_MODE = 1,	 //开机前整机模式参数设置(功能码06)
-	LCD_PQ_PCS_MODE = 2, //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
-	LCD_VSG_MODE = 3,	 //整机设置为VSG后、设置工作模式
+
+	LCD_SET_TIME = 0,   //开机对时
+	LCD_INIT = 1,		 //首先读取PCS个数(功能码03)
+	LCD_SET_MODE = 2,	 //开机前整机模式参数设置(功能码06)
+	LCD_PQ_PCS_MODE = 3, //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
+	LCD_VSG_MODE = 4,	 //整机设置为VSG后、设置工作模式
 
 
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
