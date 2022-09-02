@@ -87,9 +87,6 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val = g_emu_op_para.vsg_mode[id_thread];
 		ret = SetLcdFun06(id_thread, funid, val);
 	}
-
-
-
 	break;
 
 
@@ -131,7 +128,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	{
 		// printf("wait_flag:%d\n", wait_flag);
 		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
-		// printf("aaaaaaaaaaaaaaaaaaaaa  ret_value:%d\n", ret_value);
 		if (ret_value >= 0)
 		{
 			waittime = 0;
@@ -142,7 +138,11 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			if ((id_frame != 0xffff && (g_num_frame - 1) == id_frame) || (id_frame == 0xffff && g_num_frame == 1))
 			{
 				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
-				AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				printf("****************res:%d\n",res);
+				if(0 == res){
+					printf("数据解析成功！！！\n");
+				}
 			}
 			else
 				printf("检查是否发生丢包现象！！！！！g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
