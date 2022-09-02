@@ -24,7 +24,7 @@ int g_comm_qmegid[MAX_PCS_NUM];
 unsigned short g_num_frame = 1;
 void RunAccordingtoStatus(int id_thread)
 {
-	printf("StateMachine...\n");
+	printf("\n\nStateMachine...\n");
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -36,11 +36,13 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_SET_TIME :
 	{
+		printf("初始化时间...\n");
 		ret = setTime(id_thread);
 	}
 	break;
 	case LCD_INIT:
 	{
+		printf("LCD初始化...\n");
 		ret = ReadNumPCS(id_thread);
 	}
 	break;
@@ -49,46 +51,46 @@ void RunAccordingtoStatus(int id_thread)
 		// 0x3046	产品运行模式设置	uint16	整机	1	5	"需在启机前设置，模块运行后无法进行设置
 		// 1：PQ模式（高低穿功能，需选择1）；
 		// 5：VSG模式（并离网功能，需选择5）；"
-
+		printf("LCD 设置运行模式...\n");
 		ret = SetLcdFun06(id_thread, 0x3046, g_emu_op_para.LcdOperatingMode[id_thread]);
 	}
 	break;
 	case LCD_PQ_PCS_MODE:
 	{
-		unsigned short funid;// = pq_pcspw_set[curPcsId][curTaskId];
+		printf("PCS 设置成PQ模式...\n");
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		if(curTaskId==0)
 		{
-			 funid = pqpcs_mode_set[curPcsId];
-             val = g_emu_op_para.pq_mode[id_thread][curPcsId];
+			regaddr = pqpcs_mode_set[curPcsId];
+			val = g_emu_op_para.pq_mode[id_thread][curPcsId];
 		}
     	else
 		{
 			if(g_emu_op_para.pq_mode[id_thread][curPcsId]==PQ_STP)//设置恒功率
 			{
-				funid = pqpcs_pw_set[curPcsId];
+				regaddr = pqpcs_pw_set[curPcsId];
 				val = g_emu_op_para.pq_pw[id_thread][curPcsId];
 			}
 			else//PQ_STA 设置恒流
 			{
-				funid = pqpcs_cur_set[curPcsId];
+				regaddr = pqpcs_cur_set[curPcsId];
 				val = g_emu_op_para.pq_cur[id_thread][curPcsId];
 			}
 		}
-			
 
-		ret = SetLcdFun06(id_thread, funid, val);
+		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
 
 	case LCD_VSG_MODE:
 	{
-		unsigned short funid = 0x3047;// = pq_pcspw_set[curPcsId][curTaskId];
+		printf("PCS 设置成VSG模式...\n");
+		unsigned short regaddr = 0x3047; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val = g_emu_op_para.vsg_mode[id_thread];
-		ret = SetLcdFun06(id_thread, funid, val);
+		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
-
 
 	default:
 		break;
@@ -372,13 +374,13 @@ void CreateThreads(void)
 	pthread_attr_t Thread_attr;
 	int i;
 	printf("pPara_Modtcp lcd数量:%d\n", pPara_Modtcp->lcdnum);
-	pPara_Modtcp->pcsnum[0] = 6;
 	// pPara_Modtcp->pcsnum[1] = 1;
 	// pPara_Modtcp->pcsnum[2] = 1;
 
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
 		modbus_sockt_state[i] = STATUS_OFF;
+		printf("pPara_Modtcp %d号lcd下pcs的数量:%d\n",i, pPara_Modtcp->pcsnum[i]);
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{
 			printf("MODBUS CONNECT THTREAD CREATE ERR!\n");
