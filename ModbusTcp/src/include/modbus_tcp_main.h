@@ -1,6 +1,6 @@
 #ifndef _MODBUS_TCP_MAIN_H_
 #define _MODBUS_TCP_MAIN_H_
-#define MAX_PCS_NUM   10
+#define MAX_PCS_NUM   6
 
 
 #define MASTER   1

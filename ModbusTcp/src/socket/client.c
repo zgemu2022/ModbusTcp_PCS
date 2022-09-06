@@ -120,18 +120,18 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	break;
 
-	case LCD_VSG_QW_PCS_MODE:
-	{
-		printf("VSG 无功参数设置 ...\n");
-		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
-		unsigned short val;
+	// case LCD_VSG_QW_PCS_MODE:
+	// {
+	// 	printf("VSG 无功参数设置 ...\n");
+	// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+	// 	unsigned short val;
 
-		regaddr = vsgpcs_qw_set[curPcsId];
-		val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
+	// 	regaddr = vsgpcs_qw_set[curPcsId];
+	// 	val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
 
-		ret = SetLcdFun06(id_thread, regaddr, val);
-	}
-	break;
+	// 	ret = SetLcdFun06(id_thread, regaddr, val);
+	// }
+	// break;
 
 	default:
 		break;
@@ -277,8 +277,6 @@ void init_emu_op_para(int id_thread)
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
 
-		g_emu_op_para.start[id_thread][i] = 0xFF00;  //开机
-		g_emu_op_para.shutdown[id_thread][i] = 0x00FF; //关机
 	}
 
 

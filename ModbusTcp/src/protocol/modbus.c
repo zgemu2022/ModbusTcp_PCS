@@ -325,6 +325,33 @@ int AnalysModbus(unsigned char *datain, unsigned int len, int id_client)
 	return 0;
 }
 #endif
+
+int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
+{
+	int pcsid;
+	switch(regAddr)
+	{
+		case 0x1103:
+			lcdid=1;
+		case 0x1120:
+			lcdid=2;
+		case 0x113c:
+			lcdid=3;
+		case 0x115a:
+			lcdid=4;
+		case 0x1193:
+			lcdid=5;
+		case 0x11b0:
+			lcdid=6;
+			{
+
+			}
+			break;
+		default:
+		break;
+
+	}
+}
 //数据解析
 int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
@@ -384,13 +411,21 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 
 	printf("   寄存器起始地址:%#x   ", regAddr);
-	if (funid == 3 && regAddr == 0x1246)
+	if (funid == 3)
 	{
+		if(regAddr == 0x1246) 
+		{
 		//放在现场时，用以下获取LCD下PCS数量
-		// Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
+	#if 0
+		 Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
+	#endif
 		Para_Modtcp.pcsnum[id_thread] =6;  //测试时获取PCS数量
 		printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 		lcd_state[id_thread] = LCD_SET_MODE;
+		}
+		else
+           AnalysModbus_fun03(id_thread,pdata,len);
+
 	}
 	else if (funid == 6 && regAddr == 0x3046)
 	{
