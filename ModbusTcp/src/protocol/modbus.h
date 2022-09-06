@@ -57,20 +57,46 @@ extern PcsData_send g_send_data[];
 extern unsigned short pqpcs_mode_set[];//整机设置为PQ模式后，设置pcs模块模式
 extern unsigned short pqpcs_pw_set[];//恒功率模式 功率给定设置0.1kW正为放电，负为充电
 extern unsigned short pqpcs_cur_set[];//恒流模式 电流给定设置0.1A正为放电，负为充电
-enum LCD_WORK_STATE //LCD当前工作状态
+
+extern unsigned short vsgpcs_pw_set[]; // VSG模式 有功给定设置
+extern unsigned short vsgpcs_qw_set[]; // VSG模式 无功
+
+// extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
+enum LCD_WORK_STATE							   // LCD当前工作状态
 {
-	
-		LCD_INIT = 0,//首先读取PCS个数(功能码03)
-		LCD_SET_MODE =1,//开机前整机模式参数设置(功能码06)
-		LCD_PQ_PCS_MODE =2,//整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
-		LCD_VSG_MODE =3,//整机设置为VSG后、设置工作模式
-	
 
+	LCD_SET_TIME = 0,		 //开机对时
+	LCD_INIT = 1,			 //首先读取PCS个数(功能码03)
+	LCD_SET_MODE = 2,		 //开机前整机模式参数设置(功能码06)
+	LCD_PQ_PCS_MODE = 3,	 //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
+	LCD_VSG_MODE = 4,		 //整机设置为VSG后、设置工作模式
+	LCD_VSG_PW_PCS_MODE = 5, //整机设置为VSG后,有功
+	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
 
-
-		LCD_RUNNING=0xff,//正常工作中，循环抄取遥信遥测
-
+	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
+// <<<<<<< HEAD
+
+/*enum LCD_WORK_STATE // LCD当前工作状态
+{
+	LCD_INIT = 0, //首先读取PCS个数(功能码03)
+	LCD_SET_LCDMODE = 1,		   //开机前整机模式参数设置(功能码06)
+	LCD_SET_LCDPARA_VSG = 2,	   //开机前整机为VSG模式下整机参数设置(功能码06)
+
+	LCD_SET_PCSMODE_PQ = 3,	 //开机前整机为PQ模式下模块模式参数设置(功能码06)
+	LCD_SET_PCSMODE_VSG = 4, //开机前整机为VSG模式下模块模式参数设置(功能码06)
+
+	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
+
+};*/
+
+// typedef struct
+// {
+// 	unsigned char mode[MAX_LCD_NUM];//PQ模式下模块工作模式 0
+// 	unsigned short val[MAX_LCD_NUM];
+	
+// =======
+// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
 
 typedef struct
@@ -107,6 +133,7 @@ extern int lcd_state[] ;
 int AnalysModbus(int id_thread,unsigned char *pdata,int len);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
+int setTime(int id_threa);
 int doFun03Tasks(int id_thread, int *taskid,int *pcsid);
 int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val);
 #endif

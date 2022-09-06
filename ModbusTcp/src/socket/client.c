@@ -24,6 +24,7 @@ int g_comm_qmegid[MAX_PCS_NUM];
 unsigned short g_num_frame = 1;
 void RunAccordingtoStatus(int id_thread)
 {
+	printf("\n\nStateMachine...\n");
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -33,8 +34,15 @@ void RunAccordingtoStatus(int id_thread)
 		ret = doFun03Tasks(id_thread, &curTaskId, &curPcsId);
 	}
 	break;
+	case LCD_SET_TIME :
+	{
+		printf("初始化时间...\n");
+		ret = setTime(id_thread);
+	}
+	break;
 	case LCD_INIT:
 	{
+		printf("LCD初始化...\n");
 		ret = ReadNumPCS(id_thread);
 	}
 	break;
@@ -43,49 +51,87 @@ void RunAccordingtoStatus(int id_thread)
 		// 0x3046	产品运行模式设置	uint16	整机	1	5	"需在启机前设置，模块运行后无法进行设置
 		// 1：PQ模式（高低穿功能，需选择1）；
 		// 5：VSG模式（并离网功能，需选择5）；"
-
+		printf("LCD 设置运行模式...\n");
 		ret = SetLcdFun06(id_thread, 0x3046, g_emu_op_para.LcdOperatingMode[id_thread]);
 	}
 	break;
 	case LCD_PQ_PCS_MODE:
 	{
-		unsigned short funid;// = pq_pcspw_set[curPcsId][curTaskId];
+		printf("PCS 设置成PQ模式...\n");
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		if(curTaskId==0)
 		{
-			 funid = pqpcs_mode_set[curPcsId];
-             val = g_emu_op_para.pq_mode[id_thread][curPcsId];
+			regaddr = pqpcs_mode_set[curPcsId];
+			val = g_emu_op_para.pq_mode[id_thread][curPcsId];
 		}
     	else
 		{
 			if(g_emu_op_para.pq_mode[id_thread][curPcsId]==PQ_STP)//设置恒功率
 			{
-				funid = pqpcs_pw_set[curPcsId];
+				regaddr = pqpcs_pw_set[curPcsId];
 				val = g_emu_op_para.pq_pw[id_thread][curPcsId];
 			}
 			else//PQ_STA 设置恒流
 			{
-				funid = pqpcs_cur_set[curPcsId];
+				regaddr = pqpcs_cur_set[curPcsId];
 				val = g_emu_op_para.pq_cur[id_thread][curPcsId];
 			}
 		}
-			
 
-		ret = SetLcdFun06(id_thread, funid, val);
+		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
 
 	case LCD_VSG_MODE:
 	{
-		unsigned short funid = 0x3047;// = pq_pcspw_set[curPcsId][curTaskId];
+		printf("PCS 设置成VSG模式...\n");
+		unsigned short regaddr = 0x3047; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val = g_emu_op_para.vsg_mode[id_thread];
-		ret = SetLcdFun06(id_thread, funid, val);
+		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
-
-
-
 	break;
 
+	case LCD_VSG_PW_PCS_MODE:
+	{
+		printf("VSG 有功参数设置 ...\n");
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+		
+			regaddr = vsgpcs_pw_set[curPcsId];
+			val = g_emu_op_para.vsg_pw[id_thread][curPcsId];
+			// regaddr = vsgpcs_qw_set[curPcsId];
+			// val = g_emu_op_para.pq_cur[id_thread][curPcsId];
+
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+	break;
+
+	case LCD_VSG_QW_PCS_MODE:
+	{
+		printf("VSG 无功参数设置 ...\n");
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+
+		regaddr = vsgpcs_qw_set[curPcsId];
+		val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
+
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+	break;
+
+	case LCD_VSG_QW_PCS_MODE:
+	{
+		printf("VSG 无功参数设置 ...\n");
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+
+		regaddr = vsgpcs_qw_set[curPcsId];
+		val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
+
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+	break;
 
 	default:
 		break;
@@ -94,8 +140,10 @@ void RunAccordingtoStatus(int id_thread)
 		wait_flag = 1;
 
 }
+
 void *Modbus_clientSend_thread(void *arg) // 25
 {
+
 	int id_thread = (int)arg;
 
 	int ret_value = 0;
@@ -105,7 +153,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	int id_frame;
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
-
 	key_t key = 0;
 	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
 
@@ -122,23 +169,32 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	// printf("modbus_sockt_state[id_thread] == STATUS_ON\n") ;
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
+		// printf("wait_flag:%d\n", wait_flag);
 		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
 		if (ret_value >= 0)
 		{
+			waittime = 0;
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
+
 			id_frame = pcsdata.buf[0] * 256 + pcsdata.buf[1];
 
 			if ((id_frame != 0xffff && (g_num_frame - 1) == id_frame) || (id_frame == 0xffff && g_num_frame == 1))
 			{
 				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
-				AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				printf("****************res:%d\n",res);
+				if(0 == res){
+					printf("数据解析成功！！！\n");
+				}
 			}
 			else
 				printf("检查是否发生丢包现象！！！！！g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
 			wait_flag = 0;
 			continue;
 		}
-		else if (wait_flag == 1)
+
+
+		if (wait_flag == 1)
 		{
 			waittime++;
 			if (waittime == 1000)
@@ -148,11 +204,10 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			}
 			continue;
 		}
-		if (wait_flag == 0)
-			continue;
+	
 
 		RunAccordingtoStatus(id_thread);
-		// usleep(100);
+			continue;
 	}
 	return NULL;
 }
@@ -198,24 +253,37 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 	// 	printf("0x%2x ",recvbuf->buf[i]);
 	// printf("\n");
 }
+
+//参数初始化
 void init_emu_op_para(int id_thread)
 {
 	int i;
+	// LCD
 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
 	g_send_data[id_thread].flag_waiting = 0;
 	g_emu_op_para.vsg_mode[id_thread]=VSG_PQ_PP;
+
+	// PCS
 	for(i=0;i<MAX_PCS_NUM;i++)
 	{
+		//PQ
 		g_emu_op_para.pq_mode[id_thread][i]=PQ_STP;
 		g_emu_op_para.pq_pw[id_thread][i]=500;//50.0kW
 		g_emu_op_para.pq_cur[id_thread][i]=500;//50.0A
+
+		//VSG
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
 
+		g_emu_op_para.start[id_thread][i] = 0xFF00;  //开机
+		g_emu_op_para.shutdown[id_thread][i] = 0x00FF; //关机
 	}
+
+
 }
+
 void *Modbus_clientRecv_thread(void *arg) // 25
 {
 	int id_thread = (int)arg;
@@ -250,7 +318,15 @@ loop:
 
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	modbus_sockt_state[id_thread] = STATUS_ON;
+// <<<<<<< HEAD
+// 	printf("modbus_sockt_state[%d]aaa:%d\n", id_thread, STATUS_ON);
+// 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
+// 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
+// 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
+// 	g_send_data[id_thread].flag_waiting = 0;
+// =======
     init_emu_op_para(id_thread);
+// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
 	jj = 0; //未接收到数据累计标志，大于1000清零
 	i = 0;
@@ -294,7 +370,6 @@ loop:
 			if (FD_ISSET(fd, &maxFd))
 			{
 				ret = recvFrame(fd, g_comm_qmegid[id_thread], &recvbuf);
-				printf("recvFrame返回值:%d\n", ret);
 				if (ret == -1)
 				{
 					i++;
@@ -344,13 +419,13 @@ void CreateThreads(void)
 	pthread_attr_t Thread_attr;
 	int i;
 	printf("pPara_Modtcp lcd数量:%d\n", pPara_Modtcp->lcdnum);
-	pPara_Modtcp->pcsnum[0] = 6;
 	// pPara_Modtcp->pcsnum[1] = 1;
 	// pPara_Modtcp->pcsnum[2] = 1;
 
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
 		modbus_sockt_state[i] = STATUS_OFF;
+		printf("pPara_Modtcp %d号lcd下pcs的数量:%d\n",i, pPara_Modtcp->pcsnum[i]);
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{
 			printf("MODBUS CONNECT THTREAD CREATE ERR!\n");
