@@ -72,7 +72,6 @@ enum LCD_WORK_STATE							   // LCD当前工作状态
 	LCD_VSG_MODE = 4,		 //整机设置为VSG后、设置工作模式
 	LCD_VSG_PW_PCS_MODE = 5, //整机设置为VSG后,有功
 	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
-	LCD_PCS_REMOTE_SWITCH = 7, //各模块 远程开/关机
 
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };

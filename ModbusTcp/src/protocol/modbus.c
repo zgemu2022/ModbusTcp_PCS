@@ -69,7 +69,6 @@ unsigned short pqpcs_pw_set[]={0x3005,0x3015,0x3025,0x3035,0x3065,0x3075};//恒�
 unsigned short vsgpcs_pw_set[]={0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071}; //整机设置为VSG模式后，设置有功率
 unsigned short vsgpcs_qw_set[]={0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为VSG模式后，设置无功率
 
-//unsigned short lcd_pcs_remote_switch[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3070}; // lCD下各模块远程开关，0xFF00：远程开机；0x00FF：远程关机
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 Pcs_Fun03_Struct pcsYc[] = {
 	//遥测
