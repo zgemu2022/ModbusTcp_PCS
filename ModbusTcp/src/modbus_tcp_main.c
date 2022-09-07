@@ -26,3 +26,20 @@ CreateThreads();
 return 0;
 }
 
+int SubscribePcsData()
+{
+	return 0;
+}
+
+int SubscribePcsData(unsigned char type,outData2Other pfun)//订阅pcs数据
+{
+	printf("正在订阅pcs数据 type=%d！！！！！\n",type);
+	post_list_t *note=(post_list_t*) new post_list_t;
+	note->type=type;
+
+   note->pfun=pfun;
+   note->next=post_list_l;
+   post_list_l=note;
+
+	return 0;
+}

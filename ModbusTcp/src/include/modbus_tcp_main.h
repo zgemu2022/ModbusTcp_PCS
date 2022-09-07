@@ -15,6 +15,14 @@ typedef struct
 	unsigned short server_port[MAX_PCS_NUM];
 } PARA_MODTCP; //从主控传到Modbus-Tcp模块的结构1
 
+//回调
+typedef int			(*outData2Other)(unsigned char ,unsigned char ,void *pdata);	//输出数据
 
+typedef struct _post_list_t
+{
+	outData2Other  pfun;
+	unsigned char type;
+    struct _post_list_t *next;
+}post_list_t;
 
 #endif

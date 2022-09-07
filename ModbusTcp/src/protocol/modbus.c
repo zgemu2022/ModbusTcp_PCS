@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/rtc.h>
-
+#include "output.h"
 /*
 
 EMU 参数
@@ -46,6 +46,8 @@ EMU 参数
 */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+post_list_t *post_list_l=NULL;
+
 int  curTaskId = 0;
 int curPcsId = 0;
 EMU_OP_PARA g_emu_op_para;
@@ -329,23 +331,23 @@ int AnalysModbus(unsigned char *datain, unsigned int len, int id_client)
 int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
 	int pcsid;
+	unsigned short num;
 	switch(regAddr)
 	{
 		case 0x1103:
-			lcdid=1;
+			pcsid=1;
 		case 0x1120:
-			lcdid=2;
+			pcsid=2;
 		case 0x113c:
-			lcdid=3;
+			pcsid=3;
 		case 0x115a:
-			lcdid=4;
+			pcsid=4;
 		case 0x1193:
-			lcdid=5;
+			pcsid=5;
 		case 0x11b0:
-			lcdid=6;
-			{
-
-			}
+			pcsid=6;
+            num=pdata[2];
+            SaveYcData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
 			break;
 		default:
 		break;
@@ -424,7 +426,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		lcd_state[id_thread] = LCD_SET_MODE;
 		}
 		else
-           AnalysModbus_fun03(id_thread,pdata,len);
+           AnalysModbus_fun03(id_thread,regAddr,emudata,len-6);
 
 	}
 	else if (funid == 6 && regAddr == 0x3046)

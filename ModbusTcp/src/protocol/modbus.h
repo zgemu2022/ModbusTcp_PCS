@@ -60,7 +60,7 @@ extern unsigned short pqpcs_cur_set[];//恒流模式 电流给定设置0.1A正�
 
 extern unsigned short vsgpcs_pw_set[]; // VSG模式 有功给定设置
 extern unsigned short vsgpcs_qw_set[]; // VSG模式 无功
-
+extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE							   // LCD当前工作状态
 {
