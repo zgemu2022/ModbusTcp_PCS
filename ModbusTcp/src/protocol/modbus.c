@@ -13,6 +13,7 @@
 #include <sys/ioctl.h>
 #include <linux/rtc.h>
 #include "output.h"
+#include "unistd.h"
 /*
 
 EMU 参数
@@ -105,7 +106,6 @@ int setTime(int id_thread)
 		   time.tm_sec);
 
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
 	sendbuf[pos++] = g_num_frame / 256;
@@ -169,7 +169,6 @@ int setTime(int id_thread)
 int ReadNumPCS(int id_thread)
 {
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	unsigned short reg_start = 0x1246;
 	int pos = 0;
 	sendbuf[pos++] = g_num_frame / 256;
@@ -223,7 +222,6 @@ int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val)
 {
 	// printf("ssssssss\n");
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	int pos = 0;
 	sendbuf[pos++] = g_num_frame / 256;
 	sendbuf[pos++] = g_num_frame % 256;
@@ -353,6 +351,7 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdat
 		break;
 
 	}
+	return 0;
 }
 //数据解析
 int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout

@@ -5,6 +5,7 @@
 #include "sys.h"
 #include "client.h"
 #include <string.h>
+#include <malloc.h>
 int modbus_tcp_main(void* para)
 {
   //PARA_MODTCP Para_Modtcp;
@@ -26,15 +27,11 @@ CreateThreads();
 return 0;
 }
 
-int SubscribePcsData()
-{
-	return 0;
-}
 
 int SubscribePcsData(unsigned char type,outData2Other pfun)//订阅pcs数据
 {
 	printf("正在订阅pcs数据 type=%d！！！！！\n",type);
-	post_list_t *note=(post_list_t*) new post_list_t;
+	post_list_t *note=(post_list_t*) malloc(sizeof(post_list_t));
 	note->type=type;
 
    note->pfun=pfun;
