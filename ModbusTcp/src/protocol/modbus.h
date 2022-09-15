@@ -21,7 +21,15 @@
 #define PQ_STP    0//0：恒功率模式；
 #define PQ_STA    3 //3：恒流模式；
 
-
+typedef struct
+{
+	char type; //1 Master 2 Slave
+	unsigned char lcdnum;
+	unsigned char pcsnum[MAX_PCS_NUM];
+	unsigned char  devNo[MAX_PCS_NUM];
+	char  server_ip[64];
+	unsigned short server_port;
+} PARA_MODTCP; //系统运行参数
 typedef struct
 {
 	unsigned short RegStart;//寄存器开始地址

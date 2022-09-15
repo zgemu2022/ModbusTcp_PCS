@@ -347,6 +347,22 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdat
             num=pdata[2];
             SaveYcData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
 			break;
+		case 0x1200:
+			pcsid=1;
+		case 0x1210:
+			pcsid=2;
+		case 0x1220:
+			pcsid=3;
+		case 0x1230:
+			pcsid=4;
+		case 0x1250:
+			pcsid=5;
+		case 0x1260:
+			pcsid=6;
+			num=pdata[2];
+            SaveYxData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
+
+
 		default:
 		break;
 

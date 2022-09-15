@@ -1,7 +1,8 @@
 #ifndef _YX_DEFINE_H_
 #define _YX_DEFINE_H_
 
-
+#define setbit(x,y) x|=(1<<y) //将X的第Y位置1
+#define clrbit(x,y) x&=~(1<<y) //将X的第Y位清0
 //遥信
 //u16_InvRunState1（变流运行状态1）遥信第一个寄存器1200
 #define   bPcsStoped            0  //停机，传输到EMS
@@ -147,8 +148,8 @@
 //#define 预留 0~1 //bit0~1 预留 故障代码：600~601 /
 #define bEMERG_STOP 2 //bit2 变流器1-急停 故障代码：602 显示故障名称
 #define bSYNCIFault 3 //bit3 变流器1-设备内部故障603 故障代码：603 显示代码
-#define bUnderVoltBatt 4 //bit4 变流器1-BATT1欠压故障 故障代码：604 显示故障名称
-#define bUnderVoltBatt 5 //bit5 变流器1-BATT2欠压故障 故障代码：605 显示故障名称
+#define bUnderVoltBatt1 4 //bit4 变流器1-BATT1欠压故障 故障代码：604 显示故障名称
+#define bUnderVoltBatt2 5 //bit5 变流器1-BATT2欠压故障 故障代码：605 显示故障名称
 #define bOverCurrentBatt1 6 //bit6 变流器1-BATT1过流故障 故障代码：606 显示故障名称
 #define bOverCurrentBatt2 7 //bit7 变流器1-BATT2过流故障 故障代码：607 显示故障名称
 #define bOverVoltBatt1 8 //bit8 变流器1-BATT1过压故障 故障代码：608 显示故障名称

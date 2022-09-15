@@ -1,75 +1,70 @@
 /mnt/hgfs/tcp/ModbusTcp/build/modbus.o: src/protocol/modbus.c \
- /usr/arm-linux-gnueabihf/include/stdc-predef.h src/protocol/modbus.h \
- src/include/modbus_tcp_main.h src/socket/client.h \
- /usr/arm-linux-gnueabihf/include/stdio.h \
- /usr/arm-linux-gnueabihf/include/features.h \
- /usr/arm-linux-gnueabihf/include/sys/cdefs.h \
- /usr/arm-linux-gnueabihf/include/bits/wordsize.h \
- /usr/arm-linux-gnueabihf/include/gnu/stubs.h \
- /usr/arm-linux-gnueabihf/include/gnu/stubs-hard.h \
- /usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stddef.h \
- /usr/arm-linux-gnueabihf/include/bits/types.h \
- /usr/arm-linux-gnueabihf/include/bits/typesizes.h \
- /usr/arm-linux-gnueabihf/include/libio.h \
- /usr/arm-linux-gnueabihf/include/_G_config.h \
- /usr/arm-linux-gnueabihf/include/wchar.h \
- /usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stdarg.h \
- /usr/arm-linux-gnueabihf/include/bits/stdio_lim.h \
- /usr/arm-linux-gnueabihf/include/bits/sys_errlist.h \
- /usr/arm-linux-gnueabihf/include/string.h \
- /usr/arm-linux-gnueabihf/include/xlocale.h src/include/crc.h \
- src/socket/my_socket.h /usr/arm-linux-gnueabihf/include/netinet/in.h \
- /usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stdint.h \
- /usr/arm-linux-gnueabihf/include/stdint.h \
- /usr/arm-linux-gnueabihf/include/bits/wchar.h \
- /usr/arm-linux-gnueabihf/include/sys/socket.h \
- /usr/arm-linux-gnueabihf/include/sys/uio.h \
- /usr/arm-linux-gnueabihf/include/sys/types.h \
- /usr/arm-linux-gnueabihf/include/time.h \
- /usr/arm-linux-gnueabihf/include/endian.h \
- /usr/arm-linux-gnueabihf/include/bits/endian.h \
- /usr/arm-linux-gnueabihf/include/bits/byteswap.h \
- /usr/arm-linux-gnueabihf/include/bits/byteswap-16.h \
- /usr/arm-linux-gnueabihf/include/sys/select.h \
- /usr/arm-linux-gnueabihf/include/bits/select.h \
- /usr/arm-linux-gnueabihf/include/bits/sigset.h \
- /usr/arm-linux-gnueabihf/include/bits/time.h \
- /usr/arm-linux-gnueabihf/include/sys/sysmacros.h \
- /usr/arm-linux-gnueabihf/include/bits/pthreadtypes.h \
- /usr/arm-linux-gnueabihf/include/bits/uio.h \
- /usr/arm-linux-gnueabihf/include/bits/socket.h \
- /usr/arm-linux-gnueabihf/include/bits/socket_type.h \
- /usr/arm-linux-gnueabihf/include/bits/sockaddr.h \
- /usr/arm-linux-gnueabihf/include/asm/socket.h \
- /usr/arm-linux-gnueabihf/include/asm-generic/socket.h \
- /usr/arm-linux-gnueabihf/include/asm/sockios.h \
- /usr/arm-linux-gnueabihf/include/asm-generic/sockios.h \
- /usr/arm-linux-gnueabihf/include/bits/in.h src/include/sys.h \
- /usr/arm-linux-gnueabihf/include/sys/ipc.h \
- /usr/arm-linux-gnueabihf/include/bits/ipctypes.h \
- /usr/arm-linux-gnueabihf/include/bits/ipc.h \
- /usr/arm-linux-gnueabihf/include/sys/stat.h \
- /usr/arm-linux-gnueabihf/include/bits/stat.h \
- /usr/arm-linux-gnueabihf/include/fcntl.h \
- /usr/arm-linux-gnueabihf/include/bits/fcntl.h \
- /usr/arm-linux-gnueabihf/include/bits/fcntl-linux.h \
- /usr/arm-linux-gnueabihf/include/sys/ioctl.h \
- /usr/arm-linux-gnueabihf/include/bits/ioctls.h \
- /usr/arm-linux-gnueabihf/include/asm/ioctls.h \
- /usr/arm-linux-gnueabihf/include/asm-generic/ioctls.h \
- /usr/arm-linux-gnueabihf/include/linux/ioctl.h \
- /usr/arm-linux-gnueabihf/include/asm/ioctl.h \
- /usr/arm-linux-gnueabihf/include/asm-generic/ioctl.h \
- /usr/arm-linux-gnueabihf/include/bits/ioctl-types.h \
- /usr/arm-linux-gnueabihf/include/sys/ttydefaults.h \
- /usr/arm-linux-gnueabihf/include/linux/rtc.h src/protocol/output.h \
- /usr/arm-linux-gnueabihf/include/unistd.h \
- /usr/arm-linux-gnueabihf/include/bits/posix_opt.h \
- /usr/arm-linux-gnueabihf/include/bits/environments.h \
- /usr/arm-linux-gnueabihf/include/bits/confname.h \
- /usr/arm-linux-gnueabihf/include/getopt.h
-
-/usr/arm-linux-gnueabihf/include/stdc-predef.h:
+ src/protocol/modbus.h src/include/modbus_tcp_main.h src/socket/client.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/cdefs.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/wordsize.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/gnu/stubs.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stddef.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/types.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/typesizes.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./libio.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./_G_config.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./wchar.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stdarg.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/stdio_lim.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sys_errlist.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./string.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./xlocale.h \
+ src/include/crc.h src/socket/my_socket.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./netinet/in.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stdint.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdint.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/wchar.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/socket.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/uio.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/types.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./time.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./endian.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/endian.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/byteswap.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/select.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/select.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sigset.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/time.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/sysmacros.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/pthreadtypes.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/uio.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/socket.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sockaddr.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/socket.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/sockios.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/in.h \
+ src/include/sys.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ipc.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ipctypes.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ipc.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/stat.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/stat.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./fcntl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/fcntl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ioctl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ioctls.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/ioctls.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./asm-generic/ioctls.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./linux/ioctl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/ioctl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./asm-generic/ioctl.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ioctl-types.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ttydefaults.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./linux/rtc.h \
+ src/protocol/output.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./unistd.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/posix_opt.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/environments.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/confname.h \
+ /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./getopt.h
 
 src/protocol/modbus.h:
 
@@ -77,144 +72,134 @@ src/include/modbus_tcp_main.h:
 
 src/socket/client.h:
 
-/usr/arm-linux-gnueabihf/include/stdio.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h:
 
-/usr/arm-linux-gnueabihf/include/features.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h:
 
-/usr/arm-linux-gnueabihf/include/sys/cdefs.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h:
 
-/usr/arm-linux-gnueabihf/include/bits/wordsize.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/cdefs.h:
 
-/usr/arm-linux-gnueabihf/include/gnu/stubs.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/wordsize.h:
 
-/usr/arm-linux-gnueabihf/include/gnu/stubs-hard.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/gnu/stubs.h:
 
-/usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stddef.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stddef.h:
 
-/usr/arm-linux-gnueabihf/include/bits/types.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/types.h:
 
-/usr/arm-linux-gnueabihf/include/bits/typesizes.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/typesizes.h:
 
-/usr/arm-linux-gnueabihf/include/libio.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./libio.h:
 
-/usr/arm-linux-gnueabihf/include/_G_config.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./_G_config.h:
 
-/usr/arm-linux-gnueabihf/include/wchar.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./wchar.h:
 
-/usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stdarg.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stdarg.h:
 
-/usr/arm-linux-gnueabihf/include/bits/stdio_lim.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/stdio_lim.h:
 
-/usr/arm-linux-gnueabihf/include/bits/sys_errlist.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sys_errlist.h:
 
-/usr/arm-linux-gnueabihf/include/string.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./string.h:
 
-/usr/arm-linux-gnueabihf/include/xlocale.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./xlocale.h:
 
 src/include/crc.h:
 
 src/socket/my_socket.h:
 
-/usr/arm-linux-gnueabihf/include/netinet/in.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./netinet/in.h:
 
-/usr/lib/gcc-cross/arm-linux-gnueabihf/4.8/include/stdint.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../lib/gcc/arm-linux-gnueabihf/4.7.3/include/stdint.h:
 
-/usr/arm-linux-gnueabihf/include/stdint.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdint.h:
 
-/usr/arm-linux-gnueabihf/include/bits/wchar.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/wchar.h:
 
-/usr/arm-linux-gnueabihf/include/sys/socket.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/socket.h:
 
-/usr/arm-linux-gnueabihf/include/sys/uio.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/uio.h:
 
-/usr/arm-linux-gnueabihf/include/sys/types.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/types.h:
 
-/usr/arm-linux-gnueabihf/include/time.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./time.h:
 
-/usr/arm-linux-gnueabihf/include/endian.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./endian.h:
 
-/usr/arm-linux-gnueabihf/include/bits/endian.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/endian.h:
 
-/usr/arm-linux-gnueabihf/include/bits/byteswap.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/byteswap.h:
 
-/usr/arm-linux-gnueabihf/include/bits/byteswap-16.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/select.h:
 
-/usr/arm-linux-gnueabihf/include/sys/select.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/select.h:
 
-/usr/arm-linux-gnueabihf/include/bits/select.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sigset.h:
 
-/usr/arm-linux-gnueabihf/include/bits/sigset.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/time.h:
 
-/usr/arm-linux-gnueabihf/include/bits/time.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/sysmacros.h:
 
-/usr/arm-linux-gnueabihf/include/sys/sysmacros.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/pthreadtypes.h:
 
-/usr/arm-linux-gnueabihf/include/bits/pthreadtypes.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/uio.h:
 
-/usr/arm-linux-gnueabihf/include/bits/uio.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/socket.h:
 
-/usr/arm-linux-gnueabihf/include/bits/socket.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/sockaddr.h:
 
-/usr/arm-linux-gnueabihf/include/bits/socket_type.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/socket.h:
 
-/usr/arm-linux-gnueabihf/include/bits/sockaddr.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/sockios.h:
 
-/usr/arm-linux-gnueabihf/include/asm/socket.h:
-
-/usr/arm-linux-gnueabihf/include/asm-generic/socket.h:
-
-/usr/arm-linux-gnueabihf/include/asm/sockios.h:
-
-/usr/arm-linux-gnueabihf/include/asm-generic/sockios.h:
-
-/usr/arm-linux-gnueabihf/include/bits/in.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/in.h:
 
 src/include/sys.h:
 
-/usr/arm-linux-gnueabihf/include/sys/ipc.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ipc.h:
 
-/usr/arm-linux-gnueabihf/include/bits/ipctypes.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ipctypes.h:
 
-/usr/arm-linux-gnueabihf/include/bits/ipc.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ipc.h:
 
-/usr/arm-linux-gnueabihf/include/sys/stat.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/stat.h:
 
-/usr/arm-linux-gnueabihf/include/bits/stat.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/stat.h:
 
-/usr/arm-linux-gnueabihf/include/fcntl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./fcntl.h:
 
-/usr/arm-linux-gnueabihf/include/bits/fcntl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/fcntl.h:
 
-/usr/arm-linux-gnueabihf/include/bits/fcntl-linux.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ioctl.h:
 
-/usr/arm-linux-gnueabihf/include/sys/ioctl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ioctls.h:
 
-/usr/arm-linux-gnueabihf/include/bits/ioctls.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/ioctls.h:
 
-/usr/arm-linux-gnueabihf/include/asm/ioctls.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./asm-generic/ioctls.h:
 
-/usr/arm-linux-gnueabihf/include/asm-generic/ioctls.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./linux/ioctl.h:
 
-/usr/arm-linux-gnueabihf/include/linux/ioctl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/asm/ioctl.h:
 
-/usr/arm-linux-gnueabihf/include/asm/ioctl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./asm-generic/ioctl.h:
 
-/usr/arm-linux-gnueabihf/include/asm-generic/ioctl.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/ioctl-types.h:
 
-/usr/arm-linux-gnueabihf/include/bits/ioctl-types.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/ttydefaults.h:
 
-/usr/arm-linux-gnueabihf/include/sys/ttydefaults.h:
-
-/usr/arm-linux-gnueabihf/include/linux/rtc.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./linux/rtc.h:
 
 src/protocol/output.h:
 
-/usr/arm-linux-gnueabihf/include/unistd.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./unistd.h:
 
-/usr/arm-linux-gnueabihf/include/bits/posix_opt.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/posix_opt.h:
 
-/usr/arm-linux-gnueabihf/include/bits/environments.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/environments.h:
 
-/usr/arm-linux-gnueabihf/include/bits/confname.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/confname.h:
 
-/usr/arm-linux-gnueabihf/include/getopt.h:
+/opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./getopt.h:
