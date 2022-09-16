@@ -3,6 +3,8 @@
 #include "sys.h"
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 int modbus_sockt_timer[6];
 void *TimerThread(void *arg)
 {

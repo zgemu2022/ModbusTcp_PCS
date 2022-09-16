@@ -120,6 +120,20 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	break;
 
+
+	// case LCD_VSG_QW_PCS_MODE:
+	// {
+	// 	printf("VSG 无功参数设置 ...\n");
+	// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+	// 	unsigned short val;
+
+	// 	regaddr = vsgpcs_qw_set[curPcsId];
+	// 	val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
+
+	// 	ret = SetLcdFun06(id_thread, regaddr, val);
+	// }
+	// break;
+
 	default:
 		break;
 	}
@@ -263,6 +277,9 @@ void init_emu_op_para(int id_thread)
 		//VSG
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
+
+
+
 	}
 
 
@@ -279,11 +296,11 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	MyData recvbuf;
 	printf("PCS[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
 
-	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
+//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 	_SERVER_SOCKET server_sock;
 	server_sock.protocol = TCP;
-	server_sock.port = htons(pPara_Modtcp->server_port[id_thread]);
-	server_sock.addr = inet_addr(pPara_Modtcp->server_ip[id_thread]);
+	server_sock.port = htons(pPara_Modtcp->server_port);
+	server_sock.addr = inet_addr(pPara_Modtcp->server_ip);
 	server_sock.fd = -1;
 
 	sleep(4);
@@ -408,8 +425,8 @@ void CreateThreads(void)
 
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
+		pPara_Modtcp->pcsnum[i]=0;
 		modbus_sockt_state[i] = STATUS_OFF;
-		printf("pPara_Modtcp %d号lcd下pcs的数量:%d\n",i, pPara_Modtcp->pcsnum[i]);
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{
 			printf("MODBUS CONNECT THTREAD CREATE ERR!\n");

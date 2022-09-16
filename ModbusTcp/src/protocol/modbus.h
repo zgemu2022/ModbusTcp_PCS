@@ -21,7 +21,15 @@
 #define PQ_STP    0//0：恒功率模式；
 #define PQ_STA    3 //3：恒流模式；
 
-
+typedef struct
+{
+	char type; //1 Master 2 Slave
+	unsigned char lcdnum;
+	unsigned char pcsnum[MAX_PCS_NUM];
+	unsigned char  devNo[MAX_PCS_NUM];
+	char  server_ip[64];
+	unsigned short server_port;
+} PARA_MODTCP; //系统运行参数
 typedef struct
 {
 	unsigned short RegStart;//寄存器开始地址
@@ -60,7 +68,7 @@ extern unsigned short pqpcs_cur_set[];//恒流模式 电流给定设置0.1A正�
 
 extern unsigned short vsgpcs_pw_set[]; // VSG模式 有功给定设置
 extern unsigned short vsgpcs_qw_set[]; // VSG模式 无功
-
+extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE							   // LCD当前工作状态
 {

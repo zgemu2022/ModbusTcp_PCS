@@ -12,7 +12,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/rtc.h>
-
+#include "output.h"
+#include "unistd.h"
 /*
 
 EMU 参数
@@ -46,6 +47,8 @@ EMU 参数
 */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+post_list_t *post_list_l=NULL;
+
 int  curTaskId = 0;
 int curPcsId = 0;
 EMU_OP_PARA g_emu_op_para;
@@ -103,7 +106,6 @@ int setTime(int id_thread)
 		   time.tm_sec);
 
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
 	sendbuf[pos++] = g_num_frame / 256;
@@ -167,7 +169,6 @@ int setTime(int id_thread)
 int ReadNumPCS(int id_thread)
 {
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	unsigned short reg_start = 0x1246;
 	int pos = 0;
 	sendbuf[pos++] = g_num_frame / 256;
@@ -221,7 +222,6 @@ int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val)
 {
 	// printf("ssssssss\n");
 	unsigned char sendbuf[256];
-	unsigned short crccode = 0;
 	int pos = 0;
 	sendbuf[pos++] = g_num_frame / 256;
 	sendbuf[pos++] = g_num_frame % 256;
@@ -325,6 +325,50 @@ int AnalysModbus(unsigned char *datain, unsigned int len, int id_client)
 	return 0;
 }
 #endif
+
+int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
+{
+	int pcsid;
+	unsigned short num;
+	switch(regAddr)
+	{
+		case 0x1103:
+			pcsid=1;
+		case 0x1120:
+			pcsid=2;
+		case 0x113c:
+			pcsid=3;
+		case 0x115a:
+			pcsid=4;
+		case 0x1193:
+			pcsid=5;
+		case 0x11b0:
+			pcsid=6;
+            num=pdata[2];
+            SaveYcData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
+			break;
+		case 0x1200:
+			pcsid=1;
+		case 0x1210:
+			pcsid=2;
+		case 0x1220:
+			pcsid=3;
+		case 0x1230:
+			pcsid=4;
+		case 0x1250:
+			pcsid=5;
+		case 0x1260:
+			pcsid=6;
+			num=pdata[2];
+            SaveYxData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
+
+
+		default:
+		break;
+
+	}
+	return 0;
+}
 //数据解析
 int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
@@ -384,13 +428,21 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 
 	printf("   寄存器起始地址:%#x   ", regAddr);
-	if (funid == 3 && regAddr == 0x1246)
+	if (funid == 3)
 	{
+		if(regAddr == 0x1246) 
+		{
 		//放在现场时，用以下获取LCD下PCS数量
-		// Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
+	#if 0
+		 Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
+	#endif
 		Para_Modtcp.pcsnum[id_thread] =6;  //测试时获取PCS数量
 		printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 		lcd_state[id_thread] = LCD_SET_MODE;
+		}
+		else
+           AnalysModbus_fun03(id_thread,regAddr,emudata,len-6);
+
 	}
 	else if (funid == 6 && regAddr == 0x3046)
 	{
