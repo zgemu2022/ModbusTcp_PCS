@@ -57,8 +57,8 @@ EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 PcsData_send g_send_data[MAX_LCD_NUM];
-int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
-//int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
+// int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
+int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
 
 // unsigned short pq_pcspw_set[6][2] = {
 // 	{0x3008, 0x3005}, {0x3018, 0x3015}, {0x3028, 0x3025}, {0x3038, 0x3035}, {0x3068, 0x3065}, {0x3078, 0x3075}}; //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
@@ -76,11 +76,11 @@ unsigned short vsgpcs_qw_set[]={0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072};
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 Pcs_Fun03_Struct pcsYc[] = {
-	//遥测
-	{0x1100, 0x12, 0x1D}, //模块1
-
 	//遥信
 	{0x1200, 0x10, 0x10}, //模块1
+
+	//遥测
+	{0x1100, 0x12, 0x1D}, //模块1
 };
 
 int myprintbuf(int len, unsigned char *buf)
@@ -151,6 +151,13 @@ int setTime(int id_thread)
 
 	TDateTime tm_now;//,EndLogDay;
 	read_current_datetime(&tm_now);
+	printf("从系统里读取的时间为: %d-%d-%d %d:%d:%d\n",
+		   tm_now.Year,
+		   tm_now.Month,
+		   tm_now.Day,
+		   tm_now.Hour,
+		   tm_now.Min,
+		   tm_now.Sec);
 	unsigned char sendbuf[256];
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
@@ -446,7 +453,8 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 
 	memcpy(emudata, &pdata[6], len - 6);
 	funid = emudata[1];
-	printf("   功能码:%#x    ", funid);
+	printf("id_thread:%d   ", id_thread);
+	printf("   funid:%#x    ", funid);
 
 	// int i;
 	// printf("emudata    :");
@@ -472,7 +480,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		regAddr = g_send_data[id_thread].regaddr;
 	}
 
-	printf("   寄存器起始地址:%#x   ", regAddr);
+	printf("   regAddr:%#x   ", regAddr);
 	if (funid == 3)
 	{
 		if(regAddr == 0x1246) 
@@ -488,8 +496,6 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		else{
 			AnalysModbus_fun03(id_thread, regAddr, emudata, len - 6);
 		}
-		
-
 	}
 	else if (funid == 6 && regAddr == 0x3046)
 	{
