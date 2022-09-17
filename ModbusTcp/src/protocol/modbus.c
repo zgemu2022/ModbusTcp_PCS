@@ -15,6 +15,7 @@
 #include "output.h"
 #include "unistd.h"
 #include "stdlib.h"
+#include "lib_time.h"
 /*
 
 EMU 参数
@@ -56,8 +57,8 @@ EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 PcsData_send g_send_data[MAX_LCD_NUM];
-int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
-//int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
+// int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
+int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
 
 // unsigned short pq_pcspw_set[6][2] = {
 // 	{0x3008, 0x3005}, {0x3018, 0x3015}, {0x3028, 0x3025}, {0x3038, 0x3035}, {0x3068, 0x3065}, {0x3078, 0x3075}}; //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
@@ -128,25 +129,35 @@ int myprintbuf(int len, unsigned char *buf)
 int setTime(int id_thread)
 {
 	//获取系统时间
-	struct rtc_time time;
-	int timeFd = open("/dev/rtc", O_RDWR);
-	// usleep(100000);
-	int res = ioctl(timeFd, RTC_RD_TIME, &time);
-	// printf("res : %d\n", res);
-	if (res >= 0)
-	{
-		printf("线程:%d 获取时间成功  res:%d\n", id_thread,res);
-		close(timeFd);
-		// return 0;
-	}
-	else
-	{
-		printf("线程:%d 获取时间失败  res:%d\n", id_thread,res);
-		close(timeFd);
-		// return (-1);
-	}
+	// struct rtc_time time;
+	// int timeFd = open("/dev/rtc", O_RDWR);
+	// // usleep(100000);
+	// int res = ioctl(timeFd, RTC_RD_TIME, &time);
 
-	
+
+	// printf("res : %d\n", res);
+	// if (res >= 0)
+	// {
+	// 	printf("线程:%d 获取时间成功  res:%d\n", id_thread,res);
+	// 	close(timeFd);
+	// 	// return 0;
+	// }
+	// else
+	// {
+	// 	printf("线程:%d 获取时间失败  res:%d\n", id_thread,res);
+	// 	close(timeFd);
+	// 	// return (-1);
+	// }
+
+	TDateTime tm_now;//,EndLogDay;
+	read_current_datetime(&tm_now);
+	printf("从系统里读取的时间为: %d-%d-%d %d:%d:%d\n",
+		   tm_now.Year,
+		   tm_now.Month,
+		   tm_now.Day,
+		   tm_now.Hour,
+		   tm_now.Min,
+		   tm_now.Sec);
 	unsigned char sendbuf[256];
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
@@ -163,20 +174,18 @@ int setTime(int id_thread)
 	sendbuf[pos++] = 0;
 	sendbuf[pos++] = 6;
 	sendbuf[pos++] = 12;
-	sendbuf[pos++] = ((time.tm_year+1900)-2000) / 256;
-	sendbuf[pos++] = ((time.tm_year+1900)-2000) % 256;
-	// sendbuf[pos++] = (time.tm_year + 1900) / 256;
-	// sendbuf[pos++] = (time.tm_year + 1900)  % 256;
-	sendbuf[pos++] = (time.tm_mon+1) / 256;
-	sendbuf[pos++] = (time.tm_mon+1) % 256;
-	sendbuf[pos++] = time.tm_mday / 256;
-	sendbuf[pos++] = time.tm_mday % 256;
-	sendbuf[pos++] = time.tm_hour / 256;
-	sendbuf[pos++] = time.tm_hour % 256;
-	sendbuf[pos++] = time.tm_min / 256;
-	sendbuf[pos++] = time.tm_min % 256;
-	sendbuf[pos++] = time.tm_sec / 256;
-	sendbuf[pos++] = time.tm_sec % 256;
+	sendbuf[pos++] =  tm_now.Year / 256;
+	sendbuf[pos++] = tm_now.Year % 256;
+	sendbuf[pos++] = tm_now.Month / 256;
+	sendbuf[pos++] = tm_now.Month % 256;
+	sendbuf[pos++] =  tm_now.Day / 256;
+	sendbuf[pos++] =  tm_now.Day % 256;
+	sendbuf[pos++] = tm_now.Hour / 256;
+	sendbuf[pos++] = tm_now.Hour % 256;
+	sendbuf[pos++] = tm_now.Min / 256;
+	sendbuf[pos++] = tm_now.Min % 256;
+	sendbuf[pos++] = tm_now.Sec / 256;
+	sendbuf[pos++] = tm_now.Sec % 256;
 
 	if (send(modbus_client_sockptr[id_thread], sendbuf, pos, 0) < 0)
 	{
