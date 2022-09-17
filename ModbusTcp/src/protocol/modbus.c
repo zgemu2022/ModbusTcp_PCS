@@ -375,17 +375,17 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdat
 	unsigned short num;
 	switch(regAddr)
 	{
-		case 0x1103:
+		case 0x1100:
 			pcsid=1;
-		case 0x1120:
+		case 0x111D:
 			pcsid=2;
-		case 0x113c:
+		case 0x113A:
 			pcsid=3;
-		case 0x115a:
+		case 0x1157:
 			pcsid=4;
-		case 0x1193:
+		case 0x1190:
 			pcsid=5;
-		case 0x11b0:
+		case 0x11AD:
 			pcsid=6;
             num=pdata[2];
             SaveYcData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
@@ -475,7 +475,6 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	{
 		if(regAddr == 0x1246) 
 		{
-		printf("11111111111fdsfsdf\n");
 		//放在现场时，用以下获取LCD下PCS数量
 	#if 0
 		 Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
@@ -484,8 +483,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 		lcd_state[id_thread] = LCD_SET_MODE;
 		}
-		else
-           AnalysModbus_fun03(id_thread,regAddr,emudata,len-6);
+		else{
+			AnalysModbus_fun03(id_thread, regAddr, emudata, len - 6);
+		}
+		
 
 	}
 	else if (funid == 6 && regAddr == 0x3046)
