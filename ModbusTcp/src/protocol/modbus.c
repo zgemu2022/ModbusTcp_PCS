@@ -15,6 +15,7 @@
 #include "output.h"
 #include "unistd.h"
 #include "stdlib.h"
+#include "lib_time.h"
 /*
 
 EMU 参数
@@ -128,25 +129,28 @@ int myprintbuf(int len, unsigned char *buf)
 int setTime(int id_thread)
 {
 	//获取系统时间
-	struct rtc_time time;
-	int timeFd = open("/dev/rtc", O_RDWR);
-	// usleep(100000);
-	int res = ioctl(timeFd, RTC_RD_TIME, &time);
-	// printf("res : %d\n", res);
-	if (res >= 0)
-	{
-		printf("线程:%d 获取时间成功  res:%d\n", id_thread,res);
-		close(timeFd);
-		// return 0;
-	}
-	else
-	{
-		printf("线程:%d 获取时间失败  res:%d\n", id_thread,res);
-		close(timeFd);
-		// return (-1);
-	}
+	// struct rtc_time time;
+	// int timeFd = open("/dev/rtc", O_RDWR);
+	// // usleep(100000);
+	// int res = ioctl(timeFd, RTC_RD_TIME, &time);
 
-	
+
+	// printf("res : %d\n", res);
+	// if (res >= 0)
+	// {
+	// 	printf("线程:%d 获取时间成功  res:%d\n", id_thread,res);
+	// 	close(timeFd);
+	// 	// return 0;
+	// }
+	// else
+	// {
+	// 	printf("线程:%d 获取时间失败  res:%d\n", id_thread,res);
+	// 	close(timeFd);
+	// 	// return (-1);
+	// }
+
+	TDateTime tm_now;//,EndLogDay;
+	read_current_datetime(&tm_now);
 	unsigned char sendbuf[256];
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
@@ -163,20 +167,18 @@ int setTime(int id_thread)
 	sendbuf[pos++] = 0;
 	sendbuf[pos++] = 6;
 	sendbuf[pos++] = 12;
-	sendbuf[pos++] = ((time.tm_year+1900)-2000) / 256;
-	sendbuf[pos++] = ((time.tm_year+1900)-2000) % 256;
-	// sendbuf[pos++] = (time.tm_year + 1900) / 256;
-	// sendbuf[pos++] = (time.tm_year + 1900)  % 256;
-	sendbuf[pos++] = (time.tm_mon+1) / 256;
-	sendbuf[pos++] = (time.tm_mon+1) % 256;
-	sendbuf[pos++] = time.tm_mday / 256;
-	sendbuf[pos++] = time.tm_mday % 256;
-	sendbuf[pos++] = time.tm_hour / 256;
-	sendbuf[pos++] = time.tm_hour % 256;
-	sendbuf[pos++] = time.tm_min / 256;
-	sendbuf[pos++] = time.tm_min % 256;
-	sendbuf[pos++] = time.tm_sec / 256;
-	sendbuf[pos++] = time.tm_sec % 256;
+	sendbuf[pos++] =  tm_now.Year / 256;
+	sendbuf[pos++] = tm_now.Year % 256;
+	sendbuf[pos++] = tm_now.Month / 256;
+	sendbuf[pos++] = tm_now.Month % 256;
+	sendbuf[pos++] =  tm_now.Day / 256;
+	sendbuf[pos++] =  tm_now.Day % 256;
+	sendbuf[pos++] = tm_now.Hour / 256;
+	sendbuf[pos++] = tm_now.Hour % 256;
+	sendbuf[pos++] = tm_now.Min / 256;
+	sendbuf[pos++] = tm_now.Min % 256;
+	sendbuf[pos++] = tm_now.Sec / 256;
+	sendbuf[pos++] = tm_now.Sec % 256;
 
 	if (send(modbus_client_sockptr[id_thread], sendbuf, pos, 0) < 0)
 	{
