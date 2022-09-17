@@ -57,6 +57,9 @@ EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 PcsData_send g_send_data[MAX_LCD_NUM];
+pconf conf;
+pconf *pconfig=&conf;
+
 // int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
 int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
 
@@ -492,6 +495,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		Para_Modtcp.pcsnum[id_thread] =6;  //测试时获取PCS数量
 		printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 		lcd_state[id_thread] = LCD_SET_MODE;
+		if(id_thread==pPara_Modtcp->lcdnum-1)
+		{
+			initInterface61850();
+		}
 		}
 		else{
 			AnalysModbus_fun03(id_thread, regAddr, emudata, len - 6);

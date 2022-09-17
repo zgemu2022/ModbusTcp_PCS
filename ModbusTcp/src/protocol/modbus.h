@@ -135,6 +135,7 @@ typedef struct
 
 
 }Pcs_Fun06_Struct;
+extern pconf *pconfig;
 extern int curTaskId;
 extern int curPcsId ;
 extern unsigned short g_num_frame;

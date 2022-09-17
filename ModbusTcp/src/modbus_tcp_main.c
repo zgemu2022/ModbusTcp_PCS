@@ -6,17 +6,17 @@
 #include "client.h"
 #include <string.h>
 #include <malloc.h>
-pconf para;
 
 int modbus_tcp_main(void *para_app)
 {
 	int i;
-	para = *(pconf *)para_app;
-	pPara_Modtcp->type = 1;
-	strcpy(pPara_Modtcp->server_ip, para.lcd_server_ip);
-	pPara_Modtcp->server_port = para.lcd_server_port;
+	*pconfig = *(pconf *)para_app;
 
-	pPara_Modtcp->lcdnum = para.lcd_num;
+	pPara_Modtcp->type = 1;
+	strcpy(pPara_Modtcp->server_ip, pconfig->lcd_server_ip);
+	pPara_Modtcp->server_port = pconfig->lcd_server_port;
+
+	pPara_Modtcp->lcdnum = pconfig->lcd_num;
 
 
 	printf("LCD 模块启动 ip=%s port=%d\n",pPara_Modtcp->server_ip,pPara_Modtcp->server_port);

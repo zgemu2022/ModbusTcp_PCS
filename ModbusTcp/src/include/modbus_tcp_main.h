@@ -48,7 +48,7 @@ typedef struct
 
 } pconf;
 
-extern pconf para;
+
 typedef struct
 {
 	int sn;

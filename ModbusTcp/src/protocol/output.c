@@ -4,7 +4,10 @@
 #include "modbus.h"
 #include <sys/mman.h>
 #include <string.h>
-//所有的LCD整机信息数据数据标识1都用2来表示，
+ #include <dlfcn.h>
+ #include <stddef.h>
+#include <stdlib.h>
+//所有的LCD整机信息数据数据标识1都用2来表示，#
 //数据标识2编号从1-6，
 //每个LCD下模块信息，数据标识1都3来表示，
 //数据标识2编号从1-36，每个LCD模块信息占用6个编号，LCD1模块信息数据标识2从1-6，LCD2模块信息数据标识2从7-12，
@@ -108,12 +111,42 @@ int SaveYxData(int id_thread,int pcsid,unsigned short *pyx,unsigned char len)
 	}
 
 	return 0;
+}
+
+PARA_61850 para_61850;
+void initInterface61850(void)
+{
+   #define LIB_61850_PATH "/usr/lib/libiec61850.so"
+   typedef int (*p_initlcd)(void*);
+	void *handle;
+	char *error;
+	int i;
+    printf("initInterface61850\n");
+	p_initlcd my_func = NULL;
+    para_61850.lcdnum=pconfig->lcd_num;
+
+    for(i=0;i<para_61850.lcdnum;i++)
+	{
+		para_61850.pcsnum += pPara_Modtcp->pcsnum[i];
+	}
+    para_61850.balance_rate = pconfig->balance_rate;
+
+	handle = dlopen(LIB_61850_PATH, RTLD_LAZY);
+	if (!handle) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(EXIT_FAILURE);
+	}
+	dlerror();
+
+	*(void **) (&my_func) = dlsym(handle, "lib61850_main");
+
+
+	if ((error = dlerror()) != NULL) {
+		fprintf(stderr, "%s\n", error);
+		exit(EXIT_FAILURE);
+	}
+
+   	my_func((void*)&para_61850);
 
 
 }
-// int output_chargePara(u8 gunid,void* p_data)
-// {
-// 	*(chargePara*)p_data=g_chargepara[gunid];
-// 	return 0;
-
-// }
