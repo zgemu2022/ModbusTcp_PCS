@@ -444,7 +444,8 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 
 	memcpy(emudata, &pdata[6], len - 6);
 	funid = emudata[1];
-	printf("   功能码:%#x    ", funid);
+	printf("id_thread:%d   ", id_thread);
+	printf("   funid:%#x    ", funid);
 
 	// int i;
 	// printf("emudata    :");
@@ -470,7 +471,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		regAddr = g_send_data[id_thread].regaddr;
 	}
 
-	printf("   寄存器起始地址:%#x   ", regAddr);
+	printf("   regAddr:%#x   ", regAddr);
 	if (funid == 3)
 	{
 		if(regAddr == 0x1246) 
@@ -486,8 +487,6 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		else{
 			AnalysModbus_fun03(id_thread, regAddr, emudata, len - 6);
 		}
-		
-
 	}
 	else if (funid == 6 && regAddr == 0x3046)
 	{

@@ -184,7 +184,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			{
 				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
 				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
-				printf("****************res:%d\n",res);
 				if(0 == res){
 					printf("数据解析成功！！！\n");
 				}
@@ -277,9 +276,6 @@ void init_emu_op_para(int id_thread)
 		//VSG
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
-
-
-
 	}
 
 
