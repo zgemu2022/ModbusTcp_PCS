@@ -35,8 +35,8 @@ $(info OBJS= $(OBJS))
 all:$(OBJS) libmodtcp.so
 	@echo "12345 ssdlh"
 #编译完成后的拷贝的路径
-	-cp libmodtcp.so  /mnt/hgfs/Tcu_lib/libmodtcp.so;
-#	-cp libmodtcp.so  /mnt/hgfs/share_E/zgEMU/Program/libmodtcp.so;
+#-cp libmodtcp.so  /mnt/hgfs/Tcu_lib/libmodtcp.so;
+	-cp libmodtcp.so  /mnt/hgfs/share_E/zgEMU/Program/libmodtcp.so;
 
 libmodtcp.so: $(OBJS)
 	@echo "54321 xxxxx"
