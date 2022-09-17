@@ -30,19 +30,20 @@ void RunAccordingtoStatus(int id_thread)
 	{
 	case LCD_RUNNING:
 	{
-		printf("do something!!!!\n");
+		printf("LCD:%d do something!!!!\n", id_thread);
 		ret = doFun03Tasks(id_thread, &curTaskId, &curPcsId);
 	}
 	break;
 	case LCD_SET_TIME :
 	{
+		printf("lcd_state[%d]:%d \n", id_thread, lcd_state[id_thread]);
 		printf("初始化时间...\n");
 		ret = setTime(id_thread);
 	}
 	break;
 	case LCD_INIT:
 	{
-		printf("LCD初始化...\n");
+		printf("LCD:%d 初始化...\n", id_thread);
 		ret = ReadNumPCS(id_thread);
 	}
 	break;
@@ -51,13 +52,13 @@ void RunAccordingtoStatus(int id_thread)
 		// 0x3046	产品运行模式设置	uint16	整机	1	5	"需在启机前设置，模块运行后无法进行设置
 		// 1：PQ模式（高低穿功能，需选择1）；
 		// 5：VSG模式（并离网功能，需选择5）；"
-		printf("LCD 设置运行模式...\n");
+		printf("LCD:%d 设置运行模式...\n",id_thread);
 		ret = SetLcdFun06(id_thread, 0x3046, g_emu_op_para.LcdOperatingMode[id_thread]);
 	}
 	break;
 	case LCD_PQ_PCS_MODE:
 	{
-		printf("PCS 设置成PQ模式...\n");
+		printf("LCD:%d PCS 设置成PQ模式...\n", id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		if(curTaskId==0)
@@ -85,7 +86,7 @@ void RunAccordingtoStatus(int id_thread)
 
 	case LCD_VSG_MODE:
 	{
-		printf("PCS 设置成VSG模式...\n");
+		printf("LCD:%d PCS 设置成VSG模式...\n",id_thread);
 		unsigned short regaddr = 0x3047; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val = g_emu_op_para.vsg_mode[id_thread];
 		ret = SetLcdFun06(id_thread, regaddr, val);
@@ -94,7 +95,7 @@ void RunAccordingtoStatus(int id_thread)
 
 	case LCD_VSG_PW_PCS_MODE:
 	{
-		printf("VSG 有功参数设置 ...\n");
+		printf("LCD:%d  VSG 有功参数设置 ...\n", id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		
@@ -109,7 +110,7 @@ void RunAccordingtoStatus(int id_thread)
 
 	case LCD_VSG_QW_PCS_MODE:
 	{
-		printf("VSG 无功参数设置 ...\n");
+		printf("LCD:%d VSG 无功参数设置 ...\n",id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
@@ -119,6 +120,7 @@ void RunAccordingtoStatus(int id_thread)
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
+
 
 	// case LCD_VSG_QW_PCS_MODE:
 	// {
@@ -207,7 +209,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	
 
 		RunAccordingtoStatus(id_thread);
-			continue;
 	}
 	return NULL;
 }
@@ -276,6 +277,8 @@ void init_emu_op_para(int id_thread)
 		//VSG
 		g_emu_op_para.vsg_pw[id_thread][i]=50;//50.0kW
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
+
+
 
 	}
 
@@ -423,6 +426,7 @@ void CreateThreads(void)
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
 		pPara_Modtcp->pcsnum[i]=0;
+		pPara_Modtcp->devNo[i]=0xa;
 		modbus_sockt_state[i] = STATUS_OFF;
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{

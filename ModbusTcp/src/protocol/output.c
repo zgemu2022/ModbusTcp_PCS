@@ -81,8 +81,6 @@ int SaveYcData(int id_thread,int pcsid,unsigned short *pyc,unsigned char len)
 	}
 
 	return 0;
-
-
 }
 
 int SaveYxData(int id_thread,int pcsid,unsigned short *pyx,unsigned char len)

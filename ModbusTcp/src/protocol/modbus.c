@@ -14,6 +14,7 @@
 #include <linux/rtc.h>
 #include "output.h"
 #include "unistd.h"
+#include "stdlib.h"
 /*
 
 EMU 参数
@@ -55,8 +56,8 @@ EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
 PcsData_send g_send_data[MAX_LCD_NUM];
-// int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
-int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
+int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
+//int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
 
 // unsigned short pq_pcspw_set[6][2] = {
 // 	{0x3008, 0x3005}, {0x3018, 0x3015}, {0x3028, 0x3025}, {0x3038, 0x3035}, {0x3068, 0x3065}, {0x3078, 0x3075}}; //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
@@ -75,10 +76,10 @@ unsigned short vsgpcs_qw_set[]={0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072};
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 Pcs_Fun03_Struct pcsYc[] = {
 	//遥测
-	{0x1103, 0x0A, 0x1D}, //模块1
+	{0x1100, 0x12, 0x1D}, //模块1
 
 	//遥信
-	{0x1200, 0x0F, 0x10}, //模块1
+	{0x1200, 0x10, 0x10}, //模块1
 };
 
 int myprintbuf(int len, unsigned char *buf)
@@ -91,20 +92,61 @@ int myprintbuf(int len, unsigned char *buf)
 	return 0;
 }
 
+// int getTime(void *ptime)
+// {
+// 	//获取系统时间
+// 	//struct rtc_time *ptemp = (struct rtc_time *)ptime;
+// 	struct rtc_time ptemp ;
+// 	int timeFd = open("/dev/rtc", O_RDWR);
+// 	usleep(1000000);
+// 	int res = ioctl(timeFd, RTC_RD_TIME, &ptemp);
+// 	printf("res : %d\n",res);
+// 	if(res >= 0){
+// 		close(timeFd);
+// 		return 0;
+// 	}else{
+// 		close(timeFd);
+// 		return(-1);
+// 	}
+// }
+
+// int getTime(void *ptime)
+// {
+// 	struct rtc_time ptemp;
+// 	int timeFd = open("/dev/rtc", O_RDWR);
+// 	ioctl(timeFd, RTC_RD_TIME, &ptemp);
+// 	printf("从系统里读取的时间为: %d-%d-%d %d:%d:%d\n",
+// 		   ptemp.tm_year + 1900,
+// 		   ptemp.tm_mon + 1,
+// 		   ptemp.tm_mday,
+// 		   ptemp.tm_hour,
+// 		   ptemp.tm_min,
+// 		   ptemp.tm_sec);
+// 	}
+// 	return 0;
+// }
 int setTime(int id_thread)
 {
 	//获取系统时间
 	struct rtc_time time;
 	int timeFd = open("/dev/rtc", O_RDWR);
-	ioctl(timeFd, RTC_RD_TIME, &time);
-	printf("从系统里读取的时间为: %d-%d-%d %d:%d:%d\n",
-		   time.tm_year + 1900,
-		   time.tm_mon + 1,
-		   time.tm_mday,
-		   time.tm_hour,
-		   time.tm_min,
-		   time.tm_sec);
+	// usleep(100000);
+	int res = ioctl(timeFd, RTC_RD_TIME, &time);
+	// printf("res : %d\n", res);
+	if (res >= 0)
+	{
+		printf("线程:%d 获取时间成功  res:%d\n", id_thread,res);
+		close(timeFd);
+		// return 0;
+	}
+	else
+	{
+		printf("线程:%d 获取时间失败  res:%d\n", id_thread,res);
+		close(timeFd);
+		// return (-1);
+	}
 
+	
 	unsigned char sendbuf[256];
 	unsigned short reg_start = 0x3050;
 	int pos = 0,i;
@@ -136,11 +178,6 @@ int setTime(int id_thread)
 	sendbuf[pos++] = time.tm_sec / 256;
 	sendbuf[pos++] = time.tm_sec % 256;
 
-	printf("发送数据:");
-	for(i = 0; i<pos;i++){
-		printf("%#x ",sendbuf[i]);
-	}
-	printf("\n");
 	if (send(modbus_client_sockptr[id_thread], sendbuf, pos, 0) < 0)
 	{
 		printf("发送失败！！！！ id_thread=%d\n", id_thread);
@@ -149,9 +186,15 @@ int setTime(int id_thread)
 	else
 	{
 		// printf("时间已同步\n");
-		printf("任务包发送成功！！！！");
-		close(timeFd);
-	
+		printf("任务包发送成功！！！！\n");
+		printf("发送数据:");
+		int i;
+		for (i = 0; i < pos; i++)
+		{
+			printf("%x ", sendbuf[i]);
+		}
+		printf("\n");
+
 		g_send_data[id_thread].num_frame = g_num_frame;
 		g_send_data[id_thread].flag_waiting = 1;
 		g_send_data[id_thread].code_fun = 0x10;
@@ -203,7 +246,7 @@ int ReadNumPCS(int id_thread)
 	}
 	else
 	{
-		printf("读取LCD数量\n");
+		printf("读取LCD下PCS的数量\n");
 		printf("任务包发送成功！！！！");
 		g_send_data[id_thread].num_frame = g_num_frame;
 		g_send_data[id_thread].flag_waiting = 1;
@@ -332,17 +375,17 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr,unsigned char *pdat
 	unsigned short num;
 	switch(regAddr)
 	{
-		case 0x1103:
+		case 0x1100:
 			pcsid=1;
-		case 0x1120:
+		case 0x111D:
 			pcsid=2;
-		case 0x113c:
+		case 0x113A:
 			pcsid=3;
-		case 0x115a:
+		case 0x1157:
 			pcsid=4;
-		case 0x1193:
+		case 0x1190:
 			pcsid=5;
-		case 0x11b0:
+		case 0x11AD:
 			pcsid=6;
             num=pdata[2];
             SaveYcData(id_thread,pcsid,(unsigned short *)&pdata[3], num);
@@ -440,8 +483,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 		lcd_state[id_thread] = LCD_SET_MODE;
 		}
-		else
-           AnalysModbus_fun03(id_thread,regAddr,emudata,len-6);
+		else{
+			AnalysModbus_fun03(id_thread, regAddr, emudata, len - 6);
+		}
+		
 
 	}
 	else if (funid == 6 && regAddr == 0x3046)
@@ -535,7 +580,7 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid, int *lenfram
 	int numTask = ARRAY_LEN(pcsYc);
 	int _taskid = *taskid;
 	int _pcsid = *pcsid;
-	unsigned short regStart; //寄存器起始地址
+	unsigned short regStart, _regStart; //寄存器起始地址
 	unsigned char pcsNum;	 // pcs的数量
 	Pcs_Fun03_Struct pcs = pcsYc[_taskid];
 
@@ -568,8 +613,12 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid, int *lenfram
 	framebuf[pos++] = 6;
 	framebuf[pos++] = Para_Modtcp.devNo[id_thread];
 	framebuf[pos++] = 3;
-	framebuf[pos++] = (regStart + _pcsid * pcs.totalData) / 256;
-	framebuf[pos++] = (regStart + _pcsid * pcs.totalData) % 256;
+	_regStart = regStart + _pcsid * pcs.totalData;
+
+	framebuf[pos++] = _regStart / 256;
+	framebuf[pos++] = _regStart % 256;
+	// framebuf[pos++] = (regStart + _pcsid * pcs.totalData) / 256;
+	// framebuf[pos++] = (regStart + _pcsid * pcs.totalData) % 256;
 	framebuf[pos++] = pcs.numData / 256;
 	framebuf[pos++] = pcs.numData % 256;
 	// g_send_data[id_thread].code_fun = 3;
@@ -596,7 +645,7 @@ static int createFun03Frame(int id_thread, int *taskid, int *pcsid, int *lenfram
 	g_send_data[id_thread].code_fun = 0x03;
 	g_send_data[id_thread].dev_id = pPara_Modtcp->devNo[id_thread];
 	g_send_data[id_thread].numdata = pcs.numData;
-	g_send_data[id_thread].regaddr = regStart;
+	g_send_data[id_thread].regaddr = _regStart;
 
 	g_num_frame++;
 	if (g_num_frame == 0x10000)

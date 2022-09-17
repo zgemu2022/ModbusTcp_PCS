@@ -29,7 +29,8 @@ typedef struct
 	unsigned char  devNo[MAX_PCS_NUM];
 	char  server_ip[64];
 	unsigned short server_port;
-} PARA_MODTCP; //系统运行参数
+} PARA_MODTCP; //系统运行参数  从主控传到Modbus-Tcp模块的结构
+
 typedef struct
 {
 	unsigned short RegStart;//寄存器开始地址
@@ -141,6 +142,7 @@ extern int lcd_state[] ;
 int AnalysModbus(int id_thread,unsigned char *pdata,int len);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
+// int getTime(void *ptime);
 int setTime(int id_threa);
 int doFun03Tasks(int id_thread, int *taskid,int *pcsid);
 int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val);
