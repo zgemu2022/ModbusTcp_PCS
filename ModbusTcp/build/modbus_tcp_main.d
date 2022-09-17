@@ -1,6 +1,6 @@
 /mnt/hgfs/share_E/zgEMU/TCP/ModbusTcp_PCS/ModbusTcp/build/modbus_tcp_main.o: \
  src/modbus_tcp_main.c src/include/modbus_tcp_main.h \
- src/protocol/modbus.h \
+ src/include/share_type.h src/include/lib_time.h src/protocol/modbus.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
@@ -35,6 +35,10 @@
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./malloc.h
 
 src/include/modbus_tcp_main.h:
+
+src/include/share_type.h:
+
+src/include/lib_time.h:
 
 src/protocol/modbus.h:
 

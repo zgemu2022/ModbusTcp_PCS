@@ -1,6 +1,7 @@
 /mnt/hgfs/share_E/zgEMU/TCP/ModbusTcp_PCS/ModbusTcp/build/modbus.o: \
  src/protocol/modbus.c src/protocol/modbus.h \
- src/include/modbus_tcp_main.h src/socket/client.h \
+ src/include/modbus_tcp_main.h src/include/share_type.h \
+ src/include/lib_time.h src/socket/client.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
@@ -70,11 +71,15 @@
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitflags.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitstatus.h \
  /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./alloca.h \
- src/include/lib_time.h src/include/share_type.h
+ src/include/lib_time.h
 
 src/protocol/modbus.h:
 
 src/include/modbus_tcp_main.h:
+
+src/include/share_type.h:
+
+src/include/lib_time.h:
 
 src/socket/client.h:
 
@@ -219,5 +224,3 @@ src/protocol/output.h:
 /home/sanway/tooltian4_7/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./alloca.h:
 
 src/include/lib_time.h:
-
-src/include/share_type.h:

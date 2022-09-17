@@ -76,11 +76,11 @@ unsigned short vsgpcs_qw_set[]={0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072};
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 Pcs_Fun03_Struct pcsYc[] = {
-	//遥测
-	{0x1100, 0x12, 0x1D}, //模块1
-
 	//遥信
 	{0x1200, 0x10, 0x10}, //模块1
+
+	//遥测
+	{0x1100, 0x12, 0x1D}, //模块1
 };
 
 int myprintbuf(int len, unsigned char *buf)

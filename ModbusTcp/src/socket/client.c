@@ -24,7 +24,7 @@ int g_comm_qmegid[MAX_PCS_NUM];
 unsigned short g_num_frame = 1;
 void RunAccordingtoStatus(int id_thread)
 {
-	printf("\n\nStateMachine...\n");
+	printf("\n\nLCD:%d StateMachine...\n", id_thread);
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
