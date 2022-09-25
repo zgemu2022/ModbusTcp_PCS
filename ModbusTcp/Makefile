@@ -20,12 +20,13 @@ MAKE_DEP = -Wp,-MD,$(DEP) -MT $$@ -MP
 INCLUDES		+=	-I./src				\
                     -I./src/include     \
 	                -I./src/socket \
-					-I./src/protocol
+					-I./src/protocol \
+					-I./src/importlib		
 
 _SOURCES_ += ./src/modbus_tcp_main.c
 _SOURCES_ += $(wildcard ./src/socket/*.c)
 _SOURCES_ += $(wildcard ./src/protocol/*.c)
-
+_SOURCES_ += $(wildcard ./src/importlib/*.c)
 $(eval OBJS1 := $(patsubst %.c,%.o,$(notdir $(_SOURCES_)))) 
 $(info OBJS1 = $(OBJS1))
 $(eval OBJS = $(addprefix $(BUILD_DIR)/,$(OBJS1)))
@@ -35,7 +36,7 @@ $(info OBJS= $(OBJS))
 all:$(OBJS) libmodtcp.so
 	@echo "12345 ssdlh"
 #编译完成后的拷贝的路径
-	-cp libmodtcp.so  /mnt/hgfs/Tcu_lib/libmodtcp.so;
+	-cp libmodtcp.so  /mnt/hgfs/Tcu_lib/libmodtcp1.so;
 #-cp libmodtcp.so  /mnt/hgfs/share_E/zgEMU/Program/libmodtcp.so;
 
 libmodtcp.so: $(OBJS)

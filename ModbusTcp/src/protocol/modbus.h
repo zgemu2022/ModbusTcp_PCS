@@ -21,6 +21,9 @@
 #define PQ_STP    0//0：恒功率模式；
 #define PQ_STA    3 //3：恒流模式；
 
+#define NUM_READ_YC    0x1d
+#define NUM_READ_YX    0x10
+
 typedef struct
 {
 	char type; //1 Master 2 Slave
@@ -81,6 +84,9 @@ enum LCD_WORK_STATE							   // LCD当前工作状态
 	LCD_VSG_MODE = 4,		 //整机设置为VSG后、设置工作模式
 	LCD_VSG_PW_PCS_MODE = 5, //整机设置为VSG后,有功
 	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
+
+
+	
 
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
@@ -145,6 +151,6 @@ int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
 // int getTime(void *ptime);
 int setTime(int id_threa);
-int doFun03Tasks(int id_thread, int *taskid,int *pcsid);
+int doFun03Tasks(int id_thread, int *p_pcsid);
 int SetLcdFun06(int id_thread,unsigned short reg_addr,unsigned short val);
 #endif

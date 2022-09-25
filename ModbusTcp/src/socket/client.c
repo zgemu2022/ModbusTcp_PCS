@@ -13,6 +13,7 @@
 #include <sys/msg.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include "importBams.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
 int wait_flag = 0;
 char modbus_sockt_state[MAX_PCS_NUM];
@@ -30,8 +31,8 @@ void RunAccordingtoStatus(int id_thread)
 	{
 	case LCD_RUNNING:
 	{
-		printf("LCD:%d do something!!!!\n", id_thread);
-		ret = doFun03Tasks(id_thread, &curTaskId, &curPcsId);
+		printf("LCD:%d  doFun03Tasks!!!!\n", id_thread);
+		ret = doFun03Tasks(id_thread,  &curPcsId);
 	}
 	break;
 	case LCD_SET_TIME :
@@ -436,5 +437,7 @@ void CreateThreads(void)
 			exit(1);
 		}
 	}
+	//initInterface61850();
+    //bams_Init();
 	printf("MODBUS THTREAD CREATE success!\n");
 }

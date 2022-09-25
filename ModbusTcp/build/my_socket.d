@@ -1,4 +1,4 @@
-/mnt/hgfs/tcp/ModbusTcp/build/my_socket.o: src/socket/my_socket.c \
+/mnt/hgfs/linux/tcp/ModbusTcp/build/my_socket.o: src/socket/my_socket.c \
  src/socket/my_socket.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./netinet/in.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \

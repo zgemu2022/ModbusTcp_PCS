@@ -64,7 +64,7 @@ int SaveYcData(int id_thread,int pcsid,unsigned short *pyc,unsigned char len)
 
 	int id = 0;
 	int i;
-
+    printf("saveYcData id_thread=%d pcsid=%d \n",id_thread,pcsid);
 	for(i=0;i<id_thread;i++)
 	{
 		id+= pPara_Modtcp->pcsnum[i];
@@ -72,7 +72,7 @@ int SaveYcData(int id_thread,int pcsid,unsigned short *pyc,unsigned char len)
     id+=pcsid;
 
 
-    if(memcmp((char*)g_YcData[id].pcs_data,(char*)pyc,len))
+  //  if(memcmp((char*)g_YcData[id].pcs_data,(char*)pyc,len))
 	{
 		g_YcData[id].sn = id;
         g_YcData[id].lcdid=id_thread;
@@ -99,7 +99,7 @@ int SaveYxData(int id_thread,int pcsid,unsigned short *pyx,unsigned char len)
     id+=pcsid;
 
 
-    if(memcmp((char*)g_YxData[id].pcs_data,(char*)pyx,len))
+  //  if(memcmp((char*)g_YxData[id].pcs_data,(char*)pyx,len))
 	{
 		g_YxData[id].sn = id;
         g_YxData[id].lcdid=id_thread;
@@ -116,7 +116,7 @@ int SaveYxData(int id_thread,int pcsid,unsigned short *pyx,unsigned char len)
 PARA_61850 para_61850;
 void initInterface61850(void)
 {
-   #define LIB_61850_PATH "/usr/lib/libiec61850.so"
+   #define LIB_61850_PATH "/usr/lib/libiec61850_1.so"
    typedef int (*p_initlcd)(void*);
 	void *handle;
 	char *error;
@@ -124,13 +124,13 @@ void initInterface61850(void)
     printf("initInterface61850\n");
 	p_initlcd my_func = NULL;
     para_61850.lcdnum=pconfig->lcd_num;
-
+    para_61850.pcsnum=0;
     for(i=0;i<para_61850.lcdnum;i++)
 	{
 		para_61850.pcsnum += pPara_Modtcp->pcsnum[i];
 	}
     para_61850.balance_rate = pconfig->balance_rate;
-
+    printf("传输到61850接口的参数 %d %d %d\n",para_61850.lcdnum,para_61850.pcsnum,para_61850.balance_rate);
 	handle = dlopen(LIB_61850_PATH, RTLD_LAZY);
 	if (!handle) {
 		fprintf(stderr, "%s\n", dlerror());

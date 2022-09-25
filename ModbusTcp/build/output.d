@@ -1,4 +1,4 @@
-/mnt/hgfs/tcp/ModbusTcp/build/output.o: src/protocol/output.c \
+/mnt/hgfs/linux/tcp/ModbusTcp/build/output.o: src/protocol/output.c \
  src/protocol/output.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \

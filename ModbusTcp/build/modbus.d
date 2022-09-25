@@ -1,4 +1,4 @@
-/mnt/hgfs/tcp/ModbusTcp/build/modbus.o: src/protocol/modbus.c \
+/mnt/hgfs/linux/tcp/ModbusTcp/build/modbus.o: src/protocol/modbus.c \
  src/protocol/modbus.h src/include/modbus_tcp_main.h \
  src/include/share_type.h src/include/lib_time.h src/socket/client.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \

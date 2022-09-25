@@ -1,8 +1,8 @@
 #ifndef _MODBUS_TCP_MAIN_H_
 #define _MODBUS_TCP_MAIN_H_
 #define MAX_PCS_NUM   6
-#define _YC_  1
-#define _YX_  2
+#define _YX_  1
+#define _YC_  2
 
 #define MASTER   1
 #define SLAVE    2
