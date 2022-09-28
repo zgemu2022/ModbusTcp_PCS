@@ -21,8 +21,10 @@
 #define PQ_STP    0//0：恒功率模式；
 #define PQ_STA    3 //3：恒流模式；
 
-#define NUM_READ_YC    0x1d
-#define NUM_READ_YX    0x10
+#define NUM_READ_YC    29   //0x1d
+#define NUM_READ_YX    5
+#define NUM_READ_ZJYX  6
+#define NUM_READ_ZJYC  15
 
 typedef struct
 {

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 #include "importBams.h"
-#define LIB_MODTCP_PATH "/usr/lib/libbams_rtu.so"
+#define LIB_MODBMS_PATH "/usr/lib/libbams_rtu.so"
 PARA_BAMS para_bams={1,{9600,9600},{2,2},{6,0}};
 
 void bams_Init(void)
@@ -19,7 +19,7 @@ void bams_Init(void)
 	typedef int (*init_fun)(void*);
     init_fun  my_func = (void *)0;
  	//打开动态链接库
- 	 handle = dlopen(LIB_MODTCP_PATH, RTLD_LAZY);
+ 	 handle = dlopen(LIB_MODBMS_PATH, RTLD_LAZY);
  	if (!handle) {
  		fprintf(stderr, "%s\n", dlerror());
  		exit(EXIT_FAILURE);

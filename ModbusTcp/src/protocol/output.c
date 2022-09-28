@@ -17,6 +17,9 @@
 LCD_YC_YX_DATA g_YcData[MAX_PCS_NUM*MAX_LCD_NUM];
 //libName:订阅数据的模块； type：数据类型 ；ifcomp：是否与上次数据比较
 LCD_YC_YX_DATA g_YxData[MAX_PCS_NUM*MAX_LCD_NUM];
+
+LCD_YC_YX_DATA g_ZjyxData;
+LCD_YC_YX_DATA g_ZjycData;
 //static void outputdata(unsigned char libName,unsigned char type,unsigned char ifcomp)
 static void outputdata(unsigned char type,int id)
 {
@@ -39,13 +42,20 @@ static void outputdata(unsigned char type,int id)
             {
             case _YC_:
 			   {
-               pnote->pfun(type,(void*) &g_YcData[id].pcs_data);
+				printf("g_YcData[id-1].sn=%d g_YcData[id-1].pcsid=%d\n",g_YcData[id-1].sn,g_YcData[id-1].pcsid);
+                 pnote->pfun(type,(void*) &g_YcData[id-1]);
 			   }
 
          	   break;
+			            case _ZJYC_:
+			   {
+               pnote->pfun(type,(void*) &g_YcData[id-1].pcs_data);
+			   }
+
+         	   break;   
             case _YX_:
 			   {
-               pnote->pfun(type,(void*) &g_YxData[id].pcs_data);
+               pnote->pfun(type,(void*) &g_YxData[id-1].pcs_data);
 			   }
 
          	   break;
@@ -64,21 +74,21 @@ int SaveYcData(int id_thread,int pcsid,unsigned short *pyc,unsigned char len)
 
 	int id = 0;
 	int i;
-    printf("saveYcData id_thread=%d pcsid=%d \n",id_thread,pcsid);
+
 	for(i=0;i<id_thread;i++)
 	{
 		id+= pPara_Modtcp->pcsnum[i];
 	}
     id+=pcsid;
-
+    printf("saveYcData id_thread=%d pcsid=%d id=%d\n",id_thread,pcsid,id);
 
   //  if(memcmp((char*)g_YcData[id].pcs_data,(char*)pyc,len))
 	{
-		g_YcData[id].sn = id;
-        g_YcData[id].lcdid=id_thread;
-		g_YcData[id].pcsid = pcsid;
-		g_YcData[id].data_len = len;
-		memcpy((char*)g_YcData[id].pcs_data,(char*)pyc,len);
+		g_YcData[id-1].sn = id-1;
+        g_YcData[id-1].lcdid=id_thread;
+		g_YcData[id-1].pcsid = pcsid;
+		g_YcData[id-1].data_len = len;
+		memcpy((char*)g_YcData[id-1].pcs_data,(char*)pyc,len);
         outputdata(_YC_,id);
 
 	}
@@ -112,6 +122,40 @@ int SaveYxData(int id_thread,int pcsid,unsigned short *pyx,unsigned char len)
 
 	return 0;
 }
+int SaveZjyxData(int id_thread,unsigned short *pzjyx,unsigned char len)
+{
+
+
+    if(memcmp((char*)g_ZjyxData.pcs_data,(char*)pzjyx,len))
+	{
+		g_ZjyxData.sn = 0xff;
+        g_ZjyxData.lcdid=id_thread;
+		g_ZjyxData.pcsid = 0;
+		g_ZjyxData.data_len = len;
+		memcpy((char*)g_ZjyxData.pcs_data,(char*)pzjyx,len);
+        outputdata(_ZJYX_,0);
+
+	}
+
+	return 0;
+}
+int SaveZjycData(int id_thread,unsigned short *pzjyc,unsigned char len)
+{
+
+
+  //  if(memcmp((char*)g_ZjycData.pcs_data,(char*)pzjyc,len))
+	{
+		g_ZjycData.sn = 0xff;
+        g_ZjycData.lcdid=id_thread;
+		g_ZjycData.pcsid = 0;
+		g_ZjycData.data_len = len;
+		memcpy((char*)g_ZjycData.pcs_data,(char*)pzjyc,len);
+        outputdata(_ZJYC_,0);
+
+	}
+
+	return 0;
+}
 
 PARA_61850 para_61850;
 void initInterface61850(void)
@@ -124,13 +168,17 @@ void initInterface61850(void)
     printf("initInterface61850\n");
 	p_initlcd my_func = NULL;
     para_61850.lcdnum=pconfig->lcd_num;
-    para_61850.pcsnum=0;
+	for(i=0;i<MAX_PCS_NUM;i++)
+	{
+        para_61850.pcsnum[i]=0;
+	}
+ 
     for(i=0;i<para_61850.lcdnum;i++)
 	{
-		para_61850.pcsnum += pPara_Modtcp->pcsnum[i];
+		para_61850.pcsnum[i] = pPara_Modtcp->pcsnum[i];
 	}
     para_61850.balance_rate = pconfig->balance_rate;
-    printf("传输到61850接口的参数 %d %d %d\n",para_61850.lcdnum,para_61850.pcsnum,para_61850.balance_rate);
+    printf("传输到61850接口的参数 %d %d \n",para_61850.lcdnum,para_61850.balance_rate);
 	handle = dlopen(LIB_61850_PATH, RTLD_LAZY);
 	if (!handle) {
 		fprintf(stderr, "%s\n", dlerror());

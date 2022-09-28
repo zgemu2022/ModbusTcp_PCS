@@ -437,7 +437,7 @@ void CreateThreads(void)
 			exit(1);
 		}
 	}
-	//initInterface61850();
-    //bams_Init();
+	// initInterface61850();
+    // bams_Init();
 	printf("MODBUS THTREAD CREATE success!\n");
 }
