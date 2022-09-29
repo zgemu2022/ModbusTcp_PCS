@@ -70,7 +70,8 @@
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitflags.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitstatus.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./alloca.h \
- src/include/lib_time.h src/importlib/importBams.h
+ src/include/lib_time.h src/importlib/importBams.h \
+ src/protocol/logicAndControl.h src/importlib/importPlc.h
 
 src/protocol/modbus.h:
 
@@ -225,3 +226,7 @@ src/protocol/output.h:
 src/include/lib_time.h:
 
 src/importlib/importBams.h:
+
+src/protocol/logicAndControl.h:
+
+src/importlib/importPlc.h:

@@ -1,5 +1,9 @@
 #ifndef _MODBUS_TCP_MAIN_H_
 #define _MODBUS_TCP_MAIN_H_
+
+#include "share_type.h"
+#include "lib_time.h"
+
 #define MAX_PCS_NUM   6
 
 #define _ZJYX_  0
@@ -11,8 +15,7 @@
 #define SLAVE    2
 #define MAX_YCDATA_NUM   32
 
-#include "share_type.h"
-#include "lib_time.h"
+
 enum LIB_NAME							   // 模块名称编号
 {
 
@@ -22,7 +25,9 @@ enum LIB_NAME							   // 模块名称编号
 
 
 };
-
+#define LIB_61850   1
+#define LIB_BMS     2
+#define LIB_PLC     3
 // typedef struct
 // {
 // 	char type; //1 Master 2 Slave
@@ -62,7 +67,8 @@ typedef struct
 }LCD_YC_YX_DATA;//
 
 //回调
-typedef int			(*outData2Other)(unsigned char ,void *pdata);	//输出数据
+typedef int			(*outData2Other)(unsigned char ,void *pdata);	//输出数据签名
+typedef int			(*CallbackYK)(unsigned char ,void *pdata);	//遥控回调函数签名
 
 typedef struct _post_list_t
 {
@@ -70,6 +76,16 @@ typedef struct _post_list_t
 	unsigned char type;
     struct _post_list_t *next;
 }post_list_t;
+
+typedef struct
+{
+	unsigned char type;
+	unsigned char scope;  //1 emu整机  2 lcd整机  3 pcs模块  
+	unsigned char devid;
+	unsigned char para_num;//自devid开始连续参数个数
+	unsigned char el_tag;//  数据类型
+	unsigned char  para[1024]; //参数
+}YK_PARA;//一个遥控参数
 int modbus_tcp_main(void *para_app);
 
 int SubscribeLcdData(unsigned char type,outData2Other pfun);

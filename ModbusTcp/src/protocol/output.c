@@ -7,6 +7,7 @@
  #include <dlfcn.h>
  #include <stddef.h>
 #include <stdlib.h>
+#include "logicAndControl.h"
 //所有的LCD整机信息数据数据标识1都用2来表示，#
 //数据标识2编号从1-6，
 //每个LCD下模块信息，数据标识1都3来表示，
@@ -20,6 +21,7 @@ LCD_YC_YX_DATA g_YxData[MAX_PCS_NUM*MAX_LCD_NUM];
 
 LCD_YC_YX_DATA g_ZjyxData;
 LCD_YC_YX_DATA g_ZjycData;
+
 //static void outputdata(unsigned char libName,unsigned char type,unsigned char ifcomp)
 static void outputdata(unsigned char type,int id)
 {

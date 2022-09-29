@@ -6,10 +6,9 @@
 #include "client.h"
 #include <string.h>
 #include <malloc.h>
-
+CallbackYK pbackFun[]={NULL,NULL,NULL};
 int modbus_tcp_main(void *para_app)
 {
-	int i;
 	*pconfig = *(pconf *)para_app;
 
 	pPara_Modtcp->type = 1;
@@ -34,6 +33,27 @@ int SubscribeLcdData(unsigned char type, outData2Other pfun) //订阅pcs数据
 	note->pfun = pfun;
 	note->next = post_list_l;
 	post_list_l = note;
+
+	return 0;
+}
+int orderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun) //zhi来自其他模块的
+{
+    pbackFun[modid]=pfun;
+    switch(modid)
+	{
+		case LIB_61850:
+			printf("61850模块调用YK\n");
+			break;
+		case LIB_BMS:
+			printf("BMS模块调用YK\n");
+			break;
+		case LIB_PLC:
+			printf("PLC模块调用YK\n");
+			break;
+			default:
+			break;
+
+	}
 
 	return 0;
 }

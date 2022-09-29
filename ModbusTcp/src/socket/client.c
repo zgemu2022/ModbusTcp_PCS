@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include "importBams.h"
+#include "logicAndControl.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
 int wait_flag = 0;
 char modbus_sockt_state[MAX_PCS_NUM];
@@ -279,7 +280,7 @@ void init_emu_op_para(int id_thread)
 		g_emu_op_para.vsg_qw[id_thread][i]=0;//kVar
 	}
 
-
+    g_flag_RecvNeed_LCD=countRecvFlag(pPara_Modtcp->lcdnum);
 }
 
 void *Modbus_clientRecv_thread(void *arg) // 25

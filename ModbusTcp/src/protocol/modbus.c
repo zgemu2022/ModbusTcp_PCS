@@ -17,6 +17,8 @@
 #include "stdlib.h"
 #include "lib_time.h"
 #include "importBams.h"
+#include "logicAndControl.h"
+#include "importPlc.h"
 /*
 
 EMU 参数
@@ -436,16 +438,17 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr, unsigned char *pda
 		goto save_yx;
 	case 0x1260:
 		pcsid = 6;
-save_yx:		num = pdata[2];
+	save_yx:
+		num = pdata[2];
 		SaveYxData(id_thread, pcsid, (unsigned short *)&pdata[3], num);
 		break;
 	case 0x1174:
 	{
 		num = pdata[2];
 
-		SaveZjycData(id_thread,(unsigned short *)&pdata[3], num);
+		SaveZjycData(id_thread, (unsigned short *)&pdata[3], num);
 	}
-	    
+
 	break;
 
 	default:
@@ -462,6 +465,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	unsigned short regAddr;
 	// unsigned short numdata;
 	unsigned short val;
+
 	printf("解析收到的LCD数据！！！！！\n");
 
 	// int i;
@@ -514,20 +518,29 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	printf("   regAddr:%#x   ", regAddr);
 	if (funid == 3)
 	{
+		static int flag_get_pcsnum = 0;
 		if (regAddr == 0x1246)
 		{
+
 			//放在现场时，用以下获取LCD下PCS数量
-#if 0
+			flag_get_pcsnum |= (1 << id_thread);
+
+#if 0       
 		 Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
 #endif
 			Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 			lcd_state[id_thread] = LCD_SET_MODE;
-			if (id_thread == pPara_Modtcp->lcdnum - 1)
+			if (flag_get_pcsnum == g_flag_RecvNeed_LCD)
 			{
-
+				int i;
+				for (i = 0; i < pPara_Modtcp->lcdnum; i++)
+				{
+					total_pcsnum += pPara_Modtcp->pcsnum[i];
+				}
 				initInterface61850();
 				bams_Init();
+				Plc_Init();
 			}
 		}
 		else
@@ -689,7 +702,7 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	int pos = 0;
 	unsigned short numData;
 
-    if(status == _ZJYX_)
+	if (status == _ZJYX_)
 	{
 		regStart = 0x1240;
 		numData = NUM_READ_ZJYX;
@@ -699,20 +712,20 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 		regStart = YX_YC_tab[pcsid][0];
 		numData = NUM_READ_YX;
 	}
-	else if(status == _ZJYC_)
+	else if (status == _ZJYC_)
 	{
 		printf("进行整机遥测！！！！\n");
 		regStart = 0x1174;
 		numData = NUM_READ_ZJYC;
 	}
-	else if(status == _YC_)
+	else if (status == _YC_)
 	{
 		regStart = YX_YC_tab[pcsid][1];
 		numData = NUM_READ_YC;
 	}
 	else
-	    printf("注意：程序出现错误！！！\n");
-	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d\n", status, regStart, numData,pcsid);
+		printf("注意：程序出现错误！！！\n");
+	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d\n", status, regStart, numData, pcsid);
 	framebuf[pos++] = g_num_frame / 256;
 	framebuf[pos++] = g_num_frame % 256;
 	framebuf[pos++] = 0;
@@ -728,34 +741,33 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	framebuf[pos++] = numData % 256;
 	*lenframe = pos;
 
-	if(status == _ZJYX_)
+	if (status == _ZJYX_)
 	{
-        status = _YX_;
+		status = _YX_;
 	}
 	else if (status == _YX_)
 	{
 		status = _YC_;
 	}
-	else if(status ==_YC_)
+	else if (status == _YC_)
 	{
-	
+
 		pcsid++;
 
 		if (pcsid >= Para_Modtcp.pcsnum[id_thread])
 		{
 			pcsid = 0;
-            status = _ZJYC_;
-			printf("准备切换到整机遥测！！！！status =%d\n",status);
+			status = _ZJYC_;
+			printf("准备切换到整机遥测！！！！status =%d\n", status);
 		}
 		else
 		{
 			status = _YX_;
 		}
-		
 	}
-	else if(status == _ZJYC_)
+	else if (status == _ZJYC_)
 	{
-		printf("准备切换到整机遥信！！！！status =%d\n",status);
+		printf("准备切换到整机遥信！！！！status =%d\n", status);
 		status = _ZJYX_;
 	}
 
