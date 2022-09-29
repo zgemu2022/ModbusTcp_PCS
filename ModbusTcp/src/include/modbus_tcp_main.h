@@ -19,15 +19,16 @@
 enum LIB_NAME							   // 模块名称编号
 {
 
-	LCD = 1,		 //LCD模块
-    BAMS =2,
-	PLC =3
+	LIB_LCD   =  0,
+    LIB_61850 =  1,
+    LIB_BMS   =  2,
+    LIB_PLC   =  3,
 
 
 };
-#define LIB_61850   1
-#define LIB_BMS     2
-#define LIB_PLC     3
+// #define LIB_61850   1
+// #define LIB_BMS     2
+// #define LIB_PLC     3
 // typedef struct
 // {
 // 	char type; //1 Master 2 Slave
@@ -85,8 +86,9 @@ typedef struct
 	unsigned char para_num;//自devid开始连续参数个数
 	unsigned char el_tag;//  数据类型
 	unsigned char  para[1024]; //参数
-}YK_PARA;//一个遥控参数
+}YK_PARA;//遥控参数
 int modbus_tcp_main(void *para_app);
 
 int SubscribeLcdData(unsigned char type,outData2Other pfun);
+int ykOrderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun);
 #endif

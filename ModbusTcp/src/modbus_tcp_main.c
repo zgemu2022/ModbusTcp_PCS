@@ -36,7 +36,7 @@ int SubscribeLcdData(unsigned char type, outData2Other pfun) //订阅pcs数据
 
 	return 0;
 }
-int orderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun) //zhi来自其他模块的
+int ykOrderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun) 
 {
     pbackFun[modid]=pfun;
     switch(modid)
