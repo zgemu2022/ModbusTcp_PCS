@@ -42,7 +42,7 @@ int ykOrderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun)
     switch(modid)
 	{
 		case LIB_61850:
-			printf("61850模块调用YK\n");
+			printf("61850模块调用YK id=%d  para=%d \n",pYkPara->devid,pYkPara->para[0]);
 			break;
 		case LIB_BMS:
 			printf("BMS模块调用YK\n");

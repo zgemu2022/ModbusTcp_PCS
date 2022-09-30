@@ -261,6 +261,7 @@ void init_emu_op_para(int id_thread)
 {
 	int i;
 	// LCD
+	g_emu_op_para.ems_commnication_status = OFF_LINE;
 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
@@ -281,6 +282,7 @@ void init_emu_op_para(int id_thread)
 	}
 
     g_flag_RecvNeed_LCD=countRecvFlag(pPara_Modtcp->lcdnum);
+
 }
 
 void *Modbus_clientRecv_thread(void *arg) // 25
@@ -317,13 +319,6 @@ loop:
 
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	modbus_sockt_state[id_thread] = STATUS_ON;
-// <<<<<<< HEAD
-// 	printf("modbus_sockt_state[%d]aaa:%d\n", id_thread, STATUS_ON);
-// 	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
-// 	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
-// 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
-// 	g_send_data[id_thread].flag_waiting = 0;
-// =======
     init_emu_op_para(id_thread);
 // >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
@@ -418,8 +413,6 @@ void CreateThreads(void)
 	pthread_attr_t Thread_attr;
 	int i;
 	printf("pPara_Modtcp lcd数量:%d\n", pPara_Modtcp->lcdnum);
-	// pPara_Modtcp->pcsnum[1] = 1;
-	// pPara_Modtcp->pcsnum[2] = 1;
 
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
@@ -438,7 +431,7 @@ void CreateThreads(void)
 			exit(1);
 		}
 	}
-	// initInterface61850();
+	//initInterface61850();
     // bams_Init();
 	printf("MODBUS THTREAD CREATE success!\n");
 }

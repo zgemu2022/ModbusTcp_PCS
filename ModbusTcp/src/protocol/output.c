@@ -49,15 +49,15 @@ static void outputdata(unsigned char type,int id)
 			   }
 
          	   break;
-			            case _ZJYC_:
+			   case _ZJYC_:
 			   {
-               pnote->pfun(type,(void*) &g_YcData[id-1].pcs_data);
+               pnote->pfun(type,(void*) &g_YcData[id-1]);
 			   }
 
          	   break;   
             case _YX_:
 			   {
-               pnote->pfun(type,(void*) &g_YxData[id-1].pcs_data);
+               pnote->pfun(type,(void*) &g_YxData[id-1]);
 			   }
 
          	   break;

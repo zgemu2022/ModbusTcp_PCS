@@ -26,6 +26,8 @@
 #define NUM_READ_ZJYX  6
 #define NUM_READ_ZJYC  15
 
+#define ON_LINE     1   // 在线
+#define OFF_LINE    0   // 离线
 typedef struct
 {
 	char type; //1 Master 2 Slave
@@ -132,7 +134,7 @@ typedef struct
 	short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM];//VSG模式，pcs模块有功功率
 	short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM];//VSG模式、pcs模块无功功率
 
-
+    unsigned char ems_commnication_status;//ems通信状态 1 ON_LINE 0 OFF_LINE
 
 }EMU_OP_PARA;//装置运行参数
 extern EMU_OP_PARA g_emu_op_para;
