@@ -3,27 +3,29 @@
 
 #include "share_type.h"
 #include "lib_time.h"
+#include "logicAndControl.h"
+#define MAX_PCS_NUM 6
 
-#define MAX_PCS_NUM   6
+#define _ZJYX_ 0
+#define _YX_ 1
+#define _YC_ 2
+#define _ZJYC_ 3
 
-#define _ZJYX_  0
-#define _YX_  1
-#define _YC_  2
-#define _ZJYC_  3
+#define _BMS_YX_ 0
+#define _BMS_YK_ 1
+#define _PCS_YK_ 2
 
-#define MASTER   1
-#define SLAVE    2
-#define MAX_YCDATA_NUM   32
+#define MASTER 1
+#define SLAVE 2
+#define MAX_YCDATA_NUM 32
 
-
-enum LIB_NAME							   // 模块名称编号
+enum LIB_NAME // 模块名称编号
 {
 
-	LIB_LCD   =  0,
-    LIB_61850 =  1,
-    LIB_BMS   =  2,
-    LIB_PLC   =  3,
-
+	LIB_LCD = 0,
+	LIB_61850 = 1,
+	LIB_BMS = 2,
+	LIB_PLC = 3,
 
 };
 // #define LIB_61850   1
@@ -57,7 +59,6 @@ typedef struct
 
 } pconf;
 
-
 typedef struct
 {
 	int sn;
@@ -65,30 +66,22 @@ typedef struct
 	int pcsid;
 	unsigned short pcs_data[MAX_YCDATA_NUM];
 	unsigned char data_len;
-}LCD_YC_YX_DATA;//
+} LCD_YC_YX_DATA; //
 
 //回调
-typedef int			(*outData2Other)(unsigned char ,void *pdata);	//输出数据签名
-typedef int			(*CallbackYK)(unsigned char ,void *pdata);	//遥控回调函数签名
+
+typedef int (*outData2Other)(unsigned char, void *pdata); //输出数据签名
+typedef int (*CallbackYK)(unsigned char, void *pdata);	  //遥控回调函数签名
 
 typedef struct _post_list_t
 {
-	outData2Other  pfun;
+	outData2Other pfun;
 	unsigned char type;
-    struct _post_list_t *next;
-}post_list_t;
+	struct _post_list_t *next;
+} post_list_t;
 
-typedef struct
-{
-	unsigned char type;
-	unsigned char scope;  //1 emu整机  2 lcd整机  3 pcs模块  
-	unsigned char devid;
-	unsigned char para_num;//自devid开始连续参数个数
-	unsigned char el_tag;//  数据类型
-	unsigned char  para[1024]; //参数
-}YK_PARA;//遥控参数
 int modbus_tcp_main(void *para_app);
 
-int SubscribeLcdData(unsigned char type,outData2Other pfun);
-int ykOrderFromOther(unsigned char modid,YK_PARA* pYkPara,CallbackYK pfun);
+int SubscribeLcdData(unsigned char type, outData2Other pfun);
+int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun);
 #endif

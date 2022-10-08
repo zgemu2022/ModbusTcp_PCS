@@ -81,15 +81,8 @@ unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071
 unsigned short vsgpcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为VSG模式后，设置无功率
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
-Pcs_Fun03_Struct pcsYc[] = {
-	//遥信
-	{0x1200, 0x10, 0x10}, //模块1
-
-	//遥测
-	{0x1100, 0x12, 0x1D}, //模块1
-};
-
 unsigned short YX_YC_tab[][2] = {
+	{0x1240, 0x1174},
 	{0x1200, 0x1100},
 	{0x1210, 0x111D},
 	{0x1220, 0x113A},
@@ -440,6 +433,7 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr, unsigned char *pda
 		pcsid = 6;
 	save_yx:
 		num = pdata[2];
+		printf("YXAnalysModbus_fun03 id_thread=%d pcsid=%d num=%d regAddr=0x%x \n", id_thread, pcsid, num, regAddr);
 		SaveYxData(id_thread, pcsid, (unsigned short *)&pdata[3], num);
 		break;
 	case 0x1174:
@@ -540,7 +534,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				}
 				initInterface61850();
 				bams_Init();
-				//Plc_Init();
+				// Plc_Init();
 			}
 		}
 		else
@@ -696,32 +690,35 @@ static int createFun03Frame1(int id_thread, int *p_pcsid, int *lenframe, unsigne
 }
 static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned char *framebuf)
 {
-	static int status = _ZJYX_;
+	static int status = _YX_;
 	unsigned short regStart;
 	int pcsid = *p_pcsid;
 	int pos = 0;
 	unsigned short numData;
 
-	if (status == _ZJYX_)
-	{
-		regStart = 0x1240;
-		numData = NUM_READ_ZJYX;
-	}
-	else if (status == _YX_)
+	if (status == _YX_)
 	{
 		regStart = YX_YC_tab[pcsid][0];
-		numData = NUM_READ_YX;
-	}
-	else if (status == _ZJYC_)
-	{
-		printf("进行整机遥测！！！！\n");
-		regStart = 0x1174;
-		numData = NUM_READ_ZJYC;
+		if (pcsid == 0)
+		{
+			numData = NUM_READ_ZJYX;
+		}
+		else
+		{
+			numData = NUM_READ_YX;
+		}
 	}
 	else if (status == _YC_)
 	{
 		regStart = YX_YC_tab[pcsid][1];
-		numData = NUM_READ_YC;
+		if (pcsid == 0)
+		{
+			numData = NUM_READ_ZJYC;
+		}
+		else
+		{
+			numData = NUM_READ_YC;
+		}
 	}
 	else
 		printf("注意：程序出现错误！！！\n");
@@ -741,34 +738,17 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	framebuf[pos++] = numData % 256;
 	*lenframe = pos;
 
-	if (status == _ZJYX_)
-	{
-		status = _YX_;
-	}
-	else if (status == _YX_)
+	if (status == _YX_)
 	{
 		status = _YC_;
 	}
 	else if (status == _YC_)
 	{
-
+		status = _YX_;
 		pcsid++;
 
-		if (pcsid >= Para_Modtcp.pcsnum[id_thread])
-		{
+		if (pcsid >= (Para_Modtcp.pcsnum[id_thread] + 1))
 			pcsid = 0;
-			status = _ZJYC_;
-			printf("准备切换到整机遥测！！！！status =%d\n", status);
-		}
-		else
-		{
-			status = _YX_;
-		}
-	}
-	else if (status == _ZJYC_)
-	{
-		printf("准备切换到整机遥信！！！！status =%d\n", status);
-		status = _ZJYX_;
 	}
 
 	g_send_data[id_thread].num_frame = g_num_frame;
