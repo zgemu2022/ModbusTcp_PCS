@@ -37,10 +37,11 @@ int SubscribeLcdData(unsigned char type, outData2Other pfun) //订阅pcs数据
 
 	return 0;
 }
-
+	int xx = 10;
 int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 {
 	pbackBmsFun = pfun;
+
 	switch (type)
 	{
 	case _BMS_YX_:
@@ -49,6 +50,7 @@ int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 		break;
 	case _BMS_YK_:
 		printf("BMS模块调用YK\n");
+		pbackBmsFun(_BMS_YK_,(void*)xx);
 		break;
 	case _PCS_YK_:
 		printf("BMS模块调用PCS_YK\n");

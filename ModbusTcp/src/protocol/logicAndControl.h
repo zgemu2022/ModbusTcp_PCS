@@ -1,36 +1,35 @@
-
 #ifndef _LOGIC_AND_CONTROL_H_
 #define _LOGIC_AND_CONTROL_H_
-
+#include "logicAndControl.h"
 #define EMS_communication_status 0
-#define one_FM_GOOSE_link_status_A 1 //  Ò»´Îµ÷ÆµAÍøGOOSEÁ´Â·×´Ì¬
-#define one_FM_GOOSE_link_status_B 2 //  Ò»´Îµ÷ÆµBÍøGOOSEÁ´Â·×´Ì¬
-#define one_FM_Enable 3				 //  Ò»´Îµ÷ÆµÊ¹ÄÜ
-#define one_FM_Disable 4			 //  Ò»´Îµ÷ÆµÊ¹ÄÜ
+#define one_FM_GOOSE_link_status_A 1 //  ä¸€æ¬¡è°ƒé¢‘Aç½‘GOOSEé“¾è·¯çŠ¶æ€
+#define one_FM_GOOSE_link_status_B 2 //  ä¸€æ¬¡è°ƒé¢‘Bç½‘GOOSEé“¾è·¯çŠ¶æ€
+#define one_FM_Enable 3				 //  ä¸€æ¬¡è°ƒé¢‘ä½¿èƒ½
+#define one_FM_Disable 4			 //  ä¸€æ¬¡è°ƒé¢‘ä½¿èƒ½
 
-#define Emu_Startup 1				  //¡¾Õû»ú¡¿Æô»úÃüÁî
-#define Emu_Stop 2					  //¡¾Õû»ú¡¿Í£»úÃüÁî
-#define Parallel_Away_conversion_en 3 //²¢×ªÀëÇĞ»»Ê¹ÄÜ
-#define Away_Parallel_conversion_en 4 //Àë×ª²¢ÇĞ»»Ê¹ÄÜ
-#define EMS_SET_MODE 5				  //²úÆ·ÔËĞĞÄ£Ê½ÉèÖÃ
-#define EMS_VSG_MODE 6				  // VSG¹¤×÷Ä£Ê½ÉèÖÃ
-#define EMS_PQ_MODE 7				  // PQ¹¤×÷Ä£Ê½ÉèÖÃ
-#define BOX_35kV_ON 8				  // 35kV½øÏß¹ñºÏÕ¢
-#define BOX_35kV_OFF 9,				  // 35kV½øÏß¹ñ·ÖÕ¢
-#define BOX_SwitchD1_ON 10			  //¿ª¹Ø¹ñD1ºÏÕ¢
-#define BOX_SwitchD1_OFF 11			  //¿ª¹Ø¹ñD1·ÖÕ¢
-#define BOX_SwitchD2_ON 12			  //¿ª¹Ø¹ñD2ºÏÕ¢
-#define BOX_SwitchD2_OFF 13			  //¿ª¹Ø¹ñD2·ÖÕ¢
-#define EMS_PW_SETTING 14			  //ÓĞ¹¦¹¦ÂÊ
-#define EMS_QW_SETTING 15			  //ÎŞ¹¦¹¦ÂÊ
-#define ONE_FM_PW_SETTING 16		  //Ò»´Îµ÷ÆµÓĞ¹¦¹¦ÂÊ
-#define ONE_FM_QW_SETTING 17		  //Ò»´Îµ÷ÆµÎŞ¹¦¹¦ÂÊ
+#define Emu_Startup 1				  //ã€æ•´æœºã€‘å¯æœºå‘½ä»¤
+#define Emu_Stop 2					  //ã€æ•´æœºã€‘åœæœºå‘½ä»¤
+#define Parallel_Away_conversion_en 3 //å¹¶è½¬ç¦»åˆ‡æ¢ä½¿èƒ½
+#define Away_Parallel_conversion_en 4 //ç¦»è½¬å¹¶åˆ‡æ¢ä½¿èƒ½
+#define EMS_SET_MODE 5				  //äº§å“è¿è¡Œæ¨¡å¼è®¾ç½®
+#define EMS_VSG_MODE 6				  // VSGå·¥ä½œæ¨¡å¼è®¾ç½®
+#define EMS_PQ_MODE 7				  // PQå·¥ä½œæ¨¡å¼è®¾ç½®
+#define BOX_35kV_ON 8				  // 35kVè¿›çº¿æŸœåˆé—¸
+#define BOX_35kV_OFF 9,				  // 35kVè¿›çº¿æŸœåˆ†é—¸
+#define BOX_SwitchD1_ON 10			  //å¼€å…³æŸœD1åˆé—¸
+#define BOX_SwitchD1_OFF 11			  //å¼€å…³æŸœD1åˆ†é—¸
+#define BOX_SwitchD2_ON 12			  //å¼€å…³æŸœD2åˆé—¸
+#define BOX_SwitchD2_OFF 13			  //å¼€å…³æŸœD2åˆ†é—¸
+#define EMS_PW_SETTING 14			  //æœ‰åŠŸåŠŸç‡
+#define EMS_QW_SETTING 15			  //æ— åŠŸåŠŸç‡
+#define ONE_FM_PW_SETTING 16		  //ä¸€æ¬¡è°ƒé¢‘æœ‰åŠŸåŠŸç‡
+#define ONE_FM_QW_SETTING 17		  //ä¸€æ¬¡è°ƒé¢‘æ— åŠŸåŠŸç‡
 typedef struct
 {
-	unsigned char item;	   //ÏîÄ¿±àºÅ
-	unsigned char el_tag;  //  Êı¾İÀàĞÍ
-	unsigned char data[5]; //²ÎÊı
-} YK_PARA;				   //Ò£²â¡¢Ò£¿Ø²ÎÊı
+	unsigned char item;	   //é¡¹ç›®ç¼–å·
+	unsigned char el_tag;  //  æ•°æ®ç±»å‹
+	unsigned char data[5]; //å‚æ•°
+} YK_PARA;				   //é¥æµ‹ã€é¥æ§å‚æ•°
 
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;

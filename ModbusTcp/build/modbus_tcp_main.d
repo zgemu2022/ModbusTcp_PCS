@@ -1,6 +1,7 @@
 /mnt/hgfs/linux/tcp/ModbusTcp/build/modbus_tcp_main.o: \
  src/modbus_tcp_main.c src/include/modbus_tcp_main.h \
- src/include/share_type.h src/include/lib_time.h src/protocol/modbus.h \
+ src/include/share_type.h src/include/lib_time.h \
+ src/protocol/logicAndControl.h src/protocol/modbus.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
@@ -39,6 +40,8 @@ src/include/modbus_tcp_main.h:
 src/include/share_type.h:
 
 src/include/lib_time.h:
+
+src/protocol/logicAndControl.h:
 
 src/protocol/modbus.h:
 

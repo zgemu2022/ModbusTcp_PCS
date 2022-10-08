@@ -121,8 +121,13 @@ void RunAccordingtoStatus(int id_thread)
 
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
+	
 	break;
+	case LCD_PCS_START:
+	{
 
+	}
+	break;
 		// case LCD_VSG_QW_PCS_MODE:
 		// {
 		// 	printf("VSG 无功参数设置 ...\n");
