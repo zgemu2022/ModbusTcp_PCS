@@ -26,14 +26,16 @@
 
 #define ON_LINE 1  // 在线
 #define OFF_LINE 0 // 离线
+
 typedef struct
 {
 	char type; // 1 Master 2 Slave
 	unsigned char lcdnum;
 	unsigned char pcsnum[MAX_PCS_NUM];
 	unsigned char devNo[MAX_PCS_NUM];
-	char server_ip[64];
-	unsigned short server_port;
+	char server_ip[6][64];
+	unsigned short server_port[6];
+	unsigned short balance_rate;
 } PARA_MODTCP; //系统运行参数  从主控传到Modbus-Tcp模块的结构
 
 typedef struct
@@ -71,8 +73,9 @@ extern unsigned short pqpcs_mode_set[]; //整机设置为PQ模式后，设置pcs
 extern unsigned short pqpcs_pw_set[];	//恒功率模式 功率给定设置0.1kW正为放电，负为充电
 extern unsigned short pqpcs_cur_set[];	//恒流模式 电流给定设置0.1A正为放电，负为充电
 
-extern unsigned short vsgpcs_pw_set[]; // VSG模式 有功给定设置
-extern unsigned short vsgpcs_qw_set[]; // VSG模式 无功
+extern unsigned short vsgpcs_pw_set[];	// VSG模式 有功给定设置
+extern unsigned short vsgpcs_qw_set[];	// VSG模式 无功
+extern unsigned short pcs_on_off_set[]; //开机关机
 extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE // LCD当前工作状态
@@ -86,8 +89,8 @@ enum LCD_WORK_STATE // LCD当前工作状态
 	LCD_VSG_PW_PCS_MODE = 5, //整机设置为VSG后,有功
 	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
 
-	LCD_PCS_START =7,//启动本LCD下的PCS
-
+	LCD_PCS_START = 7,	//启动本LCD下的PCS
+	LCD_PCS_STOP = 8,	//启动本LCD下的PCS
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
 // <<<<<<< HEAD
@@ -115,21 +118,27 @@ enum LCD_WORK_STATE // LCD当前工作状态
 
 typedef struct
 {
-
-	unsigned char LcdStatus[MAX_LCD_NUM];		 //当前LCD状态，整机运行前0 整机运行后 1
-	unsigned char LcdOperatingMode[MAX_LCD_NUM]; //当前LCD工作模式，PQ=1 VSG=5
-	unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
-	unsigned short pq_mode[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ模式下PCS模块工作模式
-
-	short pq_pw[MAX_LCD_NUM][MAX_PCS_NUM];	// PQ，恒功率模式下pcs模块功率值
-	short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ、恒流模式下pcs模块电流值
-
-	unsigned short vsg_mode[MAX_LCD_NUM]; // VSG模式下LCD工作模式
-
-	short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式，pcs模块有功功率
-	short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式、pcs模块无功功率
-
+	unsigned char flag_start;
 	unsigned char ems_commnication_status; // ems通信状态 1 ON_LINE 0 OFF_LINE
+	unsigned short soc_ave;
+	unsigned int err_num;
+
+	unsigned char LcdStatus[MAX_LCD_NUM]; //当前LCD状态，整机运行前0 整机运行后 1
+	unsigned char OperatingMode;		  //当前工作模式，PQ=1 VSG=5
+	// unsigned char LcdOperatingMode[MAX_LCD_NUM]; //当前LCD工作模式，PQ=1 VSG=5
+	// unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
+	unsigned short pq_mode_set; //[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ模式下PCS模块工作模式
+	unsigned int pq_pw_total;
+	unsigned int pq_cur_total;
+	// short pq_pw[MAX_LCD_NUM][MAX_PCS_NUM];	// PQ，恒功率模式下pcs模块功率值
+	// short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ、恒流模式下pcs模块电流值
+
+	unsigned short vsg_mode_set; //[MAX_LCD_NUM]; // VSG模式下LCD工作模式
+	unsigned int vsg_pw_total;
+	unsigned int vsg_qw_total;
+	// short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式，pcs模块有功功率
+	// short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式、pcs模块无功功率
+	int num_pcs_bms[2];
 
 } EMU_OP_PARA; //装置运行参数
 extern EMU_OP_PARA g_emu_op_para;
@@ -140,8 +149,8 @@ typedef struct
 
 } Pcs_Fun06_Struct;
 extern pconf *pconfig;
-extern int curTaskId;
-extern int curPcsId;
+extern int curTaskId[];
+extern int curPcsId[];
 extern unsigned short g_num_frame;
 extern int lcd_state[];
 int AnalysModbus(int id_thread, unsigned char *pdata, int len);

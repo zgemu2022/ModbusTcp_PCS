@@ -33,7 +33,7 @@ void RunAccordingtoStatus(int id_thread)
 	case LCD_RUNNING:
 	{
 		printf("LCD:%d  doFun03Tasks!!!!\n", id_thread);
-		ret = doFun03Tasks(id_thread, &curPcsId);
+		ret = doFun03Tasks(id_thread, &curPcsId[id_thread]);
 	}
 	break;
 	case LCD_SET_TIME:
@@ -55,7 +55,7 @@ void RunAccordingtoStatus(int id_thread)
 		// 1：PQ模式（高低穿功能，需选择1）；
 		// 5：VSG模式（并离网功能，需选择5）；"
 		printf("LCD:%d 设置运行模式...\n", id_thread);
-		ret = SetLcdFun06(id_thread, 0x3046, g_emu_op_para.LcdOperatingMode[id_thread]);
+		ret = SetLcdFun06(id_thread, 0x3046, g_emu_op_para.OperatingMode);
 	}
 	break;
 	case LCD_PQ_PCS_MODE:
@@ -65,20 +65,26 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val;
 		if (curTaskId == 0)
 		{
-			regaddr = pqpcs_mode_set[curPcsId];
-			val = g_emu_op_para.pq_mode[id_thread][curPcsId];
+			regaddr = pqpcs_mode_set[curPcsId[id_thread]];
+			val = g_emu_op_para.pq_mode_set; //[id_thread][curPcsId[id_thread]];
 		}
 		else
 		{
-			if (g_emu_op_para.pq_mode[id_thread][curPcsId] == PQ_STP) //设置恒功率
+			if (g_emu_op_para.pq_mode_set == PQ_STP) //设置恒功率
 			{
-				regaddr = pqpcs_pw_set[curPcsId];
-				val = g_emu_op_para.pq_pw[id_thread][curPcsId];
+				regaddr = pqpcs_pw_set[curPcsId[id_thread]];
+				if (g_emu_op_para.err_num < total_pcsnum)
+					val = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+				else
+					val = 0;
 			}
 			else // PQ_STA 设置恒流
 			{
-				regaddr = pqpcs_cur_set[curPcsId];
-				val = g_emu_op_para.pq_cur[id_thread][curPcsId];
+				regaddr = pqpcs_cur_set[curPcsId[id_thread]];
+				if (g_emu_op_para.err_num < total_pcsnum)
+					val = g_emu_op_para.pq_cur_total / (total_pcsnum - g_emu_op_para.err_num);
+				else
+					val = 0;
 			}
 		}
 
@@ -90,7 +96,7 @@ void RunAccordingtoStatus(int id_thread)
 	{
 		printf("LCD:%d PCS 设置成VSG模式...\n", id_thread);
 		unsigned short regaddr = 0x3047; // = pq_pcspw_set[curPcsId][curTaskId];
-		unsigned short val = g_emu_op_para.vsg_mode[id_thread];
+		unsigned short val = g_emu_op_para.vsg_mode_set;
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
@@ -101,11 +107,11 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
-		regaddr = vsgpcs_pw_set[curPcsId];
-		val = g_emu_op_para.vsg_pw[id_thread][curPcsId];
-		// regaddr = vsgpcs_qw_set[curPcsId];
-		// val = g_emu_op_para.pq_cur[id_thread][curPcsId];
-
+		regaddr = vsgpcs_pw_set[curPcsId[id_thread]];
+		if (g_emu_op_para.err_num < total_pcsnum)
+			val = g_emu_op_para.vsg_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			val = 0;
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
@@ -116,16 +122,44 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
-		regaddr = vsgpcs_qw_set[curPcsId];
-		val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
-
+		regaddr = vsgpcs_qw_set[curPcsId[id_thread]];
+		if (g_emu_op_para.err_num < total_pcsnum)
+			val = g_emu_op_para.vsg_qw_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			val = 0;
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
-	
+
 	break;
 	case LCD_PCS_START:
+	case LCD_PCS_STOP:
 	{
 
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+		printf("LCD:%d 开机 ...\n", id_thread);
+
+		findCurPcsForStart(Emu_Startup, id_thread, curPcsId[id_thread]);
+		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
+		{
+			curPcsId[id_thread] = 0;
+		}
+		else
+		{
+			regaddr = pcs_on_off_set[curPcsId[id_thread]];
+
+			if (lcd_state[id_thread] == LCD_PCS_START)
+			{
+				val = 0xff00;
+			}
+			else
+			{
+				val = 0x00ff;
+			}
+
+			// val =
+			ret = SetLcdFun06(id_thread, regaddr, val);
+		}
 	}
 	break;
 		// case LCD_VSG_QW_PCS_MODE:
@@ -261,28 +295,36 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 //参数初始化
 void init_emu_op_para(int id_thread)
 {
-	int i;
-	// LCD
+	// int i;
+	//  LCD
+	g_emu_op_para.flag_start = 0;
 	g_emu_op_para.ems_commnication_status = OFF_LINE;
-	g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
-	g_emu_op_para.LcdOperatingMode[id_thread] = PQ;
+	// g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
+	g_emu_op_para.OperatingMode = PQ;
+	g_emu_op_para.pq_mode_set = PQ_STP;
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
 	g_send_data[id_thread].flag_waiting = 0;
-	g_emu_op_para.vsg_mode[id_thread] = VSG_PQ_PP;
+	g_emu_op_para.vsg_mode_set = VSG_PQ_PP;
+	g_emu_op_para.pq_pw_total = 500 * 28;  // 50.0kW*28
+	g_emu_op_para.pq_cur_total = 500 * 28; // 50.0A*28
+	g_emu_op_para.vsg_pw_total = 50 * 28;  // 50.0kW*28
+	g_emu_op_para.vsg_qw_total = 0;		   // kVar
 
 	// PCS
-	for (i = 0; i < MAX_PCS_NUM; i++)
-	{
-		// PQ
-		g_emu_op_para.pq_mode[id_thread][i] = PQ_STP;
-		g_emu_op_para.pq_pw[id_thread][i] = 500;  // 50.0kW
-		g_emu_op_para.pq_cur[id_thread][i] = 500; // 50.0A
+	// for (i = 0; i < MAX_PCS_NUM; i++)
+	// {
+	// PQ
+	// g_emu_op_para.pq_mode[id_thread][i] = PQ_STP;
+	// g_emu_op_para.pq_pw[id_thread][i] = 500;  // 50.0kW
+	// g_emu_op_para.pq_cur[id_thread][i] = 500; // 50.0A
 
-		// VSG
-		g_emu_op_para.vsg_pw[id_thread][i] = 50; // 50.0kW
-		g_emu_op_para.vsg_qw[id_thread][i] = 0;	 // kVar
-	}
-
+	// VSG
+	// g_emu_op_para.vsg_pw[id_thread][i] = 50; // 50.0kW
+	// g_emu_op_para.vsg_qw[id_thread][i] = 0;	 // kVar
+	//}
+	g_emu_op_para.err_num = 0;
+	g_emu_op_para.num_pcs_bms[0] = 0;
+	g_emu_op_para.num_pcs_bms[1] = 0;
 	g_flag_RecvNeed_LCD = countRecvFlag(pPara_Modtcp->lcdnum);
 }
 
@@ -300,8 +342,8 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 	_SERVER_SOCKET server_sock;
 	server_sock.protocol = TCP;
-	server_sock.port = htons(pPara_Modtcp->server_port);
-	server_sock.addr = inet_addr(pPara_Modtcp->server_ip);
+	server_sock.port = htons(pPara_Modtcp->server_port[id_thread]);
+	server_sock.addr = inet_addr(pPara_Modtcp->server_ip[id_thread]);
 	server_sock.fd = -1;
 
 	sleep(4);

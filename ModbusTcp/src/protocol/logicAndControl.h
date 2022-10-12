@@ -1,6 +1,7 @@
 #ifndef _LOGIC_AND_CONTROL_H_
 #define _LOGIC_AND_CONTROL_H_
 #include "logicAndControl.h"
+
 #define EMS_communication_status 0
 #define one_FM_GOOSE_link_status_A 1 //  一次调频A网GOOSE链路状态
 #define one_FM_GOOSE_link_status_B 2 //  一次调频B网GOOSE链路状态
@@ -34,6 +35,11 @@ typedef struct
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;
 extern int g_flag_RecvNeed_LCD;
-
+extern int g_flag_RecvNeed_PCS;
+int handleYkFromEms(YK_PARA *pYkPara);
 unsigned int countRecvFlag(int num_read);
+int handleYxFromEms(int item, unsigned char data);
+// int handleYkFromEms(int item, unsigned char data);
+int countDP(int sn, unsigned short *pPw);
+// unsigned short checkPcsStatus(int type, int lcdid, int pcsid);
 #endif

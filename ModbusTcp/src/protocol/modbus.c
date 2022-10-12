@@ -54,8 +54,8 @@ EMU 参数
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 post_list_t *post_list_l = NULL;
 
-int curTaskId = 0;
-int curPcsId = 0;
+int curTaskId[6] = {0};
+int curPcsId[6] = {0};
 EMU_OP_PARA g_emu_op_para;
 PARA_MODTCP Para_Modtcp;
 PARA_MODTCP *pPara_Modtcp = (PARA_MODTCP *)&Para_Modtcp;
@@ -77,8 +77,9 @@ unsigned short pqpcs_mode_set[] = {0x3008, 0x3018, 0x3028, 0x3038, 0x3068, 0x307
 unsigned short pqpcs_cur_set[] = {0x3004, 0x3014, 0x3024, 0x3034, 0x3064, 0x3074};	// PQ恒流模式 电流给定设置0.1A正为放电，负为充电
 unsigned short pqpcs_pw_set[] = {0x3005, 0x3015, 0x3025, 0x3035, 0x3065, 0x3075};	//恒功率模式  仅适用于PQ模式 功率给定设置0.1kW正为放电，负为充电
 
-unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071}; //整机设置为VSG模式后，设置有功率
-unsigned short vsgpcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为VSG模式后，设置无功率
+unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071};	//整机设置为VSG模式后，设置有功率
+unsigned short vsgpcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072};	//整机设置为VSG模式后，设置无功率
+unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3072}; //整机开机或关机
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 unsigned short YX_YC_tab[][2] = {
@@ -532,6 +533,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				{
 					total_pcsnum += pPara_Modtcp->pcsnum[i];
 				}
+				g_flag_RecvNeed_PCS = countRecvFlag(total_pcsnum);
 				initInterface61850();
 				bams_Init();
 				// Plc_Init();
@@ -552,8 +554,8 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		{
 			lcd_state[id_thread] = LCD_PQ_PCS_MODE;
 			// sleep(1);
-			curTaskId = 0;
-			curPcsId = 0;
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
 		}
 		else
 		{
@@ -564,24 +566,24 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	{
 		val = emudata[3] * 256 + emudata[4];
 		lcd_state[id_thread] = LCD_VSG_PW_PCS_MODE;
-		curTaskId = 0;
-		curPcsId = 0;
+		curTaskId[id_thread] = 0;
+		curPcsId[id_thread] = 0;
 	}
 
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PQ_PCS_MODE)
 	{
-		if (regAddr == pqpcs_mode_set[curPcsId]) //模式设置
+		if (regAddr == pqpcs_mode_set[curPcsId[id_thread]]) //模式设置
 		{
-			curTaskId = 1;
+			curTaskId[id_thread] = 1;
 		}
-		else if (regAddr == pqpcs_pw_set[curPcsId] || regAddr == pqpcs_cur_set[curPcsId]) //参数设置
+		else if (regAddr == pqpcs_pw_set[curPcsId[id_thread]] || regAddr == pqpcs_cur_set[curPcsId[id_thread]]) //参数设置
 		{
-			curTaskId = 0;
-			curPcsId++;
-			if (curPcsId >= Para_Modtcp.pcsnum[id_thread])
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread]++;
+			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
-				curTaskId = 0;
-				curPcsId = 0;
+				curTaskId[id_thread] = 0;
+				curPcsId[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
 			}
 		}
@@ -594,14 +596,14 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_VSG_PW_PCS_MODE)
 	{
-		if (regAddr == vsgpcs_pw_set[curPcsId]) //参数设置
+		if (regAddr == vsgpcs_pw_set[curPcsId[id_thread]]) //参数设置
 		{
-			curTaskId = 0;
-			curPcsId++;
-			if (curPcsId >= Para_Modtcp.pcsnum[id_thread])
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread]++;
+			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
-				curTaskId = 0;
-				curPcsId = 0;
+				curTaskId[id_thread] = 0;
+				curPcsId[id_thread] = 0;
 				lcd_state[id_thread] = LCD_VSG_QW_PCS_MODE;
 			}
 		}
@@ -610,82 +612,37 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_VSG_QW_PCS_MODE)
 	{
-		if (regAddr == vsgpcs_qw_set[curPcsId]) //参数设置
+		if (regAddr == vsgpcs_qw_set[curPcsId[id_thread]]) //参数设置
 		{
-			curTaskId = 0;
-			curPcsId++;
-			if (curPcsId >= Para_Modtcp.pcsnum[id_thread])
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread]++;
+			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
-				curTaskId = 0;
-				curPcsId = 0;
+				curTaskId[id_thread] = 0;
+				curPcsId[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
 			}
 		}
 		else
 			printf("注意：程序出错！！！！\n");
 	}
-	return 0;
-}
-static int createFun03Frame1(int id_thread, int *p_pcsid, int *lenframe, unsigned char *framebuf)
-{
-	static int status = _YX_;
-	unsigned short regStart;
-	int pcsid = *p_pcsid;
-	int pos = 0;
-	unsigned short numData;
-
-	if (status == _YX_)
+	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START || lcd_state[id_thread] == LCD_PCS_STOP))
 	{
-		regStart = YX_YC_tab[pcsid][0];
-		numData = NUM_READ_YX;
-	}
-	else
-	{
-		regStart = YX_YC_tab[pcsid][1];
-		numData = NUM_READ_YC;
-	}
-	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d\n", status, regStart, numData);
-	framebuf[pos++] = g_num_frame / 256;
-	framebuf[pos++] = g_num_frame % 256;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 0;
-	framebuf[pos++] = 6;
-	framebuf[pos++] = Para_Modtcp.devNo[id_thread];
-	framebuf[pos++] = 3;
-	framebuf[pos++] = regStart / 256;
-	framebuf[pos++] = regStart % 256;
-
-	framebuf[pos++] = numData / 256;
-	framebuf[pos++] = numData % 256;
-	*lenframe = pos;
-	if (status == _YX_)
-	{
-		status = _YC_;
-	}
-	else
-	{
-		status = _YX_;
-		pcsid++;
-
-		if (pcsid >= Para_Modtcp.pcsnum[id_thread])
+		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //参数设置
 		{
-			pcsid = 0;
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread]++;
+			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
+			{
+				curTaskId[id_thread] = 0;
+				curPcsId[id_thread] = 0;
+				lcd_state[id_thread] = LCD_RUNNING;
+			}
 		}
+		else
+			printf("注意：程序出错！！！！\n");
 	}
 
-	g_send_data[id_thread].num_frame = g_num_frame;
-	g_send_data[id_thread].flag_waiting = 1;
-	g_send_data[id_thread].code_fun = 0x03;
-	g_send_data[id_thread].dev_id = pPara_Modtcp->devNo[id_thread];
-	g_send_data[id_thread].numdata = numData;
-	g_send_data[id_thread].regaddr = regStart;
-
-	g_num_frame++;
-	if (g_num_frame == 0x10000)
-		g_num_frame = 1;
-
-	*p_pcsid = pcsid;
 	return 0;
 }
 static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned char *framebuf)

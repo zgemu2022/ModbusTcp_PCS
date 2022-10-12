@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "logicAndControl.h"
+#include "YX_Define.h"
 //所有的LCD整机信息数据数据标识1都用2来表示，#
 //数据标识2编号从1-6，
 //每个LCD下模块信息，数据标识1都3来表示，
@@ -74,12 +75,13 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 	int id = 0;
 	int i;
-
+	static unsigned int flag_recv = 0;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
 	}
 	id += pcsid;
+
 	// printf("saveYcData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
 
 	//  if(memcmp((char*)g_YcData[id].pcs_data,(char*)pyc,len))
@@ -91,7 +93,10 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		memcpy((char *)g_YcData[id - 1].pcs_data, (char *)pyc, len);
 		outputdata(_YC_, id);
 	}
-
+	flag_recv |= (1 << id);
+	if (flag_recv == g_flag_RecvNeed_PCS)
+	{
+	}
 	return 0;
 }
 
@@ -100,11 +105,14 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 
 	int id = 0;
 	int i;
+	static unsigned int flag_recv = 0;
+
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
 	}
 	id += pcsid;
+
 	printf("saveYxData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
 	//  if(memcmp((char*)g_YxData[id].pcs_data,(char*)pyx,len))
 	{
@@ -115,7 +123,16 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		memcpy((char *)g_YxData[id - 1].pcs_data, (char *)pyx, len);
 		outputdata(_YX_, id);
 	}
-
+	flag_recv |= (1 << id);
+	if (flag_recv == g_flag_RecvNeed_PCS)
+	{
+		int err_num = 0;
+		for (i = 0; i < total_pcsnum; i++)
+		{
+			if ((g_YxData[id - 1].pcs_data[u16_InvRunState1] & (1 << bFaultStatus)) != 0)
+				err_num++;
+		}
+	}
 	return 0;
 }
 int SaveZjyxData(int id_thread, unsigned short *pzjyx, unsigned char len)

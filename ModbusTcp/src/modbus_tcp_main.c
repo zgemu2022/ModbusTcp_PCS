@@ -8,18 +8,17 @@
 #include <malloc.h>
 
 CallbackYK pbackBmsFun = NULL;
-
 int modbus_tcp_main(void *para_app)
 {
 	*pconfig = *(pconf *)para_app;
 
 	pPara_Modtcp->type = 1;
-	strcpy(pPara_Modtcp->server_ip, pconfig->lcd_server_ip);
-	pPara_Modtcp->server_port = pconfig->lcd_server_port;
+	strcpy(&pPara_Modtcp->server_ip[0][0], pconfig->lcd_server_ip);
+	pPara_Modtcp->server_port[0] = pconfig->lcd_server_port;
 
 	pPara_Modtcp->lcdnum = pconfig->lcd_num;
 
-	printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip, pPara_Modtcp->server_port);
+	printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip[0], pPara_Modtcp->server_port[0]);
 
 	CreateThreads();
 	return 0;
@@ -37,7 +36,7 @@ int SubscribeLcdData(unsigned char type, outData2Other pfun) //订阅pcs数据
 
 	return 0;
 }
-	int xx = 10;
+
 int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 {
 	pbackBmsFun = pfun;
@@ -50,7 +49,8 @@ int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 		break;
 	case _BMS_YK_:
 		printf("BMS模块调用YK\n");
-		pbackBmsFun(_BMS_YK_,(void*)xx);
+		handleYkFromEms(pYkPara);
+		// handleYkFromEms(pYkPara->item, pYkPara->data[0]);
 		break;
 	case _PCS_YK_:
 		printf("BMS模块调用PCS_YK\n");

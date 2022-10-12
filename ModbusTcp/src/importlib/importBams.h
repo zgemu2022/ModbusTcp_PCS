@@ -1,5 +1,7 @@
 #ifndef _IMPORT_BAMS_
 #define _IMPORT_BAMS_
+#include "modbus.h"
+
 #define PORTNUM_MAX 2
 #define _ALL_ 1
 #define _SOC_ 2
@@ -34,7 +36,7 @@ enum _BMS_SYS_STATUS //电池分系统状态
 typedef struct
 {
 	unsigned char bmsid;
-	unsigned char pcsid;
+	unsigned char pcsid_bms;
 	unsigned char lendata;		 //收到的数据长度
 	unsigned char buf_data[256]; //收到的数据部分
 
@@ -42,7 +44,7 @@ typedef struct
 typedef struct
 {
 	unsigned char bmsid;		   // 最大允许充电功率
-	unsigned char pcsid;		   // 最大允许放电功率
+	unsigned char pcsid_bms;	   // 最大允许放电功率
 	unsigned short mx_cpw;		   //最大允许充电功率
 	unsigned short mx_dpw;		   //最大允许放电功率
 	unsigned short main_vol;	   //总电压
@@ -67,6 +69,7 @@ typedef struct
 	unsigned char pcs_num[PORTNUM_MAX];
 
 } PARA_BAMS; //
-
+extern BmsData_Newest bmsdata_cur[][18];
 void bams_Init(void);
+int checkBmsForStart(int sn);
 #endif

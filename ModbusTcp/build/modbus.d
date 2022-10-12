@@ -1,7 +1,8 @@
 /mnt/hgfs/linux/tcp/ModbusTcp/build/modbus.o: src/protocol/modbus.c \
  src/protocol/modbus.h src/include/modbus_tcp_main.h \
  src/include/share_type.h src/include/lib_time.h \
- src/protocol/logicAndControl.h src/socket/client.h \
+ src/protocol/logicAndControl.h src/protocol/logicAndControl.h \
+ src/socket/client.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
@@ -71,7 +72,7 @@
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitflags.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/waitstatus.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./alloca.h \
- src/include/lib_time.h src/importlib/importBams.h \
+ src/include/lib_time.h src/importlib/importBams.h src/protocol/modbus.h \
  src/protocol/logicAndControl.h src/importlib/importPlc.h
 
 src/protocol/modbus.h:
@@ -81,6 +82,8 @@ src/include/modbus_tcp_main.h:
 src/include/share_type.h:
 
 src/include/lib_time.h:
+
+src/protocol/logicAndControl.h:
 
 src/protocol/logicAndControl.h:
 
@@ -229,6 +232,8 @@ src/protocol/output.h:
 src/include/lib_time.h:
 
 src/importlib/importBams.h:
+
+src/protocol/modbus.h:
 
 src/protocol/logicAndControl.h:
 

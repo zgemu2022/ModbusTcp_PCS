@@ -72,7 +72,7 @@ typedef struct
 
 typedef int (*outData2Other)(unsigned char, void *pdata); //输出数据签名
 typedef int (*CallbackYK)(unsigned char, void *pdata);	  //遥控回调函数签名
-
+extern CallbackYK pbackBmsFun;
 typedef struct _post_list_t
 {
 	outData2Other pfun;
