@@ -5,5 +5,6 @@
 		"mytimer.h": "c",
 		"output.h": "c",
 		"logicandcontrol.h": "c"
-	}
+	},
+	"C_Cpp.errorSquiggles": "Disabled"
 }

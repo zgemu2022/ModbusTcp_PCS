@@ -3,7 +3,7 @@
 #include "output.h"
 #include "YX_define.h"
 #include "importBams.h"
-int total_pcsnum = 0;
+int total_pcsnum = 28;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
 int g_flag_RecvNeed_PCS = 0;
@@ -38,7 +38,7 @@ int handleYxFromEms(int item, unsigned char data)
 	case one_FM_Disable:
 		break;
 	}
-	return 0;
+	// return 0;
 }
 
 void startAllPcs(void)
@@ -57,13 +57,34 @@ void startAllPcs(void)
 		}
 	}
 	g_emu_op_para.flag_start = 1;
+	// pbackBmsFun(_BMS_YK_, (void *)flag);
+}
+
+void stopAllPcs(void){
+	int i;
+	int flag = 0;
+
+	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
+	{
+		if (lcd_state[i] == LCD_RUNNING)
+		{
+			flag = 1;
+			lcd_state[i] = LCD_PCS_STOP;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+		}
+	}
+	g_emu_op_para.flag_start = 0;
 	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
-int handleYkFromEms(YK_PARA *pYkPara)
+
+	int handleYkFromEms(YK_PARA *pYkPara)
 {
 	unsigned char item; //项目编号
 	int i;
 	item = pYkPara->item;
+	printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
+
 	switch (item)
 	{
 	case Emu_Startup:
@@ -156,7 +177,6 @@ int findCurPcsForStart(int type, int lcdid, int pcsid)
 	int sn;
 	int i;
 	unsigned short status_pcs;
-
 	int status;
 
 	for (i = 0; i < lcdid; i++)
@@ -187,6 +207,7 @@ int findCurPcsForStart(int type, int lcdid, int pcsid)
 	}
 	return 0;
 }
+
 int countDP(int sn, unsigned short *pPw)
 {
 	int ret = 0;

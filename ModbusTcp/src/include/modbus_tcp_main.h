@@ -44,8 +44,8 @@ typedef struct
 {
 	int firm_id; //公司编号
 				 // LCD参数
-	char lcd_server_ip[64];
-	u32 lcd_server_port;
+	char lcd_server_ip[6][64];
+	u32 lcd_server_port[6];
 	int lcd_num;
 	int pcs_num;
 	int balance_rate;
