@@ -281,6 +281,8 @@ int ReadNumPCS(int id_thread)
 
 int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val)
 {
+	// printf(" id_thread:%d  reg_addr:%#x  val:%#x\n",id_thread,reg_addr,val);
+	
 	// printf("ssssssss\n");
 	unsigned char sendbuf[256];
 	int pos = 0;
@@ -294,8 +296,10 @@ int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val)
 	sendbuf[pos++] = 0x06;
 	sendbuf[pos++] = reg_addr / 256;
 	sendbuf[pos++] = reg_addr % 256;
-	sendbuf[pos++] = 0;
-	sendbuf[pos++] = 1;
+	// sendbuf[pos++] = 0;
+	// sendbuf[pos++] = 1;
+	sendbuf[pos++] = val / 256;
+	sendbuf[pos++] = val % 256;
 
 	// crccode = crc16_check(sendbuf, pos);
 	// sendbuf[pos++] = crccode / 256;
