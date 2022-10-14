@@ -8,17 +8,38 @@
 #include <malloc.h>
 
 CallbackYK pbackBmsFun = NULL;
+// int modbus_tcp_main(void *para_app)
+// {
+// 	*pconfig = *(pconf *)para_app;
+
+// 	pPara_Modtcp->type = 1;
+// 	strcpy(&pPara_Modtcp->server_ip[0][0], pconfig->lcd_server_ip);
+// 	pPara_Modtcp->server_port[0] = pconfig->lcd_server_port;
+
+// 	pPara_Modtcp->lcdnum = pconfig->lcd_num;
+
+// 	printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip[0], pPara_Modtcp->server_port[0]);
+
+// 	CreateThreads();
+// 	return 0;
+// }
+
 int modbus_tcp_main(void *para_app)
 {
-	*pconfig = *(pconf *)para_app;
+	 int i = 0;
+	 *pconfig = *(pconf *)para_app;
 
-	pPara_Modtcp->type = 1;
-	strcpy(&pPara_Modtcp->server_ip[0][0], pconfig->lcd_server_ip);
-	pPara_Modtcp->server_port[0] = pconfig->lcd_server_port;
+	 pPara_Modtcp->type = 1;
+	 for (i = 0; i < pconfig->lcd_num; i++)
 
-	pPara_Modtcp->lcdnum = pconfig->lcd_num;
+	{
+		 strcpy(&pPara_Modtcp->server_ip[i][0], &pconfig->lcd_server_ip[i][0]);
+		pPara_Modtcp->server_port[i] = pconfig->lcd_server_port[i];
+	}
 
-	printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip[0], pPara_Modtcp->server_port[0]);
+	 pPara_Modtcp->lcdnum = pconfig->lcd_num;
+
+	//  printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip[64], pPara_Modtcp->server_port[0]);
 
 	CreateThreads();
 	return 0;
