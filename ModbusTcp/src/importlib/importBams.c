@@ -18,9 +18,12 @@ int checkBmsForStart(int sn)
 	float soc;
 
 	status_bms = bmsdata_cur[0][sn].sys_status;
+
 	if (status_bms & ((1 << BMS_ST_WORKING) == 0))
 		return 1;
 	soc_ave = (float)g_emu_op_para.soc_ave;
+
+
 	if (sn <= g_emu_op_para.num_pcs_bms[0])
 	{
 		soc = (float)bmsdata_cur[0][sn].soc;
