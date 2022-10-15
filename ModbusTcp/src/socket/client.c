@@ -138,7 +138,7 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val;
 		
 
-		printf("Emu_Startup:%d ,id_thread:%d , curPcsId[%d]:%d \n", Emu_Startup, id_thread, id_thread, curPcsId[id_thread]);
+		//printf("Emu_Startup:%d ,id_thread:%d , curPcsId[%d]:%d \n", Emu_Startup, id_thread, id_thread, curPcsId[id_thread]);
 		findCurPcsForStart(Emu_Startup, id_thread, curPcsId[id_thread]);
 		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
 		{
@@ -163,7 +163,30 @@ void RunAccordingtoStatus(int id_thread)
 		}
 	}
 	break;
+	case LCD_PCS_START_ONE:
+	case LCD_PCS_STOP_ONE:
+	{
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+		printf("PCS单机启动 LCD_PCS_START_ONE id_thread:%d , curPcsId[%d]:%d \n", id_thread, id_thread, curPcsId[id_thread]);
 
+			regaddr = pcs_on_off_set[curPcsId[id_thread]];
+			// regaddr = 0x3000;
+			if (lcd_state[id_thread] == LCD_PCS_START_ONE)
+			{
+				printf("LCD:%d 开机 ...\n", id_thread);
+				val = 0xff00;
+			}
+			else
+			{
+				printf("LCD:%d 关机 ...\n", id_thread);
+				val = 0x00ff;
+			}
+
+			ret = SetLcdFun06(id_thread, regaddr, val);
+
+	
+	}
 	// case LCD_PCS_START:
 	// case LCD_PCS_STOP:
 	// {

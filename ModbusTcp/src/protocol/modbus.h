@@ -90,7 +90,11 @@ enum LCD_WORK_STATE // LCD当前工作状态
 	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
 
 	LCD_PCS_START = 7,	//启动本LCD下的PCS
-	LCD_PCS_STOP = 8,	//启动本LCD下的PCS
+	LCD_PCS_STOP = 8,	//停止本LCD下的PCS
+
+	LCD_PCS_START_ONE = 9,	//启动本LCD下一个PCS
+	LCD_PCS_STOP_ONE = 10,	//停止本LCD下一个PCS
+
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
 // <<<<<<< HEAD

@@ -3,6 +3,7 @@
 #include "output.h"
 #include "YX_define.h"
 #include "importBams.h"
+#include <stdio.h>
 int total_pcsnum = 28;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
@@ -38,7 +39,7 @@ int handleYxFromEms(int item, unsigned char data)
 	case one_FM_Disable:
 		break;
 	}
-	// return 0;
+	return 0;
 }
 
 void startAllPcs(void)
@@ -57,10 +58,11 @@ void startAllPcs(void)
 		}
 	}
 	g_emu_op_para.flag_start = 1;
-	// pbackBmsFun(_BMS_YK_, (void *)flag);
+	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
-void stopAllPcs(void){
+void stopAllPcs(void)
+{
 	int i;
 	int flag = 0;
 
@@ -78,12 +80,12 @@ void stopAllPcs(void){
 	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
-	int handleYkFromEms(YK_PARA *pYkPara)
+int handleYkFromEms(YK_PARA *pYkPara)
 {
 	unsigned char item; //项目编号
 	int i;
 	item = pYkPara->item;
-	printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
+	//printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
 
 	switch (item)
 	{
@@ -155,7 +157,75 @@ void stopAllPcs(void){
 	}
 	return 0;
 }
+int ckeckCurPcsStartEn(int lcdid, int pcsid)
+{
+	int sn;
+	int i;
+	unsigned short status_pcs;
+	int ret;
 
+	for (i = 0; i < lcdid; i++)
+	{
+		sn += pPara_Modtcp->pcsnum[i];
+	}
+	sn += pcsid;
+	sn--;
+
+	status_pcs = g_YxData[sn].pcs_data[u16_InvRunState1];
+
+	if((status_pcs & (1 < bPcsStoped)) != 0)
+	{
+		return 1;
+	}
+	else if((status_pcs & (1 < bFaultStatus))!=0)
+	{
+		return 2;
+	}
+    ret = checkBmsForStart(sn);
+    if(ret!=0)
+	{
+		return 2+ret;
+	}
+
+	return 0;
+}
+int handlePcsYkFromEms(YK_PARA *pYkPara)
+{
+	unsigned char sn;
+	int flag = 0;
+	sn = pYkPara->item;
+
+	int lcdid = sn / 6;
+	int pcsid = sn % 6;
+	int ret;
+	if (pcsid >= pPara_Modtcp->pcsnum[lcdid])
+	{
+			goto endPcsYk;
+			
+	}
+
+	ret = ckeckCurPcsStartEn(lcdid,pcsid);
+    
+	if(ret!=0)
+	{
+		printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n",lcdid,pcsid,ret);
+		goto endPcsYk;
+	}
+	printf("lcdid=%d pcsid=%d 满足启动条件，等待启动\n",lcdid,pcsid);	
+	if (lcd_state[lcdid] == LCD_RUNNING)
+	{
+		flag = 1;
+		if (pYkPara->data[0] == 0)
+			lcd_state[lcdid] = LCD_PCS_STOP_ONE;
+		else
+			lcd_state[lcdid] = LCD_PCS_START_ONE;
+		curTaskId[lcdid] = 0;
+		curPcsId[lcdid] = pcsid;
+	}
+endPcsYk:	pbackBmsFun(_BMS_YK_, (void *)flag);
+
+	return 0;
+}
 // unsigned short checkPcsStatus(int lcdid, int pcsid)
 // {
 // 	int sn;
@@ -172,13 +242,13 @@ void stopAllPcs(void){
 // 	return status_pcs;
 // }
 //
+
+
 int findCurPcsForStart(int type, int lcdid, int pcsid)
 {
 	int sn;
 	int i;
 	unsigned short status_pcs;
-	int status;
-
 	for (i = 0; i < lcdid; i++)
 	{
 		sn += pPara_Modtcp->pcsnum[i];

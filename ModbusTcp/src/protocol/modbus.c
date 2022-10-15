@@ -524,10 +524,12 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			//放在现场时，用以下获取LCD下PCS数量
 			flag_get_pcsnum |= (1 << id_thread);
 
-#if 0       
+    
 		 Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
-#endif
+
+#ifdef ifDebug   			
 			Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
+#endif			
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 			lcd_state[id_thread] = LCD_SET_MODE;
 			if (flag_get_pcsnum == g_flag_RecvNeed_LCD)
@@ -632,7 +634,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START || lcd_state[id_thread] == LCD_PCS_STOP))
 	{
-		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //参数设置
+		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //启动或停止
 		{
 			curTaskId[id_thread] = 0;
 			curPcsId[id_thread]++;
@@ -644,7 +646,20 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			}
 		}
 		else
-			printf("注意：程序出错！！！！\n");
+			printf("注意：整机启动或停止程序出错！！！！\n");
+	}
+	else if(funid == 6 && (lcd_state[id_thread] == LCD_PCS_START_ONE || lcd_state[id_thread] == LCD_PCS_STOP_ONE))
+	{
+		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //单pcs启动或停止
+		{
+
+				curTaskId[id_thread] = 0;
+				curPcsId[id_thread] = 0;
+				lcd_state[id_thread] = LCD_RUNNING;
+
+		}
+		else
+			printf("注意：pcs单机启动或停止程序出错！！！！\n");	
 	}
 
 	return 0;

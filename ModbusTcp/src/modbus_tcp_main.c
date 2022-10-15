@@ -74,7 +74,9 @@ int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 		// handleYkFromEms(pYkPara->item, pYkPara->data[0]);
 		break;
 	case _PCS_YK_:
+	
 		printf("BMS模块调用PCS_YK\n");
+		handlePcsYkFromEms(pYkPara);
 		break;
 
 	default:
