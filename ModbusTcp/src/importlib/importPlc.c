@@ -7,10 +7,15 @@
 #include <stdlib.h>
 
 #define LIB_PLC_PATH "/usr/lib/libplc.so"
-PARA_PLC para_plc = {1, {"192.168.3.104",},{502,}};
+PARA_PLC para_plc = {1, {
+							"192.168.3.104",
+						},
+					 {
+						 502,
+					 }};
 
 void Plc_Init(void)
-{	
+{
 	typedef int (*p_initlcd)(void *);
 	void *handle;
 	char *error;
@@ -35,4 +40,3 @@ void Plc_Init(void)
 
 	my_func((void *)&para_plc);
 }
- 

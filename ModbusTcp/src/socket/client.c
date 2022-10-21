@@ -24,6 +24,7 @@ MyData clent_data_temp[MAX_PCS_NUM];
 int g_comm_qmegid[MAX_PCS_NUM];
 
 unsigned short g_num_frame = 1;
+
 void RunAccordingtoStatus(int id_thread)
 {
 	printf("\n\nLCD:%d StateMachine...\n", id_thread);
@@ -63,31 +64,70 @@ void RunAccordingtoStatus(int id_thread)
 		printf("LCD:%d PCS 设置成PQ模式...\n", id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
-		if (curTaskId == 0)
-		{
-			regaddr = pqpcs_mode_set[curPcsId[id_thread]];
-			val = g_emu_op_para.pq_mode_set; //[id_thread][curPcsId[id_thread]];
-		}
-		else
-		{
-			if (g_emu_op_para.pq_mode_set == PQ_STP) //设置恒功率
-			{
-				regaddr = pqpcs_pw_set[curPcsId[id_thread]];
-				if (g_emu_op_para.err_num < total_pcsnum)
-					val = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
-				else
-					val = 0;
-			}
-			else // PQ_STA 设置恒流
-			{
-				regaddr = pqpcs_cur_set[curPcsId[id_thread]];
-				if (g_emu_op_para.err_num < total_pcsnum)
-					val = g_emu_op_para.pq_cur_total / (total_pcsnum - g_emu_op_para.err_num);
-				else
-					val = 0;
-			}
-		}
+		// if (curTaskId == 0)
+		// {
+		regaddr = pqpcs_mode_set[curPcsId[id_thread]];
+		val = g_emu_op_para.pq_mode_set; //[id_thread][curPcsId[id_thread]];
+		// }
+		// else
+		// {
+		// 	if (g_emu_op_para.pq_mode_set == PQ_STP) //设置恒功率
+		// 	{
+		// 		regaddr = pqpcs_pw_set[curPcsId[id_thread]];
+		// 		if (g_emu_op_para.err_num < total_pcsnum)
+		// 			val = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+		// 		else
+		// 			val = 0;
+		// 	}
+		// 	else // PQ_STA 设置恒流
+		// 	{
+		// 		regaddr = pqpcs_cur_set[curPcsId[id_thread]];
+		// 		if (g_emu_op_para.err_num < total_pcsnum)
+		// 			val = g_emu_op_para.pq_cur_total / (total_pcsnum - g_emu_op_para.err_num);
+		// 		else
+		// 			val = 0;
+		// 	}
+		// }
 
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+	break;
+	case LCD_PQ_STP_PWVAL:
+	{
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+		regaddr = pqpcs_pw_set[curPcsId[id_thread]];
+		if (g_emu_op_para.err_num < total_pcsnum)
+			val = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			val = 0;
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+	break;
+	case LCD_PQ_STP_QWVAL:
+	{
+		printf("LCD:%d PQ 无功参数设置 ...\n", id_thread);
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+
+		regaddr = vsgpcs_qw_set[curPcsId[id_thread]];
+		if (g_emu_op_para.err_num < total_pcsnum)
+			val = g_emu_op_para.pq_qw_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			val = 0;
+		ret = SetLcdFun06(id_thread, regaddr, val);
+	}
+
+	break;
+	case LCD_PQ_STA_CURVAL:
+	{
+		unsigned short regaddr;
+		unsigned short val;
+		regaddr = pqpcs_cur_set[curPcsId[id_thread]];
+		if (g_emu_op_para.err_num < total_pcsnum)
+			val = g_emu_op_para.pq_cur_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			val = 0;
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
@@ -101,7 +141,7 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	break;
 
-	case LCD_VSG_PW_PCS_MODE:
+	case LCD_VSG_PW_VAL:
 	{
 		printf("LCD:%d  VSG 有功参数设置 ...\n", id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
@@ -116,7 +156,7 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	break;
 
-	case LCD_VSG_QW_PCS_MODE:
+	case LCD_VSG_QW_VAL:
 	{
 		printf("LCD:%d VSG 无功参数设置 ...\n", id_thread);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
@@ -132,22 +172,25 @@ void RunAccordingtoStatus(int id_thread)
 
 	break;
 	case LCD_PCS_START:
-	case LCD_PCS_STOP:
 	{
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
-		
+		printf("111LCD_PCS_START LCD_PCS_START curPcsId[id_thread]=%d\n", curPcsId[id_thread]);
+		findCurPcsForStart(id_thread, curPcsId[id_thread]);
 
-		//printf("Emu_Startup:%d ,id_thread:%d , curPcsId[%d]:%d \n", Emu_Startup, id_thread, id_thread, curPcsId[id_thread]);
-		findCurPcsForStart(Emu_Startup, id_thread, curPcsId[id_thread]);
+		printf("222LCD_PCS_START LCD_PCS_START curPcsId[id_thread]=%d\n", curPcsId[id_thread]);
 		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
 		{
 			curPcsId[id_thread] = 0;
+			curTaskId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+#ifdef ifDebug
+			g_lcd_start_state[id_thread] = ON;
+#endif
 		}
 		else
 		{
 			regaddr = pcs_on_off_set[curPcsId[id_thread]];
-			// regaddr = 0x3000;
 			if (lcd_state[id_thread] == LCD_PCS_START)
 			{
 				printf("LCD:%d 开机 ...\n", id_thread);
@@ -163,6 +206,13 @@ void RunAccordingtoStatus(int id_thread)
 		}
 	}
 	break;
+	case LCD_PCS_STOP:
+	{
+#ifdef ifDebug
+		g_lcd_start_state[id_thread] = OFF;
+#endif
+	}
+	break;
 	case LCD_PCS_START_ONE:
 	case LCD_PCS_STOP_ONE:
 	{
@@ -170,55 +220,53 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val;
 		printf("PCS单机启动 LCD_PCS_START_ONE id_thread:%d , curPcsId[%d]:%d \n", id_thread, id_thread, curPcsId[id_thread]);
 
-			regaddr = pcs_on_off_set[curPcsId[id_thread]];
-			// regaddr = 0x3000;
-			if (lcd_state[id_thread] == LCD_PCS_START_ONE)
-			{
-				printf("LCD:%d 开机 ...\n", id_thread);
-				val = 0xff00;
-			}
-			else
-			{
-				printf("LCD:%d 关机 ...\n", id_thread);
-				val = 0x00ff;
-			}
+		regaddr = pcs_on_off_set[curPcsId[id_thread]];
+		// regaddr = 0x3000;
+		if (lcd_state[id_thread] == LCD_PCS_START_ONE)
+		{
+			printf("LCD:%d 开机 ...\n", id_thread);
+			val = 0xff00;
+		}
+		else
+		{
+			printf("LCD:%d 关机 ...\n", id_thread);
+			val = 0x00ff;
+		}
 
-			ret = SetLcdFun06(id_thread, regaddr, val);
-
-	
+		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
-	// case LCD_PCS_START:
-	// case LCD_PCS_STOP:
-	// {
-	// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
-	// 	unsigned short val;
-	// 	printf("LCD:%d 开机 ...\n", id_thread);
+		// case LCD_PCS_START:
+		// case LCD_PCS_STOP:
+		// {
+		// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		// 	unsigned short val;
+		// 	printf("LCD:%d 开机 ...\n", id_thread);
 
-	// 	printf("Emu_Startup:%d ,id_thread:%d , curPcsId[%d]:%d \n", Emu_Startup, id_thread, id_thread, curPcsId[id_thread]);
-	// 	findCurPcsForStart(Emu_Startup, id_thread, curPcsId[id_thread]);
-	// 	if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
-	// 	{
-	// 		curPcsId[id_thread] = 0;
-	// 	}
-	// 	else
-	// 	{
-	// 		// regaddr = pcs_on_off_set[curPcsId[id_thread]];
-	// 		regaddr = 0x3000;
-	// 		if (lcd_state[id_thread] == LCD_PCS_START)
-	// 		{
-	// 			val = 0xff00;
-	// 		}
-	// 		else
-	// 		{
-	// 			val = 0x00ff;
-	// 		}
+		// 	printf("Emu_Startup:%d ,id_thread:%d , curPcsId[%d]:%d \n", Emu_Startup, id_thread, id_thread, curPcsId[id_thread]);
+		// 	findCurPcsForStart(Emu_Startup, id_thread, curPcsId[id_thread]);
+		// 	if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
+		// 	{
+		// 		curPcsId[id_thread] = 0;
+		// 	}
+		// 	else
+		// 	{
+		// 		// regaddr = pcs_on_off_set[curPcsId[id_thread]];
+		// 		regaddr = 0x3000;
+		// 		if (lcd_state[id_thread] == LCD_PCS_START)
+		// 		{
+		// 			val = 0xff00;
+		// 		}
+		// 		else
+		// 		{
+		// 			val = 0x00ff;
+		// 		}
 
-	// 		ret = SetLcdFun06(id_thread, regaddr, val);
-	// 	}
-	// }
-	// break;
+		// 		ret = SetLcdFun06(id_thread, regaddr, val);
+		// 	}
+		// }
+		// break;
 
-		// case LCD_VSG_QW_PCS_MODE:
+		// case LCD_VSG_QW_VAL:
 		// {
 		// 	printf("VSG 无功参数设置 ...\n");
 		// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
@@ -361,10 +409,11 @@ void init_emu_op_para(int id_thread)
 	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
 	g_send_data[id_thread].flag_waiting = 0;
 	g_emu_op_para.vsg_mode_set = VSG_PQ_PP;
-	g_emu_op_para.pq_pw_total = 500 * 28;  // 50.0kW*28
-	g_emu_op_para.pq_cur_total = 500 * 28; // 50.0A*28
-	g_emu_op_para.vsg_pw_total = 50 * 28;  // 50.0kW*28
-	g_emu_op_para.vsg_qw_total = 0;		   // kVar
+	g_emu_op_para.pq_pw_total = 180 * 28;  // 180.0kW*28
+	g_emu_op_para.pq_cur_total = 140 * 28; // 140.0A*28
+	g_emu_op_para.vsg_pw_total = 50 * 28;  // 180.0kW*28
+	g_emu_op_para.pq_qw_total = 0;		   // pq模式下无功
+	g_emu_op_para.vsg_qw_total = 0;		   // -180~180 vsg模式下无功kVar
 
 	// PCS
 	// for (i = 0; i < MAX_PCS_NUM; i++)

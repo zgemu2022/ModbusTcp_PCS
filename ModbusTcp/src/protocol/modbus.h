@@ -71,6 +71,7 @@ extern PcsData_send g_send_data[];
 
 extern unsigned short pqpcs_mode_set[]; //整机设置为PQ模式后，设置pcs模块模式
 extern unsigned short pqpcs_pw_set[];	//恒功率模式 功率给定设置0.1kW正为放电，负为充电
+extern unsigned short pqpcs_qw_set[];	// PQ模式 无功
 extern unsigned short pqpcs_cur_set[];	//恒流模式 电流给定设置0.1A正为放电，负为充电
 
 extern unsigned short vsgpcs_pw_set[];	// VSG模式 有功给定设置
@@ -81,19 +82,22 @@ extern post_list_t *post_list_l;
 enum LCD_WORK_STATE // LCD当前工作状态
 {
 
-	LCD_SET_TIME = 0,		 //开机对时
-	LCD_INIT = 1,			 //首先读取PCS个数(功能码03)
-	LCD_SET_MODE = 2,		 //开机前整机模式参数设置(功能码06)
-	LCD_PQ_PCS_MODE = 3,	 //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
-	LCD_VSG_MODE = 4,		 //整机设置为VSG后、设置工作模式
-	LCD_VSG_PW_PCS_MODE = 5, //整机设置为VSG后,有功
-	LCD_VSG_QW_PCS_MODE = 6, //整机设置为VSG后，无功
+	LCD_SET_TIME = 0,	   //开机对时
+	LCD_INIT = 1,		   //首先读取PCS个数(功能码03)
+	LCD_SET_MODE = 2,	   //开机前整机模式参数设置(功能码06)
+	LCD_PQ_PCS_MODE = 3,   //整机设置为PQ后、将pcs设置为恒功率模式或恒流模式
+	LCD_PQ_STP_PWVAL = 4,  //整机设置为PQ恒功率后,有功值
+	LCD_PQ_STP_QWVAL = 5,  //整机设置为PQ恒功率后,无功值
+	LCD_PQ_STA_CURVAL = 6, //整机设置为PQ恒流后，电流值
+	LCD_VSG_MODE = 7,	   //整机设置为VSG后、设置工作模式
+	LCD_VSG_PW_VAL = 8,	   //整机设置为VSG后,有功值
+	LCD_VSG_QW_VAL = 9,	   //整机设置为VSG后，无功值
 
-	LCD_PCS_START = 7,	//启动本LCD下的PCS
-	LCD_PCS_STOP = 8,	//停止本LCD下的PCS
+	LCD_PCS_START = 10, //启动本LCD下的PCS
+	LCD_PCS_STOP = 11,	//停止本LCD下的PCS
 
-	LCD_PCS_START_ONE = 9,	//启动本LCD下一个PCS
-	LCD_PCS_STOP_ONE = 10,	//停止本LCD下一个PCS
+	LCD_PCS_START_ONE = 12, //启动本LCD下一个PCS
+	LCD_PCS_STOP_ONE = 13,	//停止本LCD下一个PCS
 
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
@@ -134,6 +138,7 @@ typedef struct
 	unsigned short pq_mode_set; //[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ模式下PCS模块工作模式
 	unsigned int pq_pw_total;
 	unsigned int pq_cur_total;
+	unsigned int pq_qw_total;
 	// short pq_pw[MAX_LCD_NUM][MAX_PCS_NUM];	// PQ，恒功率模式下pcs模块功率值
 	// short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ、恒流模式下pcs模块电流值
 
@@ -145,6 +150,21 @@ typedef struct
 	int num_pcs_bms[2];
 
 } EMU_OP_PARA; //装置运行参数
+// typedef struct
+// {
+// 	short Line_AB_voltage; // 0x1103	"电网AB线电压 int16	0.1 V
+// 	short Line_BC_voltage; // 0x1104	"电网BC线电压 int16	0.1 V
+// 	short Line_CA_voltage; // 0x1105	"电网CA线电压 int16	0.1 V
+// 	short Phase_A_current; // 0x1106	"电网A相电流 int16	0.1 A
+// 	short Phase_B_current; // 0x1107	"电网B相电流 int16	0.1 A
+// 	short Phase_C_current; // 0x1108	"电网C相电流 int16	0.1 A
+// 	short Power_factor;	   // 0x1109	"功率因数 int16	0.001
+// 	short Frequency;	   // 0x110A	"电网频率 int16	0.01 Hz
+// 	short Active_power;	   // 0x110B	"交流有功功率 int16	0.1kW 正为放电，负为充电
+// 	short Reactive_power;  // 0x110C	"交流无功功率 int16	0.1kVar 正为感性，负为容性
+// 	short Apparent_power;  // 0x110D	"交流视在功率 int16	0.1kVA
+// } PcsCountData;			   // PCS周期统计数据
+
 extern EMU_OP_PARA g_emu_op_para;
 extern PARA_MODTCP *pPara_Modtcp;
 typedef struct
@@ -157,6 +177,9 @@ extern int curTaskId[];
 extern int curPcsId[];
 extern unsigned short g_num_frame;
 extern int lcd_state[];
+#ifdef ifDebug
+extern int g_lcd_start_state[];
+#endif
 int AnalysModbus(int id_thread, unsigned char *pdata, int len);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);

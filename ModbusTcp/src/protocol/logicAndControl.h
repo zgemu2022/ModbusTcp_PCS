@@ -26,8 +26,6 @@
 #define ONE_FM_PW_SETTING 16		  //一次调频有功功率
 #define ONE_FM_QW_SETTING 17		  //一次调频无功功率
 
-
-
 typedef struct
 {
 	unsigned char item;	   //项目编号
@@ -47,5 +45,5 @@ int handleYxFromEms(int item, unsigned char data);
 // int (int item, unsigned char data);
 // int handleYkFromEms(int item, unsigned char data);
 int countDP(int sn, unsigned short *pPw);
-int findCurPcsForStart(int type, int lcdid, int pcsid);
+int findCurPcsForStart(int lcdid, int pcsid);
 #endif
