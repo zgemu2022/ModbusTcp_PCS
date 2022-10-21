@@ -5,7 +5,7 @@
 #include "lib_time.h"
 #include "logicAndControl.h"
 
-#define ifDebug
+//#define ifDebug
 #define MAX_PCS_NUM 6
 
 #define _ZJYX_ 0

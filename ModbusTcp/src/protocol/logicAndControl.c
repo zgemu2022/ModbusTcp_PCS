@@ -85,7 +85,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	unsigned char item; //项目编号
 	int i;
 	item = pYkPara->item;
-	//printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
+	// printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
 
 	switch (item)
 	{
@@ -157,9 +157,10 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	}
 	return 0;
 }
+
 int ckeckCurPcsStartEn(int lcdid, int pcsid)
 {
-	int sn;
+	int sn = 0;
 	int i;
 	unsigned short status_pcs;
 	int ret;
@@ -173,18 +174,18 @@ int ckeckCurPcsStartEn(int lcdid, int pcsid)
 
 	status_pcs = g_YxData[sn].pcs_data[u16_InvRunState1];
 
-	if((status_pcs & (1 < bPcsStoped)) != 0)
+	if ((status_pcs & (1 < bPcsStoped)) != 0)
 	{
 		return 1;
 	}
-	else if((status_pcs & (1 < bFaultStatus))!=0)
+	else if ((status_pcs & (1 < bFaultStatus)) != 0)
 	{
 		return 2;
 	}
-    ret = checkBmsForStart(sn);
-    if(ret!=0)
+	ret = checkBmsForStart(sn);
+	if (ret != 0)
 	{
-		return 2+ret;
+		return 2 + ret;
 	}
 
 	return 0;
@@ -198,20 +199,20 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	int lcdid = sn / 6;
 	int pcsid = sn % 6;
 	int ret;
+
 	if (pcsid >= pPara_Modtcp->pcsnum[lcdid])
 	{
-			goto endPcsYk;
-			
-	}
-
-	ret = ckeckCurPcsStartEn(lcdid,pcsid);
-    
-	if(ret!=0)
-	{
-		printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n",lcdid,pcsid,ret);
 		goto endPcsYk;
 	}
-	printf("lcdid=%d pcsid=%d 满足启动条件，等待启动\n",lcdid,pcsid);	
+
+	ret = ckeckCurPcsStartEn(lcdid, pcsid);
+
+	if (ret != 0)
+	{
+		printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n", lcdid, pcsid, ret);
+		goto endPcsYk;
+	}
+	printf("lcdid=%d pcsid=%d 满足启动条件，等待启动\n", lcdid, pcsid);
 	if (lcd_state[lcdid] == LCD_RUNNING)
 	{
 		flag = 1;
@@ -222,59 +223,56 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 		curTaskId[lcdid] = 0;
 		curPcsId[lcdid] = pcsid;
 	}
-endPcsYk:	pbackBmsFun(_BMS_YK_, (void *)flag);
+endPcsYk:
+	pbackBmsFun(_BMS_YK_, (void *)flag);
 
 	return 0;
 }
-// unsigned short checkPcsStatus(int lcdid, int pcsid)
-// {
-// 	int sn;
-// 	int i;
-// 	unsigned short status_pcs;
-// 	int status;
-// 	for (i = 0; i < lcdid; i++)
-// 	{
-// 		sn += pPara_Modtcp->pcsnum[i];
-// 	}
-// 	sn += pcsid;
-// 	sn--;
-// 	status_pcs = g_YxData[sn].pcs_data[u16_InvRunState1];
-// 	return status_pcs;
-// }
-//
-
-
-int findCurPcsForStart(int type, int lcdid, int pcsid)
+int ckeckSnStartEn(int sn)
 {
-	int sn;
-	int i;
+
 	unsigned short status_pcs;
+	int ret;
+	status_pcs = g_YxData[sn].pcs_data[u16_InvRunState1];
+
+	if ((status_pcs & (1 < bPcsStoped)) != 0)
+	{
+		return 1;
+	}
+	else if ((status_pcs & (1 < bFaultStatus)) != 0)
+	{
+		return 2;
+	}
+	ret = checkBmsForStart(sn);
+	if (ret != 0)
+	{
+		return 2 + ret;
+	}
+
+	return 0;
+}
+int findCurPcsForStart(int lcdid, int pcsid)
+{
+	int sn = 0;
+	int i;
+	int ret;
+
 	for (i = 0; i < lcdid; i++)
 	{
 		sn += pPara_Modtcp->pcsnum[i];
 	}
-	sn += pcsid;
-	sn--;
-
-	status_pcs = g_YxData[sn].pcs_data[u16_InvRunState1];
-
-	switch (type)
+	printf("findCurPcsForStart lcdid=%d, pcsid=%d\n", lcdid, pcsid);
+	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
 	{
-	case Emu_Startup:
-	{
-		for (i = 0; i < pPara_Modtcp->pcsnum[lcdid]; i++)
-		{
-			if ((status_pcs & (1 < bPcsStoped)) != 0 && (status_pcs & (1 < bFaultStatus)) == 0 && (status_pcs & (1 < bPcsRunning)) == 0 && checkBmsForStart(sn) == 0)
-			{
-				break;
-			}
-		}
-		curPcsId[lcdid] = i;
+		sn += i;
+		printf("findCurPcsForStart lcdid=%d, pcsid=%d sn=%d\n", lcdid, pcsid, sn);
+		ret = ckeckSnStartEn(sn);
+
+		if (ret == 0)
+			break;
 	}
-	break;
-	default:
-		break;
-	}
+	curPcsId[lcdid] = i;
+
 	return 0;
 }
 

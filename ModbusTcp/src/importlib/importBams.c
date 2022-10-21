@@ -23,7 +23,6 @@ int checkBmsForStart(int sn)
 		return 1;
 	soc_ave = (float)g_emu_op_para.soc_ave;
 
-
 	if (sn <= g_emu_op_para.num_pcs_bms[0])
 	{
 		soc = (float)bmsdata_cur[0][sn].soc;
@@ -34,6 +33,8 @@ int checkBmsForStart(int sn)
 	}
 	soc_ave_p20 = (soc_ave * 6) / 5;
 	soc_ave_n20 = (soc_ave * 4) / 5;
+
+	printf("checkBmsForStart soc_ave=%f soc_ave_p20=%f soc_ave_n20=%f\n ", soc_ave, soc_ave_p20, soc_ave_n20);
 	if ((soc >= soc_ave_p20) || (soc <= soc_ave_n20))
 	{
 		return 2;
@@ -64,7 +65,7 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 		BmsData temp = *(BmsData *)pdata;
 		unsigned char bmsid = temp.bmsid;
 
-		printf("LCD模块收到BAMS传来的所有数据！pcsid=%d bmsid=%d %x %x\n", pcsid_bms, temp.bmsid, temp.buf_data[0], temp.buf_data[1]);
+		printf("000LCD模块收到BAMS传来的所有数据！pcsid=%d %d bmsid=%d\n", pcsid_bms, temp.pcsid_bms, temp.bmsid);
 		bmsdata_cur[bmsid][pcsid_bms].mx_cpw = temp.buf_data[BMS_MX_CPW * 2] * 256 + temp.buf_data[BMS_MX_CPW * 2 + 1];
 		bmsdata_cur[bmsid][pcsid_bms].mx_dpw = temp.buf_data[BMS_MX_DPW * 2] * 256 + temp.buf_data[BMS_MX_DPW * 2 + 1];
 		bmsdata_cur[bmsid][pcsid_bms].main_vol = temp.buf_data[BMS_MAIN_VOLTAGE * 2] * 256 + temp.buf_data[BMS_MAIN_VOLTAGE * 2 + 1];
@@ -85,6 +86,9 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 			num_pcs1 = countPcsNum_Bms(flag_recv_bms[0]);
 		else
 			num_pcs2 = countPcsNum_Bms(flag_recv_bms[1]);
+		printf("1122LCD模块收到BAMS传来的所有数据！pcsid=%d bmsid=%d num_pcs1=%d  num_pcs2=%d soc=%d total_pcsnum=%d\n", pcsid_bms, temp.bmsid, num_pcs1, num_pcs2, bmsdata_cur[bmsid][pcsid_bms].soc, total_pcsnum);
+
+		printf("3322 flag_recv_bms[0]=%x  flag_recv_bms[2]=%x num_pcs1=%d num_pcs2=%d\n", flag_recv_bms[0], flag_recv_bms[2], num_pcs1, num_pcs2);
 		if ((num_pcs1 + num_pcs2) >= total_pcsnum)
 		{
 			unsigned int temp = 0;
@@ -101,6 +105,9 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 			g_emu_op_para.soc_ave = temp;
 			g_emu_op_para.num_pcs_bms[0] = num_pcs1;
 			g_emu_op_para.num_pcs_bms[1] = num_pcs2;
+			printf("g_emu_op_para.soc_ave=%d num_pcs_bms1=%d num_pcs_bms2=%d\n", g_emu_op_para.soc_ave, g_emu_op_para.num_pcs_bms[0], g_emu_op_para.num_pcs_bms[1]);
+			flag_recv_bms[0] = 0;
+			flag_recv_bms[1] = 0;
 		}
 
 		printf("22LCD模块收到BAMS传来的所有数据！pcsid=%d bmsid=%d %d\n", pcsid_bms, temp.bmsid, bmsdata_cur[bmsid][pcsid_bms].mx_dpw);
