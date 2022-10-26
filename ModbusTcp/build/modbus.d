@@ -1,4 +1,4 @@
-/mnt/hgfs/zg/ModbusTcp_PCS/ModbusTcp/build/modbus.o: \
+/mnt/hgfs/zgemutest-2/ModbusTcp_PCS/ModbusTcp/build/modbus.o: \
  src/protocol/modbus.c src/protocol/modbus.h \
  src/include/modbus_tcp_main.h src/include/share_type.h \
  src/include/lib_time.h src/protocol/logicAndControl.h \

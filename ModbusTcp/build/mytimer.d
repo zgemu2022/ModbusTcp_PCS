@@ -1,4 +1,4 @@
-/mnt/hgfs/zg/ModbusTcp_PCS/ModbusTcp/build/mytimer.o: \
+/mnt/hgfs/zgemutest-2/ModbusTcp_PCS/ModbusTcp/build/mytimer.o: \
  src/socket/mytimer.c src/socket/mytimer.h src/include/sys.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/pthreadtypes.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./endian.h \

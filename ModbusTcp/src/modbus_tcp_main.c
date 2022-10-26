@@ -39,7 +39,7 @@ int modbus_tcp_main(void *para_app)
 
 	 pPara_Modtcp->lcdnum = pconfig->lcd_num;
 
-	//  printf("LCD 模块启动 ip=%s port=%d\n", pPara_Modtcp->server_ip[64], pPara_Modtcp->server_port[0]);
+	 printf("LCD 模块启动 系统定义最大功率=%d\n", pconfig->sys_max_pw);
 
 	CreateThreads();
 	return 0;

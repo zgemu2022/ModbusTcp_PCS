@@ -21,7 +21,7 @@
 
 #define NUM_READ_YC 29 // 0x1d
 #define NUM_READ_YX 15
-#define NUM_READ_ZJYX 6
+#define NUM_READ_ZJYX 7
 #define NUM_READ_ZJYC 15
 
 #define ON_LINE 1  // 在线
@@ -71,11 +71,10 @@ extern PcsData_send g_send_data[];
 
 extern unsigned short pqpcs_mode_set[]; //整机设置为PQ模式后，设置pcs模块模式
 extern unsigned short pqpcs_pw_set[];	//恒功率模式 功率给定设置0.1kW正为放电，负为充电
-extern unsigned short pqpcs_qw_set[];	// PQ模式 无功
 extern unsigned short pqpcs_cur_set[];	//恒流模式 电流给定设置0.1A正为放电，负为充电
 
 extern unsigned short vsgpcs_pw_set[];	// VSG模式 有功给定设置
-extern unsigned short vsgpcs_qw_set[];	// VSG模式 无功
+extern unsigned short pq_vsg_pcs_qw_set[];	// PQ或VSG模式 无功
 extern unsigned short pcs_on_off_set[]; //开机关机
 extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
@@ -175,7 +174,7 @@ typedef struct
 extern pconf *pconfig;
 extern int curTaskId[];
 extern int curPcsId[];
-extern unsigned short g_num_frame;
+extern unsigned int g_num_frame[];
 extern int lcd_state[];
 #ifdef ifDebug
 extern int g_lcd_start_state[];

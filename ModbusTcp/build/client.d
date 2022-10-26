@@ -1,5 +1,5 @@
-/mnt/hgfs/zg/ModbusTcp_PCS/ModbusTcp/build/client.o: src/socket/client.c \
- src/socket/client.h src/include/modbus_tcp_main.h \
+/mnt/hgfs/zgemutest-2/ModbusTcp_PCS/ModbusTcp/build/client.o: \
+ src/socket/client.c src/socket/client.h src/include/modbus_tcp_main.h \
  src/include/share_type.h src/include/lib_time.h \
  src/protocol/logicAndControl.h src/protocol/logicAndControl.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \

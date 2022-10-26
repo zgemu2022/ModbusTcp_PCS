@@ -16,18 +16,18 @@
 #include "importBams.h"
 #include "logicAndControl.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
-int wait_flag = 0;
+int wait_flag[] = {0,0,0,0,0,0};
 char modbus_sockt_state[MAX_PCS_NUM];
 int modbus_client_sockptr[MAX_PCS_NUM];
 
 MyData clent_data_temp[MAX_PCS_NUM];
 int g_comm_qmegid[MAX_PCS_NUM];
 
-unsigned short g_num_frame = 1;
+unsigned int g_num_frame[] = {1,1,1,1,1,1};
 
 void RunAccordingtoStatus(int id_thread)
 {
-	printf("\n\nLCD:%d StateMachine...\n", id_thread);
+	printf("\n\nLCD:%d lcd_state[id_thread]=%d  StateMachine...\n", id_thread,lcd_state[id_thread]);
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -110,7 +110,7 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
-		regaddr = vsgpcs_qw_set[curPcsId[id_thread]];
+		regaddr = pq_vsg_pcs_qw_set[curPcsId[id_thread]];
 		if (g_emu_op_para.err_num < total_pcsnum)
 			val = g_emu_op_para.pq_qw_total / (total_pcsnum - g_emu_op_para.err_num);
 		else
@@ -162,7 +162,7 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
-		regaddr = vsgpcs_qw_set[curPcsId[id_thread]];
+		regaddr = pq_vsg_pcs_qw_set[curPcsId[id_thread]];
 		if (g_emu_op_para.err_num < total_pcsnum)
 			val = g_emu_op_para.vsg_qw_total / (total_pcsnum - g_emu_op_para.err_num);
 		else
@@ -272,7 +272,7 @@ void RunAccordingtoStatus(int id_thread)
 		// 	unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		// 	unsigned short val;
 
-		// 	regaddr = vsgpcs_qw_set[curPcsId];
+		// 	regaddr = pq_vsg_pcs_qw_set[curPcsId];
 		// 	val = g_emu_op_para.vsg_qw[id_thread][curPcsId];
 
 		// 	ret = SetLcdFun06(id_thread, regaddr, val);
@@ -283,7 +283,9 @@ void RunAccordingtoStatus(int id_thread)
 		break;
 	}
 	if (ret == 0)
-		wait_flag = 1;
+		wait_flag[id_thread] = 1;
+	else
+		printf("注意：返回解析程序出错！！！\n");
 }
 
 void *Modbus_clientSend_thread(void *arg) // 25
@@ -295,7 +297,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	msgClient pmsg;
 	MyData pcsdata;
 	int waittime = 0;
-	int id_frame;
+	unsigned short id_frame;
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 	key_t key = 0;
@@ -309,7 +311,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 		usleep(10000);
 	}
 
-	wait_flag = 0;
+	wait_flag[id_thread] = 0;
 
 	// printf("modbus_sockt_state[id_thread] == STATUS_ON\n") ;
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
@@ -322,10 +324,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
 
 			id_frame = pcsdata.buf[0] * 256 + pcsdata.buf[1];
-
-			if ((id_frame != 0xffff && (g_num_frame - 1) == id_frame) || (id_frame == 0xffff && g_num_frame == 1))
+			if ((id_frame != 0xffff && (g_num_frame[id_thread] - 1) == id_frame) || (id_frame == 0xffff && g_num_frame[id_thread] == 1))
 			{
-				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
+				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame[id_thread], id_frame);
 				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
 				if (0 == res)
 				{
@@ -333,23 +334,23 @@ void *Modbus_clientSend_thread(void *arg) // 25
 				}
 			}
 			else
-				printf("检查是否发生丢包现象！！！！！g_num_frame=%d  id_frame=%d\n", g_num_frame, id_frame);
-			wait_flag = 0;
+				printf("111检查是否发生丢包现象！！！！！id_thread=%d g_num_frame=%d  id_frame=%d\n",id_thread, g_num_frame[id_thread], id_frame);
+			wait_flag[id_thread] = 0;
 			continue;
 		}
 
-		if (wait_flag == 1)
+		if (wait_flag[id_thread] == 1)
 		{
 			waittime++;
-			if (waittime == 1000)
-			{
-				wait_flag = 0;
-				waittime = 0;
-			}
+			// if (waittime == 1000)
+			// {
+			// 	wait_flag = 0;
+			// 	waittime = 0;
+			// }
 			continue;
 		}
-
-		RunAccordingtoStatus(id_thread);
+		else
+		  RunAccordingtoStatus(id_thread);
 	}
 	return NULL;
 }
@@ -373,8 +374,6 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 	}
 	else if (readlen == 0)
 		return 1;
-
-	printf("收到一包数据 wait_flag=%d", wait_flag);
 	recvbuf->len = readlen;
 	myprintbuf(readlen, recvbuf->buf);
 	msg.msgtype = 1;
@@ -540,7 +539,7 @@ loop:
 				else
 				{
 					i = 0;
-					printf("接收成功！！！！！！！！！！！！！！！！wait_flag=%d modbus_sockt_state[id_thread]=%d\r\n", wait_flag, modbus_sockt_state[id_thread]);
+					printf("接收成功！！！！！！！！！！！！！！！！wait_flag[id_thread]=%d modbus_sockt_state[id_thread]=%d\r\n", wait_flag[id_thread], modbus_sockt_state[id_thread]);
 				}
 			}
 			else
@@ -565,7 +564,7 @@ void CreateThreads(void)
 	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
 	{
 		pPara_Modtcp->pcsnum[i] = 0;
-		pPara_Modtcp->devNo[i] = 0xa;
+		pPara_Modtcp->devNo[i] = 0xb;
 		modbus_sockt_state[i] = STATUS_OFF;
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{
