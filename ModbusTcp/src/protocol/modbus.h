@@ -2,7 +2,6 @@
 #define _MODBUS_H
 
 #include "modbus_tcp_main.h"
-#define MAX_LCD_NUM 6
 
 #define _NO_RESET 0
 #define _NEED_RESET 1
@@ -30,7 +29,8 @@
 typedef struct
 {
 	char type; // 1 Master 2 Slave
-	unsigned char lcdnum;
+	unsigned char lcdnum_cfg;
+	unsigned char lcdnum_real;
 	unsigned char pcsnum[MAX_PCS_NUM];
 	unsigned char devNo[MAX_PCS_NUM];
 	char server_ip[6][64];
@@ -73,9 +73,9 @@ extern unsigned short pqpcs_mode_set[]; //整机设置为PQ模式后，设置pcs
 extern unsigned short pqpcs_pw_set[];	//恒功率模式 功率给定设置0.1kW正为放电，负为充电
 extern unsigned short pqpcs_cur_set[];	//恒流模式 电流给定设置0.1A正为放电，负为充电
 
-extern unsigned short vsgpcs_pw_set[];	// VSG模式 有功给定设置
-extern unsigned short pq_vsg_pcs_qw_set[];	// PQ或VSG模式 无功
-extern unsigned short pcs_on_off_set[]; //开机关机
+extern unsigned short vsgpcs_pw_set[];	   // VSG模式 有功给定设置
+extern unsigned short pq_vsg_pcs_qw_set[]; // PQ或VSG模式 无功
+extern unsigned short pcs_on_off_set[];	   //开机关机
 extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE // LCD当前工作状态
@@ -97,6 +97,14 @@ enum LCD_WORK_STATE // LCD当前工作状态
 
 	LCD_PCS_START_ONE = 12, //启动本LCD下一个PCS
 	LCD_PCS_STOP_ONE = 13,	//停止本LCD下一个PCS
+
+	LCD_PARALLEL_AWAY_EN = 14, //并转离切换使能
+	LCD_PARALLEL_AWAY_DN = 15, //并转离切换失能
+
+	LCD_AWAY_PARALLEL_EN = 16, //离转并切换使能
+	LCD_AWAY_PARALLEL_DN = 17, //离转并切换失能
+	LCD_ADJUST_PCS_PW = 29,
+	LCD_ADJUST_PCS_QW = 30,
 
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
@@ -149,6 +157,7 @@ typedef struct
 	int num_pcs_bms[2];
 
 } EMU_OP_PARA; //装置运行参数
+
 // typedef struct
 // {
 // 	short Line_AB_voltage; // 0x1103	"电网AB线电压 int16	0.1 V
@@ -176,9 +185,7 @@ extern int curTaskId[];
 extern int curPcsId[];
 extern unsigned int g_num_frame[];
 extern int lcd_state[];
-#ifdef ifDebug
-extern int g_lcd_start_state[];
-#endif
+
 int AnalysModbus(int id_thread, unsigned char *pdata, int len);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);

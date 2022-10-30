@@ -1,8 +1,7 @@
-/mnt/hgfs/zgemutest-2/ModbusTcp_PCS/ModbusTcp/build/output.o: \
+/mnt/hgfs/home-zgemu/ModbusTcp_PCS/ModbusTcp/build/output.o: \
  src/protocol/output.c src/protocol/output.h \
  src/include/modbus_tcp_main.h src/include/share_type.h \
  src/include/lib_time.h src/protocol/logicAndControl.h \
- src/protocol/logicAndControl.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/predefs.h \
@@ -49,8 +48,6 @@ src/include/modbus_tcp_main.h:
 src/include/share_type.h:
 
 src/include/lib_time.h:
-
-src/protocol/logicAndControl.h:
 
 src/protocol/logicAndControl.h:
 

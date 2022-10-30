@@ -5,8 +5,7 @@
 #include "lib_time.h"
 #include "logicAndControl.h"
 
-//#define ifDebug
-#define MAX_PCS_NUM 6
+#define ifDebug
 
 #define _ZJYX_ 0
 #define _YX_ 1
@@ -51,7 +50,7 @@ typedef struct
 	int lcd_num;
 	int pcs_num;
 	int balance_rate;
-    int sys_max_pw;
+	int sys_max_pw;
 	//系统参数
 	char iflog;		   //是否将协议日志记录到flash中
 	char hardware_ver; //硬件版本

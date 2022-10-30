@@ -26,20 +26,20 @@ CallbackYK pbackBmsFun = NULL;
 
 int modbus_tcp_main(void *para_app)
 {
-	 int i = 0;
-	 *pconfig = *(pconf *)para_app;
+	int i = 0;
+	*pconfig = *(pconf *)para_app;
 
-	 pPara_Modtcp->type = 1;
-	 for (i = 0; i < pconfig->lcd_num; i++)
+	pPara_Modtcp->type = 1;
+	for (i = 0; i < pconfig->lcd_num; i++)
 
 	{
-		 strcpy(&pPara_Modtcp->server_ip[i][0], &pconfig->lcd_server_ip[i][0]);
+		strcpy(&pPara_Modtcp->server_ip[i][0], &pconfig->lcd_server_ip[i][0]);
 		pPara_Modtcp->server_port[i] = pconfig->lcd_server_port[i];
 	}
 
-	 pPara_Modtcp->lcdnum = pconfig->lcd_num;
-
-	 printf("LCD 模块启动 系统定义最大功率=%d\n", pconfig->sys_max_pw);
+	pPara_Modtcp->lcdnum_cfg = pconfig->lcd_num;
+	pPara_Modtcp->lcdnum_real = 0;
+	printf("LCD 模块启动 系统定义最大功率=%d\n", pconfig->sys_max_pw);
 
 	CreateThreads();
 	return 0;
@@ -74,7 +74,7 @@ int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 		// handleYkFromEms(pYkPara->item, pYkPara->data[0]);
 		break;
 	case _PCS_YK_:
-	
+
 		printf("BMS模块调用PCS_YK\n");
 		handlePcsYkFromEms(pYkPara);
 		break;

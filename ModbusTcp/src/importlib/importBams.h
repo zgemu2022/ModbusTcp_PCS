@@ -43,7 +43,7 @@ typedef struct
 } BmsData;
 typedef struct
 {
-	unsigned char bmsid;		   // 最大允许充电功率
+	unsigned char bmsid;		   //
 	unsigned char pcsid_bms;	   // 最大允许放电功率
 	unsigned short mx_cpw;		   //最大允许充电功率
 	unsigned short mx_dpw;		   //最大允许放电功率

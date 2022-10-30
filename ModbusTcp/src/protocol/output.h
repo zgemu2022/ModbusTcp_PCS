@@ -15,4 +15,5 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 int SaveZjyxData(int id_thread, unsigned short *pzjyx, unsigned char len);
 int SaveZjycData(int id_thread, unsigned short *pzjyc, unsigned char len);
 void initInterface61850(void);
+void cleanYcYxData(void);
 #endif

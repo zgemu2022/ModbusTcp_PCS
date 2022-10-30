@@ -76,11 +76,13 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	int id = 0;
 	int i;
 	static unsigned int flag_recv = 0;
+	unsigned short temp;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
 	}
 	id += pcsid;
+	// id = MAX_PCS_NUM * id_thread + pcsid;
 
 	// printf("saveYcData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
 
@@ -91,9 +93,15 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		g_YcData[id - 1].pcsid = pcsid;
 		g_YcData[id - 1].data_len = len;
 		memcpy((char *)g_YcData[id - 1].pcs_data, (char *)pyc, len);
+		temp = g_YcData[id - 1].pcs_data[u16_InvRunState1];
+		if ((temp && (1 << bPcsStoped)) == 0 && (temp && (1 << bPcsRunning)) != 0) //当前pcs已经启动
+		{
+			if (g_emu_op_para.flag_start == 0)
+				g_emu_op_para.flag_start = 1;
+		}
 		outputdata(_YC_, id);
 	}
-	flag_recv |= (1 << id);
+	flag_recv |= (1 << (id - 1));
 	if (flag_recv == g_flag_RecvNeed_PCS)
 	{
 	}
@@ -103,7 +111,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 {
 
-	int id = 0;
+	int id = 0; //, id_z;
 	int i;
 	static unsigned int flag_recv = 0;
 
@@ -112,6 +120,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		id += pPara_Modtcp->pcsnum[i];
 	}
 	id += pcsid;
+	// id_z = MAX_PCS_NUM * id_thread + pcsid;
 
 	printf("saveYxData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
 	//  if(memcmp((char*)g_YxData[id].pcs_data,(char*)pyx,len))
@@ -123,7 +132,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		memcpy((char *)g_YxData[id - 1].pcs_data, (char *)pyx, len);
 		outputdata(_YX_, id);
 	}
-	flag_recv |= (1 << id);
+	flag_recv |= (1 << (id - 1));
 	if (flag_recv == g_flag_RecvNeed_PCS)
 	{
 		int err_num = 0;
@@ -164,6 +173,16 @@ int SaveZjycData(int id_thread, unsigned short *pzjyc, unsigned char len)
 	}
 
 	return 0;
+}
+void cleanYcYxData(void)
+{
+	memset((unsigned char *)g_YcData, 0x00, sizeof(g_YcData));
+	memset((unsigned char *)g_YxData, 0x00, sizeof(g_YxData));
+
+	memset((unsigned char *)&g_ZjyxData, 0x00, sizeof(LCD_YC_YX_DATA));
+	memset((unsigned char *)&g_ZjycData, 0x00, sizeof(LCD_YC_YX_DATA));
+
+	memset((unsigned char *)&g_emu_adj_lcd, 0, sizeof(EMU_ADJ_LCD));
 }
 
 PARA_61850 para_61850;

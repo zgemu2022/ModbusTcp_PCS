@@ -65,9 +65,7 @@ pconf *pconfig = &conf;
 
 // int lcd_state[] = {LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT, LCD_INIT};
 int lcd_state[] = {LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME, LCD_SET_TIME};
-#ifdef ifDebug
-int g_lcd_start_state[] = {OFF, OFF, OFF, OFF, OFF, OFF};
-#endif
+
 // unsigned short pq_pcspw_set[6][2] = {
 // 	{0x3008, 0x3005}, {0x3018, 0x3015}, {0x3028, 0x3025}, {0x3038, 0x3035}, {0x3068, 0x3065}, {0x3078, 0x3075}}; //整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
 
@@ -79,9 +77,9 @@ unsigned short pqpcs_mode_set[] = {0x3008, 0x3018, 0x3028, 0x3038, 0x3068, 0x307
 unsigned short pqpcs_cur_set[] = {0x3004, 0x3014, 0x3024, 0x3034, 0x3064, 0x3074};	// PQ恒流模式 电流给定设置0.1A正为放电，负为充电
 unsigned short pqpcs_pw_set[] = {0x3005, 0x3015, 0x3025, 0x3035, 0x3065, 0x3075};	//恒功率模式  仅适用于PQ模式 功率给定设置0.1kW正为放电，负为充电
 
-unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071};	//整机设置为VSG模式后，设置有功率
-unsigned short pq_vsg_pcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072};	//整机设置为VSG模式后，设置无功率
-unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3072}; //整机开机或关机
+unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071};	   //整机设置为VSG模式后，设置有功率
+unsigned short pq_vsg_pcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为VSG模式后，设置无功率
+unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3072};	   //整机开机或关机
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 unsigned short YX_YC_tab[][2] = {
@@ -275,7 +273,7 @@ int ReadNumPCS(int id_thread)
 		g_send_data[id_thread].numdata = 1;
 		g_send_data[id_thread].regaddr = reg_start;
 		g_num_frame[id_thread]++;
-		if (g_num_frame[id_thread]== 0x10000)
+		if (g_num_frame[id_thread] == 0x10000)
 			g_num_frame[id_thread] = 1;
 	}
 	return 0;
@@ -458,6 +456,43 @@ int AnalysModbus_fun03(int id_thread, unsigned short regAddr, unsigned char *pda
 	return 0;
 }
 //数据解析
+//参数初始化
+static void init_emu_op_para(int id_thread)
+{
+	// int i;
+	//  LCD
+	g_emu_op_para.flag_start = 0;
+	g_emu_op_para.ems_commnication_status = OFF_LINE;
+	// g_emu_op_para.ifNeedResetLcdOp[id_thread] = _NEED_RESET;
+	g_emu_op_para.OperatingMode = PQ;
+	g_emu_op_para.pq_mode_set = PQ_STP;
+	g_emu_op_para.LcdStatus[id_thread] = STATUS_OFF;
+	g_send_data[id_thread].flag_waiting = 0;
+	g_emu_op_para.vsg_mode_set = VSG_PQ_PP;
+	g_emu_op_para.pq_pw_total = 0;				   // 180 * total_pcsnum;  // 180.0kW*28
+	g_emu_op_para.pq_cur_total = 0;				   // 140 * 28; // 140.0A*28
+	g_emu_op_para.vsg_pw_total = 0;				   // 50 * 28;  // 180.0kW*28
+	g_emu_op_para.pq_qw_total = 5 * total_pcsnum;  // pq模式下无功
+	g_emu_op_para.vsg_qw_total = 5 * total_pcsnum; // -180~180 vsg模式下无功kVar
+
+	// PCS
+	// for (i = 0; i < MAX_PCS_NUM; i++)
+	// {
+	// PQ
+	// g_emu_op_para.pq_mode[id_thread][i] = PQ_STP;
+	// g_emu_op_para.pq_pw[id_thread][i] = 500;  // 50.0kW
+	// g_emu_op_para.pq_cur[id_thread][i] = 500; // 50.0A
+
+	// VSG
+	// g_emu_op_para.vsg_pw[id_thread][i] = 50; // 50.0kW
+	// g_emu_op_para.vsg_qw[id_thread][i] = 0;	 // kVar
+	//}
+	g_emu_op_para.err_num = 0;
+	g_emu_op_para.num_pcs_bms[0] = 0;
+	g_emu_op_para.num_pcs_bms[1] = 0;
+	//	g_flag_RecvNeed_LCD = countRecvLcdFlag();
+}
+
 int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
 
@@ -506,7 +541,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	if (funid == 6)
 	{
 		regAddr = emudata[2] * 256 + emudata[3];
-		val=emudata[4] * 256 + emudata[5];
+		val = emudata[4] * 256 + emudata[5];
 		if (regAddr != g_send_data[id_thread].regaddr)
 		{
 			return 4;
@@ -530,6 +565,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
 
 #ifdef ifDebug
+			printf("000LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 			Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
 #endif
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
@@ -538,12 +574,15 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				int i;
 				total_pcsnum = 0;
-				for (i = 0; i < pPara_Modtcp->lcdnum; i++)
+				for (i = 0; i < pPara_Modtcp->lcdnum_real; i++)
 				{
 					total_pcsnum += pPara_Modtcp->pcsnum[i];
 				}
-				g_flag_RecvNeed_PCS = countRecvFlag(total_pcsnum);
-	//			initInterface61850();
+
+				init_emu_op_para(id_thread);
+				g_flag_RecvNeed_PCS = countRecvFlag(total_pcsnum); // countRecvPcsFlag(); //
+
+				//			initInterface61850();
 				// bams_Init();
 				// Plc_Init();
 			}
@@ -584,7 +623,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PQ_PCS_MODE)
 	{
-		printf("收到PQ模式设置后设置恒流或恒功率 pcsid=%d regAddr %x  %x\n",curPcsId[id_thread],pqpcs_mode_set[curPcsId[id_thread]],regAddr);
+		printf("收到PQ模式设置后设置恒流或恒功率 pcsid=%d regAddr %x  %x\n", curPcsId[id_thread], pqpcs_mode_set[curPcsId[id_thread]], regAddr);
 		if (regAddr == pqpcs_mode_set[curPcsId[id_thread]]) //模式设置
 		{
 			curTaskId[id_thread] = 0;
@@ -592,10 +631,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 
 			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
+				printf("111收到PQ模式设置后设置恒流或恒功率 pcsid=%d regAddr %x  %x\n", curPcsId[id_thread], pqpcs_mode_set[curPcsId[id_thread]], regAddr);
 				curPcsId[id_thread] = 0;
 				if (g_emu_op_para.pq_mode_set == PQ_STP) //设置恒功率值
 				{
-
 					lcd_state[id_thread] = LCD_PQ_STP_PWVAL;
 				}
 				else // PQ_STA 设置恒流
@@ -618,7 +657,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
-				lcd_state[id_thread] = LCD_PQ_STP_QWVAL;// 切换状态为PQ恒功率模式下无功参数设置
+				lcd_state[id_thread] = LCD_PQ_STP_QWVAL; // 切换状态为PQ恒功率模式下无功参数设置
 			}
 		}
 		else
@@ -699,12 +738,6 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
-#ifdef ifDebug
-				if (lcd_state[id_thread] == LCD_PCS_START)
-					g_lcd_start_state[id_thread] = ON;
-				else
-					g_lcd_start_state[id_thread] = OFF;
-#endif
 			}
 		}
 		else
@@ -761,7 +794,7 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	}
 	else
 		printf("注意：程序出现错误！！！\n");
-	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d g_num_frame[id_thread]=%d \n", status, regStart, numData, pcsid,g_num_frame[id_thread]);
+	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d g_num_frame[id_thread]=%d \n", status, regStart, numData, pcsid, g_num_frame[id_thread]);
 	framebuf[pos++] = (unsigned char)(g_num_frame[id_thread] / 256);
 	framebuf[pos++] = g_num_frame[id_thread] % 256;
 	framebuf[pos++] = 0;
