@@ -1,4 +1,4 @@
-/mnt/hgfs/zgemutest-2/ModbusTcp_PCS/ModbusTcp/build/importPlc.o: \
+/mnt/hgfs/home-zgemu/ModbusTcp_PCS/ModbusTcp/build/importPlc.o: \
  src/importlib/importPlc.c src/importlib/importPlc.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./stdio.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./features.h \

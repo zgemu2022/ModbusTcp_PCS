@@ -97,7 +97,7 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 	ServerAddr.sin_addr.s_addr = sock->addr; //本地IP
 	memset(&(ServerAddr.sin_zero), 0, sizeof(ServerAddr.sin_zero));
 
-	ret = _socket_client_connect(iSock, (struct sockaddr *)&ServerAddr, 20); // 20秒超时
+	ret = _socket_client_connect(iSock, (struct sockaddr *)&ServerAddr, 1); // 20秒超时
 	if (ret < 0)
 	{
 		printf("%s:%d socket connect fail ret < 0 ! \n", __FILE__, __LINE__);

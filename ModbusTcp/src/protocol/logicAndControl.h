@@ -1,7 +1,8 @@
 #ifndef _LOGIC_AND_CONTROL_H_
 #define _LOGIC_AND_CONTROL_H_
-#include "logicAndControl.h"
 
+#define MAX_PCS_NUM 6 //每个LCD下最多包含pcs的个数
+#define MAX_LCD_NUM 6
 #define EMS_communication_status 0
 #define one_FM_GOOSE_link_status_A 1 //  一次调频A网GOOSE链路状态
 #define one_FM_GOOSE_link_status_B 2 //  一次调频B网GOOSE链路状态
@@ -32,18 +33,33 @@ typedef struct
 	unsigned char el_tag;  //  数据类型
 	unsigned char data[5]; //参数
 } YK_PARA;				   //遥测、遥控参数
-
+typedef struct
+{
+	unsigned char flag_adj_pw[MAX_PCS_NUM]; //有功调节标志
+	unsigned char flag_adj_qw[MAX_PCS_NUM]; //无功调节标志
+	unsigned short val_pw[MAX_PCS_NUM];		//有功调节功率数值
+	unsigned short val_qw[MAX_PCS_NUM];		//无功调节功率数值
+} EMU_ADJ_PCS;
+typedef struct
+{
+	unsigned char flag_adj_pw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节有功功率的pcs
+	unsigned char flag_adj_qw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节无功功率的pcs
+	EMU_ADJ_PCS adj_pcs[MAX_LCD_NUM];
+} EMU_ADJ_LCD; //装置调节无功
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;
 extern int g_flag_RecvNeed_LCD;
 extern int g_flag_RecvNeed_PCS;
+extern EMU_ADJ_LCD g_emu_adj_lcd;
 // int (YK_PARA *pYkPara);
 int handleYkFromEms(YK_PARA *pYkPara);
 int handlePcsYkFromEms(YK_PARA *pYkPara);
 unsigned int countRecvFlag(int num_read);
+unsigned int countRecvPcsFlag(void);
 int handleYxFromEms(int item, unsigned char data);
 // int (int item, unsigned char data);
 // int handleYkFromEms(int item, unsigned char data);
 int countDP(int sn, unsigned short *pPw);
 int findCurPcsForStart(int lcdid, int pcsid);
+int setStatusPw_Qw(void);
 #endif

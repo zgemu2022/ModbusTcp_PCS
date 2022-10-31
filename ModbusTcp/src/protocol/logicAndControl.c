@@ -1,13 +1,16 @@
 #include "logicAndControl.h"
-#include "modbus.h"
 #include "output.h"
 #include "YX_define.h"
 #include "importBams.h"
 #include <stdio.h>
+#include "client.h"
+#include "modbus.h"
 int total_pcsnum = 28;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
 int g_flag_RecvNeed_PCS = 0;
+EMU_ADJ_LCD g_emu_adj_lcd;
+
 unsigned int countRecvFlag(int num_read)
 {
 	unsigned int flag = 0;
@@ -15,6 +18,22 @@ unsigned int countRecvFlag(int num_read)
 	for (i = 0; i < num_read; i++)
 	{
 		flag |= 1 << i;
+	}
+	return flag;
+}
+
+unsigned int countRecvPcsFlag(void)
+{
+	unsigned int flag = 0;
+	int i, j;
+	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+	{
+		if (modbus_sockt_state[i] == STATUS_OFF)
+			continue;
+		for (j = 0; j < pPara_Modtcp->pcsnum[i]; j++)
+		{
+			flag |= (1 << (i * MAX_PCS_NUM + j));
+		}
 	}
 	return flag;
 }
@@ -47,8 +66,10 @@ void startAllPcs(void)
 	int i;
 	int flag = 0;
 
-	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
+	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 	{
+		if (modbus_sockt_state[i] == STATUS_OFF)
+			continue;
 		if (lcd_state[i] == LCD_RUNNING)
 		{
 			flag = 1;
@@ -57,7 +78,7 @@ void startAllPcs(void)
 			curPcsId[i] = 0;
 		}
 	}
-	g_emu_op_para.flag_start = 1;
+
 	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
@@ -66,8 +87,10 @@ void stopAllPcs(void)
 	int i;
 	int flag = 0;
 
-	for (i = 0; i < pPara_Modtcp->lcdnum; i++)
+	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 	{
+		if (modbus_sockt_state[i] == STATUS_OFF)
+			continue;
 		if (lcd_state[i] == LCD_RUNNING)
 		{
 			flag = 1;
@@ -76,7 +99,6 @@ void stopAllPcs(void)
 			curPcsId[i] = 0;
 		}
 	}
-	g_emu_op_para.flag_start = 0;
 	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
@@ -108,50 +130,116 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	{
 		float tem;
 		tem = *(float *)pYkPara->data;
-		g_emu_op_para.vsg_qw_total = (unsigned int)tem;
+		if (g_emu_op_para.OperatingMode == PQ)
+			g_emu_op_para.pq_qw_total = (unsigned int)tem;
+		else
+			g_emu_op_para.vsg_qw_total = (unsigned int)tem;
 	}
-	case EMS_SET_MODE:
+	case EMS_SET_MODE: //系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
 	{
 		int tem;
 		tem = *(int *)pYkPara->data;
 		if (tem != g_emu_op_para.OperatingMode && g_emu_op_para.flag_start == 0)
 		{
-			if (tem == VSG)
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 			{
-				for (i = 0; i < pPara_Modtcp->lcdnum; i++)
-				{
-					curTaskId[i] = 0;
-					curPcsId[i] = 0;
-					lcd_state[i] = LCD_SET_MODE;
-				}
-				g_emu_op_para.OperatingMode = tem;
+				if (modbus_sockt_state[i] == STATUS_OFF)
+					continue;
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				lcd_state[i] = LCD_SET_MODE;
 			}
+			g_emu_op_para.OperatingMode = tem;
 		}
 	}
 	break;
 
-	case EMS_VSG_MODE: // 6				  // VSG工作模式设置
+	case EMS_VSG_MODE: // 6				  //系统为VSG工作模式下，设置具体工作模式
 	{
+		// VSG_SCF_SCV 3 // 3：一次调频、一次调压 ；
+		// VSG_SCF_PQ 6  // 6：一次调频、并网无功 ；
+		// VSG_PP_SCV 9  // 9：并网有功、一次调压；
+		// VSG_PQ_PP 12  // 12：并网无功、并网有功；
 		int tem;
 		tem = *(int *)pYkPara->data;
-		if (g_emu_op_para.OperatingMode == VSG)
+		if (g_emu_op_para.OperatingMode == VSG && (g_emu_op_para.vsg_mode_set != tem))
 		{
-			if (tem == VSG)
+
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 			{
-				for (i = 0; i < pPara_Modtcp->lcdnum; i++)
-				{
-					curTaskId[i] = 0;
-					curPcsId[i] = 0;
-					lcd_state[i] = LCD_VSG_MODE;
-				}
+				if (modbus_sockt_state[i] == STATUS_OFF)
+					continue;
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				lcd_state[i] = LCD_VSG_MODE;
 			}
 			g_emu_op_para.vsg_mode_set = tem;
 		}
 	}
 
 	break;
-	case EMS_PQ_MODE: // 7				  // PQ工作模式设置
-		break;
+	case EMS_PQ_MODE: //系统为PQ工作模式下，设置工作模式为恒功率模式或恒流模式
+	{
+		int tem;
+		tem = *(int *)pYkPara->data;
+		if (g_emu_op_para.OperatingMode == PQ && (g_emu_op_para.pq_mode_set != tem))
+		{
+
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				if (modbus_sockt_state[i] == STATUS_OFF)
+					continue;
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				lcd_state[i] = LCD_PQ_PCS_MODE;
+			}
+			g_emu_op_para.pq_mode_set = tem;
+		}
+	}
+
+	break;
+	case Parallel_Away_conversion_en: //并转离切换使能
+	{
+		unsigned char tem;
+		tem = pYkPara->data[0];
+		if (g_emu_op_para.OperatingMode == VSG)
+		{
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				if (modbus_sockt_state[i] == STATUS_OFF)
+					continue;
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				if (tem == 0)
+					lcd_state[i] = LCD_PARALLEL_AWAY_DN;
+				else
+					lcd_state[i] = LCD_PARALLEL_AWAY_EN;
+			}
+		}
+	}
+
+	break;
+	case Away_Parallel_conversion_en: //离转并切换使能
+	{
+		unsigned char tem;
+		tem = pYkPara->data[0];
+		if (g_emu_op_para.OperatingMode == VSG)
+		{
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				if (modbus_sockt_state[i] == STATUS_OFF)
+					continue;
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				if (tem == 0)
+					lcd_state[i] = LCD_AWAY_PARALLEL_DN;
+				else
+					lcd_state[i] = LCD_AWAY_PARALLEL_EN;
+			}
+		}
+	}
+	break;
+
 	default:
 		break;
 	}
@@ -275,7 +363,29 @@ int findCurPcsForStart(int lcdid, int pcsid)
 
 	return 0;
 }
+int findCurPcsForStop(int lcdid, int pcsid)
+{
+	int sn = 0;
+	int i;
+	unsigned short temp;
 
+	for (i = 0; i < lcdid; i++)
+	{
+		sn += pPara_Modtcp->pcsnum[i];
+	}
+	printf("findCurPcsForStop lcdid=%d, pcsid=%d\n", lcdid, pcsid);
+	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
+	{
+		sn += i;
+		printf("findCurPcsForStop lcdid=%d, pcsid=%d sn=%d\n", lcdid, pcsid, sn);
+		temp = g_YxData[sn].pcs_data[u16_InvRunState1];
+		if ((temp && (1 << bPcsStoped)) == 0 && (temp && (1 << bPcsRunning)) != 0) //当前pcs已经启动
+			break;
+	}
+	curPcsId[lcdid] = i;
+
+	return 0;
+}
 int countDP(int sn, unsigned short *pPw)
 {
 	int ret = 0;
@@ -309,4 +419,81 @@ int countDP(int sn, unsigned short *pPw)
 		f_pw *= (1 + dt_pw / 10000);
 	*pPw = (short)f_pw;
 	return ret;
+}
+
+int countDP_test(int lcdid, int pcsid, unsigned short *pQw)
+{
+	unsigned short soc_ave = 30;
+	unsigned short soc = 0;
+	unsigned short qw1 = *pQw;
+	unsigned short qw2 = *pQw;
+	unsigned short dtqw;
+	soc = pcsid * 10;
+	if (soc > soc_ave)
+		qw1 *= (1 - (soc - soc_ave));
+	else if (soc < soc_ave)
+		qw1 *= (1 + (soc_ave - soc));
+
+	*pQw = qw1;
+
+	dtqw = qw1 - qw2;
+
+	if (dtqw > 1 || dtqw < -1)
+		return 1;
+
+	return 0;
+}
+int checkQw(int lcdid, int pcsid, unsigned short QW)
+{
+	unsigned short dtQW;
+	unsigned short qw;
+	unsigned char flag = 0;
+	int ret;
+	dtQW = QW - (g_emu_op_para.pq_qw_total * 10) / total_pcsnum;
+	if (dtQW >= 10 || dtQW <= -10)
+	{
+		qw = g_emu_op_para.pq_qw_total / total_pcsnum;
+		flag = 1;
+	}
+	ret = countDP_test(lcdid, pcsid, &qw);
+	if (ret == 1)
+		flag = 1;
+
+	if (flag == 1)
+	{
+		g_emu_adj_lcd.flag_adj_qw_lcd[lcdid] = 1;
+		g_emu_adj_lcd.adj_pcs[lcdid].flag_adj_qw[pcsid] = 1;
+		g_emu_adj_lcd.adj_pcs[lcdid].val_qw[pcsid] = qw;
+	}
+
+	return 0;
+}
+
+// int setStatusQw(void)
+// {
+// 	int i;
+// 	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+// 	{
+// 		if (g_emu_adj_lcd.flag_adj_qw_lcd[i] == 1)
+// 		{
+// 			lcd_state[i] = LCD_ADJUST_PCS_QW;
+// 		}
+// 	}
+// }
+
+int setStatusPw_Qw(void)
+{
+	int i;
+	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+	{
+		if (g_emu_adj_lcd.flag_adj_pw_lcd[i] == 1)
+		{
+			lcd_state[i] = LCD_ADJUST_PCS_PW;
+		}
+		else if (g_emu_adj_lcd.flag_adj_qw_lcd[i] == 1)
+		{
+			lcd_state[i] = LCD_ADJUST_PCS_QW;
+		}
+	}
+	return 0;
 }
