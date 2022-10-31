@@ -78,7 +78,7 @@ unsigned short pqpcs_cur_set[] = {0x3004, 0x3014, 0x3024, 0x3034, 0x3064, 0x3074
 unsigned short pqpcs_pw_set[] = {0x3005, 0x3015, 0x3025, 0x3035, 0x3065, 0x3075};	//恒功率模式  仅适用于PQ模式 功率给定设置0.1kW正为放电，负为充电
 
 unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071};	   //整机设置为VSG模式后，设置有功率
-unsigned short pq_vsg_pcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为VSG模式后，设置无功率
+unsigned short pq_vsg_pcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为PG或VSG模式后，设置无功功率
 unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3072};	   //整机开机或关机
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
@@ -566,7 +566,8 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 
 #ifdef ifDebug
 			printf("000LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
-			Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
+			if (id_thread == 0)
+				Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
 #endif
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 			lcd_state[id_thread] = LCD_SET_MODE;
@@ -574,9 +575,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				int i;
 				total_pcsnum = 0;
-				for (i = 0; i < pPara_Modtcp->lcdnum_real; i++)
+				for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 				{
-					total_pcsnum += pPara_Modtcp->pcsnum[i];
+					if (modbus_sockt_state[i] == STATUS_ON)
+						total_pcsnum += pPara_Modtcp->pcsnum[i];
 				}
 
 				init_emu_op_para(id_thread);
@@ -681,7 +683,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PQ_STA_CURVAL)
 	{
-		if (regAddr = pq_vsg_pcs_qw_set[curPcsId[id_thread]]) // PQ恒流模式下电流参数设置返回
+		if (regAddr == pqpcs_cur_set[curPcsId[id_thread]]) // PQ恒流模式下电流参数设置返回
 		{
 			curTaskId[id_thread] = 0;
 			curPcsId[id_thread]++;
@@ -698,7 +700,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 
 	else if (funid == 6 && lcd_state[id_thread] == LCD_VSG_PW_VAL)
 	{
-		if (regAddr == vsgpcs_pw_set[curPcsId[id_thread]]) //参数设置
+		if (regAddr == vsgpcs_pw_set[curPcsId[id_thread]]) // VSG模式下有功功率数值设置
 		{
 			curTaskId[id_thread] = 0;
 			curPcsId[id_thread]++;
@@ -709,11 +711,11 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			}
 		}
 		else
-			printf("注意：程序出错！！！！\n");
+			printf("注意：VSG模式下有功功率数值设置程序出错！！！！\n");
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_VSG_QW_VAL)
 	{
-		if (regAddr == pq_vsg_pcs_qw_set[curPcsId[id_thread]]) //参数设置
+		if (regAddr == pq_vsg_pcs_qw_set[curPcsId[id_thread]]) // VSG模式下无功功率数值设置
 		{
 			curTaskId[id_thread] = 0;
 			curPcsId[id_thread]++;
@@ -725,7 +727,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			}
 		}
 		else
-			printf("注意：程序出错！！！！\n");
+			printf("注意：VSG模式下无功功率数值设置程序出错！！！！\n");
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START || lcd_state[id_thread] == LCD_PCS_STOP))
 	{

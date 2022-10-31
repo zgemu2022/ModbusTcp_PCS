@@ -363,7 +363,29 @@ int findCurPcsForStart(int lcdid, int pcsid)
 
 	return 0;
 }
+int findCurPcsForStop(int lcdid, int pcsid)
+{
+	int sn = 0;
+	int i;
+	unsigned short temp;
 
+	for (i = 0; i < lcdid; i++)
+	{
+		sn += pPara_Modtcp->pcsnum[i];
+	}
+	printf("findCurPcsForStop lcdid=%d, pcsid=%d\n", lcdid, pcsid);
+	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
+	{
+		sn += i;
+		printf("findCurPcsForStop lcdid=%d, pcsid=%d sn=%d\n", lcdid, pcsid, sn);
+		temp = g_YxData[sn].pcs_data[u16_InvRunState1];
+		if ((temp && (1 << bPcsStoped)) == 0 && (temp && (1 << bPcsRunning)) != 0) //当前pcs已经启动
+			break;
+	}
+	curPcsId[lcdid] = i;
+
+	return 0;
+}
 int countDP(int sn, unsigned short *pPw)
 {
 	int ret = 0;

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include "importBams.h"
 #include "logicAndControl.h"
+#include "output.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
 int wait_flag[] = {0, 0, 0, 0, 0, 0};
 char modbus_sockt_state[MAX_LCD_NUM];
@@ -158,9 +159,9 @@ void RunAccordingtoStatus(int id_thread)
 		if (g_emu_op_para.flag_start == 0)
 			g_emu_op_para.flag_start = 1;
 		printf("111LCD_PCS_START LCD_PCS_START curPcsId[id_thread]=%d\n", curPcsId[id_thread]);
+#ifndef ifDebug
 		findCurPcsForStart(id_thread, curPcsId[id_thread]);
-
-		printf("222LCD_PCS_START LCD_PCS_START curPcsId[id_thread]=%d\n", curPcsId[id_thread]);
+#endif
 		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
 		{
 			curPcsId[id_thread] = 0;
@@ -170,23 +171,33 @@ void RunAccordingtoStatus(int id_thread)
 		else
 		{
 			regaddr = pcs_on_off_set[curPcsId[id_thread]];
-			if (lcd_state[id_thread] == LCD_PCS_START)
-			{
-				printf("LCD:%d 开机 ...\n", id_thread);
-				val = 0xff00;
-			}
-			else
-			{
-				printf("LCD:%d 关机 ...\n", id_thread);
-				val = 0x00ff;
-			}
-
+			printf("LCD:%d 开机 ...\n", id_thread);
+			val = 0xff00;
 			ret = SetLcdFun06(id_thread, regaddr, val);
 		}
 	}
 	break;
 	case LCD_PCS_STOP:
 	{
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+#ifndef ifDebug
+		findCurPcsForStop(id_thread, curPcsId[id_thread]);
+#endif
+		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
+		{
+			curPcsId[id_thread] = 0;
+			curTaskId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+		}
+		else
+		{
+			regaddr = pcs_on_off_set[curPcsId[id_thread]];
+			printf("LCD:%d 关机 ...\n", id_thread);
+			val = 0x00ff;
+
+			ret = SetLcdFun06(id_thread, regaddr, val);
+		}
 	}
 	break;
 	case LCD_PCS_START_ONE:
@@ -360,7 +371,7 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 	if (msgsnd(qid, &msg, sizeof(msgClient), IPC_NOWAIT) != -1)
 	{
 
-		printf("succ succ succ succ !!!!!!!"); //连接主站的网络参数I
+		printf("发送到发送线程succ succ !!!!!!!"); //连接主站的网络参数I
 		return 0;
 	}
 	else
@@ -381,9 +392,12 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	struct timeval tv;
 	int ret;
 	int i = 0, jj = 0;
-	MyData recvbuf;
-	printf("PCS[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
+	int iconn = 10;
 
+	MyData recvbuf;
+	printf("LCD[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
+
+	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
 	//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 	_SERVER_SOCKET server_sock;
 	server_sock.protocol = TCP;
@@ -393,12 +407,19 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 
 	sleep(4);
 loop:
+	iconn = 10;
 	while (1)
 	{
-		server_sock.fd = -1;
-		if (_socket_client_init(&server_sock) != 0)
+
+		if (iconn > 0)
 		{
-			sleep(10);
+			server_sock.fd = -1;
+			ret = _socket_client_init(&server_sock);
+		}
+		if (ret != 0)
+		{
+			sleep(3);
+			iconn--;
 		}
 		else
 			break;
@@ -423,7 +444,7 @@ loop:
 		FD_SET(fd, &maxFd);
 		tv.tv_sec = 0;
 		//    tv.tv_usec = 50000;
-		tv.tv_usec = 200000;
+		tv.tv_usec = 20000;
 		ret = select(fd + 1, &maxFd, NULL, NULL, &tv);
 		if (ret < 0)
 		{
@@ -433,15 +454,15 @@ loop:
 		}
 		else if (ret == 0)
 		{
-			jj++;
+			// jj++;
 
-			if (jj > 1000)
-			{
-				printf("暂时没有数据传入！！！！未接收到数据次数=%d！！！！！！！！！！！！！！！！\r\n", jj);
-				jj = 0;
+			// if (jj > 1000)
+			// {
+			// 	printf("暂时没有数据传入！！！！未接收到数据次数=%d！！！！！！！！！！！！！！！！\r\n", jj);
+			// 	jj = 0;
 
-				//				break;
-			}
+			// 	//				break;
+			// }
 			continue;
 		}
 		else
@@ -481,7 +502,7 @@ loop:
 				else
 				{
 					i = 0;
-					printf("接收成功！！！！！！！！！！！！！！！！wait_flag[id_thread]=%d modbus_sockt_state[id_thread]=%d\r\n", wait_flag[id_thread], modbus_sockt_state[id_thread]);
+					printf("接收线程成功！！！！！！！！！！！！！！！！wait_flag[id_thread]=%d modbus_sockt_state[id_thread]=%d\r\n", wait_flag[id_thread], modbus_sockt_state[id_thread]);
 				}
 			}
 			else
