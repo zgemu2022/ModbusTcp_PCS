@@ -775,7 +775,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_AWAY_PARALLEL_EN || lcd_state[id_thread] == LCD_AWAY_PARALLEL_DN))
 	{
-		if (regAddr == 0x3045) //并网
+		if (regAddr == 0x3045) //离转并切换
 		{
 			curTaskId[id_thread] = 0;
 			curPcsId[id_thread] = 0;

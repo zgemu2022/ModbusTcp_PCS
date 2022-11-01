@@ -124,10 +124,33 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		float tem;
 		tem = *(float *)pYkPara->data;
 		printf("············有功功率：%f", (unsigned int)tem);
-		if (g_emu_op_para.OperatingMode == PQ)
+		if (g_emu_op_para.OperatingMode == PQ){
 			g_emu_op_para.pq_pw_total = (unsigned int)tem;
-		else
+			printf("·········PQ···有功功率：%d\n", g_emu_op_para.pq_pw_total);
+		}
+		else{
 			g_emu_op_para.vsg_pw_total = (unsigned int)tem;
+			printf("·········VSG···有功功率：%d\n", g_emu_op_para.pq_pw_total);
+		}
+
+		if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ)
+		{
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				printf("61850 PQ模式有功功率下发\n");
+				lcd_state[i] = LCD_PQ_STP_PWVAL;
+			}
+		}else{
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				printf("61850 VSG模式有功功率下发\n");
+				lcd_state[i] = LCD_VSG_PW_VAL;
+			}
+		}
 	}
 	break;
 	case EMS_QW_SETTING: //无功功率
@@ -136,11 +159,41 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		float tem;
 		tem = *(float *)pYkPara->data;
 		printf("············无功功率：%f", (unsigned int)tem);
-		if (g_emu_op_para.OperatingMode == PQ)
+		if (g_emu_op_para.OperatingMode == PQ){
 			g_emu_op_para.pq_qw_total = (unsigned int)tem;
-		else
+			printf("-----------PQ---无功功率:%d\n", g_emu_op_para.pq_qw_total);
+		}
+		else{
 			g_emu_op_para.vsg_qw_total = (unsigned int)tem;
+			printf("-----------VSG---无功功率:%d\n", g_emu_op_para.vsg_qw_total);
+		}
+		if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ){
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				printf("61850 PQ模式无功功率下发\n");
+				lcd_state[i] = LCD_PQ_STP_QWVAL;
+			}
+		}else{
+			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+			{
+				curTaskId[i] = 0;
+				curPcsId[i] = 0;
+				printf("61850 VSG模式无功功率下发\n");
+				lcd_state[i] = LCD_VSG_QW_VAL;
+			}
+		}
+		// if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ)
+		// {
+		// 	printf("61850 PQ模式无功功率下发\n");
+		// 	lcd_state[i] = LCD_PQ_STP_QWVAL;
+		// }else{
+		// 	printf("61850 VSG模式无功功率下发\n");
+		// 	lcd_state[i] = LCD_VSG_QW_VAL;
+		// }
 	}
+	break;
 	case EMS_SET_MODE: //系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
 	{
 		int tem;
