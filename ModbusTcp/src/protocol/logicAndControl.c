@@ -114,11 +114,16 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	case Emu_Startup:
 		startAllPcs();
 		break;
+	case Emu_Stop :
+		stopAllPcs();
+		break;
 	case EMS_PW_SETTING: //有功功率
 	case ONE_FM_PW_SETTING:
 	{
+		
 		float tem;
 		tem = *(float *)pYkPara->data;
+		printf("············有功功率：%f", (unsigned int)tem);
 		if (g_emu_op_para.OperatingMode == PQ)
 			g_emu_op_para.pq_pw_total = (unsigned int)tem;
 		else
@@ -130,6 +135,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	{
 		float tem;
 		tem = *(float *)pYkPara->data;
+		printf("············无功功率：%f", (unsigned int)tem);
 		if (g_emu_op_para.OperatingMode == PQ)
 			g_emu_op_para.pq_qw_total = (unsigned int)tem;
 		else
@@ -284,22 +290,25 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	int flag = 0;
 	sn = pYkPara->item;
 
-	int lcdid = sn / 6;
-	int pcsid = sn % 6;
+	printf("aaaaaaaaaaaa__sn:%d\n", sn);
+	int lcdid = (sn-1) / 6;
+	int pcsid = (sn-1) % 6;
 	int ret;
 
-	if (pcsid >= pPara_Modtcp->pcsnum[lcdid])
-	{
-		goto endPcsYk;
-	}
+	printf("bbbbbbbbbbbb__lcdid:%d\n", lcdid);
+	printf("cccccccccccc__pcsid:%d\n", pcsid);
+	// if (pcsid >= pPara_Modtcp->pcsnum[lcdid])
+	// {
+	// 	goto endPcsYk;
+	// }
 
-	ret = ckeckCurPcsStartEn(lcdid, pcsid);
+	// ret = ckeckCurPcsStartEn(lcdid, pcsid);
 
-	if (ret != 0)
-	{
-		printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n", lcdid, pcsid, ret);
-		goto endPcsYk;
-	}
+	// if (ret != 0)
+	// {
+	// 	printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n", lcdid, pcsid, ret);
+	// 	goto endPcsYk;
+	// }
 	printf("lcdid=%d pcsid=%d 满足启动条件，等待启动\n", lcdid, pcsid);
 	if (lcd_state[lcdid] == LCD_RUNNING)
 	{
