@@ -75,7 +75,8 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 	int id = 0;
 	int i;
-	static unsigned int flag_recv = 0;
+	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
+	static int flag_recv_lcd;
 
 	for (i = 0; i < id_thread; i++)
 	{
@@ -96,8 +97,13 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 		outputdata(_YC_, id);
 	}
-	flag_recv |= (1 << (id - 1));
-	if (flag_recv == g_flag_RecvNeed_PCS)
+	flag_recv_pcs[id_thread] |= (1 << pcsid);
+
+	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
+	{
+          flag_recv_lcd |= id_thread;
+	}
+	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
 	}
 	return 0;
@@ -108,7 +114,9 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 
 	int id = 0; //, id_z;
 	int i;
-	static unsigned int flag_recv = 0;
+	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
+	static int flag_recv_lcd;
+
 	unsigned short temp;
 	unsigned char b1, b2;
 	for (i = 0; i < id_thread; i++)
@@ -147,22 +155,31 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		}
 		outputdata(_YX_, id);
 	}
-	flag_recv |= (1 << (id - 1));
+	flag_recv_pcs[id_thread] |= (1 << (pcsid-1));
 
-	printf("sn=%d lcdid=%d pcsid=%d flag_recv=%x g_flag_RecvNeed_PCS=%x\n", id - 1, id_thread, pcsid, flag_recv, g_flag_RecvNeed_PCS);
-	if (flag_recv == g_flag_RecvNeed_PCS)
+	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
+	{
+          flag_recv_lcd |= (1<<id_thread);
+	}
+
+	printf("pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ",pcsid,id_thread,flag_recv_pcs[id_thread],id_thread,flag_RecvNeed_PCS[id_thread],flag_recv_lcd,g_flag_RecvNeed_LCD);
+	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
 		int err_num = 0;
+		
 		printf("99999999999999999999\n");
 		for (i = 0; i < total_pcsnum; i++)
 		{
 			if ((g_YxData[id - 1].pcs_data[u16_InvRunState1] & (1 << bFaultStatus)) != 0)
 			{
 				err_num++;
-				printf("lcdid=%d pcsid=%d 有故障 目前故障总数=%d pcs总数=%d \n", id_thread, pcsid, err_num, total_pcsnum);
+				
 			}
 		}
-		flag_recv = 0;
+		printf("lcdid=%d pcsid=%d 有故障 目前故障总数=%d pcs总数=%d \n", id_thread, pcsid, err_num, total_pcsnum);
+		for(i=0;i<pPara_Modtcp->pcsnum[i];i++)
+			flag_recv_pcs[i]=0;
+		flag_recv_lcd = 0;
 	}
 	return 0;
 }

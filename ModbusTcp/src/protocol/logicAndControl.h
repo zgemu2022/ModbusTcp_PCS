@@ -49,7 +49,7 @@ typedef struct
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;
 extern int g_flag_RecvNeed_LCD;
-extern int g_flag_RecvNeed_PCS;
+extern unsigned char flag_RecvNeed_PCS[];
 extern EMU_ADJ_LCD g_emu_adj_lcd;
 // int (YK_PARA *pYkPara);
 int handleYkFromEms(YK_PARA *pYkPara);
@@ -60,6 +60,10 @@ int handleYxFromEms(int item, unsigned char data);
 // int (int item, unsigned char data);
 // int handleYkFromEms(int item, unsigned char data);
 int countDP(int sn, unsigned short *pPw);
+
+int countRecvPcsFlagAry(void);
+
 int findCurPcsForStart(int lcdid, int pcsid);
+int findCurPcsForStop(int lcdid, int pcsid);
 int setStatusPw_Qw(void);
 #endif

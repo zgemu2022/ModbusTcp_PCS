@@ -391,7 +391,7 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	fd_set maxFd;
 	struct timeval tv;
 	int ret;
-	int i = 0, jj = 0;
+	int i = 0;//, jj = 0;
 	int iconn = 10;
 
 	MyData recvbuf;
@@ -405,9 +405,9 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	server_sock.addr = inet_addr(pPara_Modtcp->server_ip[id_thread]);
 	server_sock.fd = -1;
 
-	sleep(4);
+	sleep(1);
 loop:
-	iconn = 10;
+	iconn = 1;
 	while (1)
 	{
 
@@ -418,8 +418,13 @@ loop:
 		}
 		if (ret != 0)
 		{
-			sleep(3);
+			sleep(2);
 			iconn--;
+			if(iconn>0)
+				continue;
+			else 
+				goto endconn;
+
 		}
 		else
 			break;
@@ -427,14 +432,23 @@ loop:
 	printf("连接服务器成功！！！！\n");
 	pPara_Modtcp->lcdnum_real++;
 	modbus_client_sockptr[id_thread] = server_sock.fd;
-	modbus_sockt_state[id_thread] = STATUS_ON;
 	g_flag_RecvNeed_LCD |= (1 << id_thread);
 	//	init_emu_op_para(id_thread);
 	// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
-	jj = 0; //未接收到数据累计标志，大于1000清零
+//	jj = 0; //未接收到数据累计标志，大于1000清零
 	i = 0;
-
+	iconn=0;
+    // while(1)
+	// {
+	// 	if(pPara_Modtcp->lcdnum_real==pPara_Modtcp->lcdnum_cfg)
+	// 	  break;
+	// 	iconn++;
+	// 	if(iconn>10)
+	// 		break;
+	// 	sleep(1);
+	// }
+	modbus_sockt_state[id_thread] = STATUS_ON;
 	while (1)
 	{
 		fd = modbus_client_sockptr[id_thread];
@@ -468,7 +482,7 @@ loop:
 		else
 		{
 
-			jj = 0;
+			//jj = 0;
 
 			// printf("貌似收到数据！！！！！！！！！！！！");
 			if (FD_ISSET(fd, &maxFd))
@@ -502,7 +516,7 @@ loop:
 				else
 				{
 					i = 0;
-					printf("接收线程成功！！！！！！！！！！！！！！！！wait_flag[id_thread]=%d modbus_sockt_state[id_thread]=%d\r\n", wait_flag[id_thread], modbus_sockt_state[id_thread]);
+					printf("接收线程发送到发送线程成功！wait_flag[%d]=%d modbus_sockt_state[%d]=%d\r\n",id_thread, wait_flag[id_thread],id_thread, modbus_sockt_state[id_thread]);
 				}
 			}
 			else
@@ -517,6 +531,7 @@ loop:
 	g_flag_RecvNeed_LCD &= ~(1 << id_thread);
 	printf("网络断开，重连！！！！");
 	goto loop;
+endconn:	return NULL;
 }
 
 void CreateThreads(void)

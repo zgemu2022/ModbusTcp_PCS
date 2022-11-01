@@ -582,7 +582,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				}
 
 				init_emu_op_para(id_thread);
-				g_flag_RecvNeed_PCS = countRecvFlag(total_pcsnum); // countRecvPcsFlag(); //
+				countRecvPcsFlagAry(); // countRecvPcsFlag(); //
 
 				//			initInterface61850();
 				// bams_Init();
@@ -764,13 +764,13 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 }
 static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned char *framebuf)
 {
-	static int status = _YX_;
+	static int status[] = {_YX_,_YX_,_YX_,_YX_,_YX_,_YX_};
 	unsigned short regStart;
 	int pcsid = *p_pcsid;
 	int pos = 0;
 	unsigned short numData;
 
-	if (status == _YX_)
+	if (status[id_thread] == _YX_)
 	{
 		regStart = YX_YC_tab[pcsid][0];
 		if (pcsid == 0)
@@ -782,7 +782,7 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 			numData = NUM_READ_YX;
 		}
 	}
-	else if (status == _YC_)
+	else if (status[id_thread] == _YC_)
 	{
 		regStart = YX_YC_tab[pcsid][1];
 		if (pcsid == 0)
@@ -796,7 +796,7 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	}
 	else
 		printf("注意：程序出现错误！！！\n");
-	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d g_num_frame[id_thread]=%d \n", status, regStart, numData, pcsid, g_num_frame[id_thread]);
+	printf("本次createFun03Frame status=%d  regStart=%x numdata=%d pcsid=%d g_num_frame[id_thread]=%d \n", status[id_thread], regStart, numData, pcsid, g_num_frame[id_thread]);
 	framebuf[pos++] = (unsigned char)(g_num_frame[id_thread] / 256);
 	framebuf[pos++] = g_num_frame[id_thread] % 256;
 	framebuf[pos++] = 0;
@@ -812,16 +812,16 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 	framebuf[pos++] = numData % 256;
 	*lenframe = pos;
 
-	if (status == _YX_)
+	if (status[id_thread] == _YX_)
 	{
-		status = _YC_;
+		status[id_thread] = _YC_;
 	}
-	else if (status == _YC_)
+	else if (status[id_thread] == _YC_)
 	{
-		status = _YX_;
+		status[id_thread] = _YX_;
 		pcsid++;
 
-		if (pcsid >= (Para_Modtcp.pcsnum[id_thread] + 1))
+		if (pcsid >= (Para_Modtcp.pcsnum[id_thread]+1))
 			pcsid = 0;
 	}
 

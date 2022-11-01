@@ -9,6 +9,8 @@ int total_pcsnum = 28;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
 int g_flag_RecvNeed_PCS = 0;
+
+unsigned char flag_RecvNeed_PCS[MAX_PCS_NUM];
 EMU_ADJ_LCD g_emu_adj_lcd;
 
 unsigned int countRecvFlag(int num_read)
@@ -37,7 +39,25 @@ unsigned int countRecvPcsFlag(void)
 	}
 	return flag;
 }
+int countRecvPcsFlagAry(void)
+{
+	//unsigned int flag = 0;
+	int i;
 
+
+	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+	{
+
+		if (modbus_sockt_state[i] == STATUS_OFF)
+		{
+			flag_RecvNeed_PCS[i]=0;
+		}
+		else
+		  flag_RecvNeed_PCS[i]=countRecvFlag(pPara_Modtcp->pcsnum[i]);
+
+	}
+	return 0;
+}
 int handleYxFromEms(int item, unsigned char data)
 {
 	switch (item)

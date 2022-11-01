@@ -5,7 +5,7 @@
 #include "lib_time.h"
 #include "logicAndControl.h"
 
-#define ifDebug
+//#define ifDebug
 
 #define _ZJYX_ 0
 #define _YX_ 1
