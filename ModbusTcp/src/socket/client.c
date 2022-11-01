@@ -62,7 +62,7 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PQ_PCS_MODE:
 	{
-		printf("LCD:%d PCS 设置成PQ模式...\n", id_thread);
+		printf("LCD:%d PCS：%d 设置成PQ模式...\n", id_thread, curPcsId[id_thread]);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		// if (curTaskId == 0)
@@ -75,6 +75,7 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PQ_STP_PWVAL:
 	{
+		printf("LCD:%d PCS:%d 设置成PQ 恒功率有功参数设置...\n", id_thread, curPcsId[id_thread]);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		regaddr = pqpcs_pw_set[curPcsId[id_thread]];
@@ -87,7 +88,7 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PQ_STP_QWVAL:
 	{
-		printf("LCD:%d PQ 无功参数设置 ...\n", id_thread);
+		printf("LCD:%d PCS:%d PQ 无功参数设置 ...\n", id_thread, curPcsId[id_thread]);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
@@ -102,6 +103,7 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PQ_STA_CURVAL:
 	{
+		printf("LCD:%d PCS:%d 设置成PQ 恒流电流设置...\n", id_thread, curPcsId[id_thread]);
 		unsigned short regaddr;
 		unsigned short val;
 		regaddr = pqpcs_cur_set[curPcsId[id_thread]];

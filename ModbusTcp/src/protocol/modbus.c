@@ -46,7 +46,7 @@ EMU 参数
 0x3001	VSG模式 有功给定设置	int16	模块1	1kW	W/R	"需在启机前设置，整机运行后可进行功率切换仅适用于VSG模式，正为放电，负为充电"
 0x3002	无功功率值	int16	模块1	1kVar	W/R	/
 0x3004	恒流模式 电流给定设置	int16	模块1	0.1A	W/R	"需在启机前设置，整机运行后可进行电流切换仅适用于PQ模式，正为放电，负为充电"
-0x3005	恒功率模式 功率给定设置	int16	模块1	0.1kW	W/R	"需在启机前设置，整机运行后可进行功率切换仅适用于PQ模式，正为放电，负为充电"
+0x	恒功率模式 功率给定设置	int16	模块1	0.1kW	W/R	"需在启机前设置，整机运行后可进行功率切换仅适用于PQ模式，正为放电，负为充电"
 0x3006	EMS并网封波使能	uint16	模块1	1	W/R	0：封波失能；1：封波使能；
 0x3008	PQ工作模式设置	uint16	模块1	1	W/R	"需在启机前设置，整机运行后可进行模式切换0：恒功率模式；3：恒流模式；"
 */
@@ -79,7 +79,7 @@ unsigned short pqpcs_pw_set[] = {0x3005, 0x3015, 0x3025, 0x3035, 0x3065, 0x3075}
 
 unsigned short vsgpcs_pw_set[] = {0x3001, 0x3011, 0x3021, 0x3031, 0x3061, 0x3071};	   //整机设置为VSG模式后，设置有功率
 unsigned short pq_vsg_pcs_qw_set[] = {0x3002, 0x3012, 0x3022, 0x3032, 0x3062, 0x3072}; //整机设置为PG或VSG模式后，设置无功功率
-unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3072};	   //整机开机或关机
+unsigned short pcs_on_off_set[] = {0x3000, 0x3010, 0x3020, 0x3030, 0x3060, 0x3070};	   //整机开机或关机
 
 unsigned short pcsId_pq_vsg[] = {0, 0, 0, 0, 0, 0};
 unsigned short YX_YC_tab[][2] = {
@@ -584,7 +584,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				init_emu_op_para(id_thread);
 				countRecvPcsFlagAry(); // countRecvPcsFlag(); //
 
-				//			initInterface61850();
+				initInterface61850();
 				// bams_Init();
 				// Plc_Init();
 			}
@@ -758,6 +758,33 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		}
 		else
 			printf("注意：pcs单机启动或停止程序出错！！！！\n");
+	}
+	else if (funid == 6 && (lcd_state[id_thread] == LCD_PARALLEL_AWAY_EN || lcd_state[id_thread] == LCD_PARALLEL_AWAY_DN))
+	{
+		if (regAddr == 0x3044) //并转离切换
+		{
+
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+
+			printf("lcd:%d 并转离切换成功！！！\n",id_thread);
+		}
+		else
+			printf("注意：lcd:%d 并转离切换 程序出错！！！！\n");
+	}
+	else if (funid == 6 && (lcd_state[id_thread] == LCD_AWAY_PARALLEL_EN || lcd_state[id_thread] == LCD_AWAY_PARALLEL_DN))
+	{
+		if (regAddr == 0x3045) //离转并切换
+		{
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+
+			printf("lcd:%d 离转并切换成功！！！\n", id_thread);
+		}
+		else
+			printf("注意：lcd:%d 离转并切换 程序出错！！！！\n");
 	}
 
 	return 0;
