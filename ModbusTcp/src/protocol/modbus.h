@@ -136,6 +136,7 @@ typedef struct
 	unsigned char flag_start;
 	unsigned char ems_commnication_status; // ems通信状态 1 ON_LINE 0 OFF_LINE
 	unsigned short soc_ave;
+	unsigned char flag_soc_bak;
 	unsigned int err_num;
 
 	unsigned char LcdStatus[MAX_LCD_NUM]; //当前LCD状态，整机运行前0 整机运行后 1
@@ -143,6 +144,10 @@ typedef struct
 	// unsigned char LcdOperatingMode[MAX_LCD_NUM]; //当前LCD工作模式，PQ=1 VSG=5
 	// unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
 	unsigned short pq_mode_set; //[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ模式下PCS模块工作模式
+	unsigned int pq_pw_total_last;
+	unsigned int pq_cur_total_last;
+	unsigned int pq_qw_total_last;
+
 	unsigned int pq_pw_total;
 	unsigned int pq_cur_total;
 	unsigned int pq_qw_total;
@@ -150,10 +155,14 @@ typedef struct
 	// short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ、恒流模式下pcs模块电流值
 
 	unsigned short vsg_mode_set; //[MAX_LCD_NUM]; // VSG模式下LCD工作模式
+	unsigned int vsg_pw_total_last;
+	unsigned int vsg_qw_total_last;
+
 	unsigned int vsg_pw_total;
 	unsigned int vsg_qw_total;
 	// short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式，pcs模块有功功率
 	// short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式、pcs模块无功功率
+
 	int num_pcs_bms[2];
 
 } EMU_OP_PARA; //装置运行参数

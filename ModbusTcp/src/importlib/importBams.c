@@ -9,8 +9,9 @@
 #include "logicAndControl.h"
 
 #define LIB_MODBMS_PATH "/usr/lib/libbams_rtu.so"
-PARA_BAMS para_bams = {1, {9600, 9600}, {2, 2}, {6, 0}};
+PARA_BAMS para_bams = {2, {9600, 9600}, {2, 2}, {6, 0}};
 BmsData_Newest bmsdata_cur[2][18];
+BmsData_Newest bmsdata_bak[2][18];
 int checkBmsForStart(int sn)
 {
 	unsigned short status_bms;
@@ -65,7 +66,7 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 		BmsData temp = *(BmsData *)pdata;
 		unsigned char bmsid = temp.bmsid;
 
-		printf("000LCD模块收到BAMS传来的所有数据！pcsid=%d %d bmsid=%d\n", pcsid_bms, temp.pcsid_bms, temp.bmsid);
+		printf("xxxLCD模块收到BAMS传来的所有数据！bmsid=%d pcsid=%d %d \n",temp.bmsid, pcsid_bms, temp.pcsid_bms);
 		bmsdata_cur[bmsid][pcsid_bms].mx_cpw = temp.buf_data[BMS_MX_CPW * 2] * 256 + temp.buf_data[BMS_MX_CPW * 2 + 1];
 		bmsdata_cur[bmsid][pcsid_bms].mx_dpw = temp.buf_data[BMS_MX_DPW * 2] * 256 + temp.buf_data[BMS_MX_DPW * 2 + 1];
 		bmsdata_cur[bmsid][pcsid_bms].main_vol = temp.buf_data[BMS_MAIN_VOLTAGE * 2] * 256 + temp.buf_data[BMS_MAIN_VOLTAGE * 2 + 1];
@@ -82,15 +83,16 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 		bmsdata_cur[bmsid][pcsid_bms].sys_need = temp.buf_data[BMS_SYS_NEED * 2] * 256 + temp.buf_data[BMS_SYS_NEED * 2 + 1];
 		bmsdata_cur[bmsid][pcsid_bms].if_sys_fault = temp.buf_data[BMS_FAULT_STATUS * 2] * 256 + temp.buf_data[BMS_FAULT_STATUS * 2 + 1];
 		flag_recv_bms[bmsid] |= (1 << pcsid_bms);
-		if (bmsid == 0)
-			num_pcs1 = countPcsNum_Bms(flag_recv_bms[0]);
-		else
-			num_pcs2 = countPcsNum_Bms(flag_recv_bms[1]);
-		printf("1122LCD模块收到BAMS传来的所有数据！pcsid=%d bmsid=%d num_pcs1=%d  num_pcs2=%d soc=%d total_pcsnum=%d\n", pcsid_bms, temp.bmsid, num_pcs1, num_pcs2, bmsdata_cur[bmsid][pcsid_bms].soc, total_pcsnum);
 
-		printf("3322 flag_recv_bms[0]=%x  flag_recv_bms[2]=%x num_pcs1=%d num_pcs2=%d\n", flag_recv_bms[0], flag_recv_bms[2], num_pcs1, num_pcs2);
+        num_pcs1 = countPcsNum_Bms(flag_recv_bms[0]);
+        num_pcs2 = countPcsNum_Bms(flag_recv_bms[1]);
+			
+		printf("33223322 flag_recv_bms[0]=%x  flag_recv_bms[1]=%x num_pcs1=%d num_pcs2=%d\n", flag_recv_bms[0], flag_recv_bms[1], num_pcs1, num_pcs2);
+		printf("bmsdata_cur[bmsid=%d][pcsid_bms=%d].soc=%d\n",bmsid,pcsid_bms,bmsdata_cur[bmsid][pcsid_bms].soc);
 		if ((num_pcs1 + num_pcs2) >= total_pcsnum)
 		{
+
+		    printf("33443344 flag_recv_bms[0]=%x  flag_recv_bms[1]=%x num_pcs1=%d num_pcs2=%d\n", flag_recv_bms[0], flag_recv_bms[1], num_pcs1, num_pcs2);
 			unsigned int temp = 0;
 			num_pcs = num_pcs1 + num_pcs2;
 			for (i = 0; i < num_pcs1; i++)
@@ -105,6 +107,8 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 			g_emu_op_para.soc_ave = temp;
 			g_emu_op_para.num_pcs_bms[0] = num_pcs1;
 			g_emu_op_para.num_pcs_bms[1] = num_pcs2;
+			memcpy((unsigned char*)bmsdata_bak,(unsigned char*)bmsdata_cur,sizeof(BmsData_Newest));
+            g_emu_op_para.flag_soc_bak=1;
 			printf("g_emu_op_para.soc_ave=%d num_pcs_bms1=%d num_pcs_bms2=%d\n", g_emu_op_para.soc_ave, g_emu_op_para.num_pcs_bms[0], g_emu_op_para.num_pcs_bms[1]);
 			flag_recv_bms[0] = 0;
 			flag_recv_bms[1] = 0;
@@ -151,18 +155,17 @@ void bams_Init(void)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("1LCD模块动态调用BAMS模块！\n");
-	*(void **)(&my_func_putin) = dlsym(handle, "SubscribeBamsData");
-	if ((error = dlerror()) != NULL)
-	{
-		fprintf(stderr, "%s\n", error);
+	// printf("1LCD模块动态调用BAMS模块！\n");
+	// *(void **)(&my_func_putin) = dlsym(handle, "SubscribeBamsData");
+	// if ((error = dlerror()) != NULL)
+	// {
+	// 	fprintf(stderr, "%s\n", error);
 
-		exit(EXIT_FAILURE);
-	}
+	// 	exit(EXIT_FAILURE);
+	// }
 	printf("2LCD模块动态调用BAMS模块！\n");
 	my_func((void *)&para_bams);
-	sleep(1);
-	printf("xxxLCD模块订阅BAMS数据\n");
-	my_func_putin(_ALL_, recvfromBams);
-	my_func_putin(_SOC_, recvfromBams);
+	// printf("xxxLCD模块订阅BAMS数据\n");
+	// my_func_putin(_ALL_, recvfromBams);
+	// my_func_putin(_SOC_, recvfromBams);
 }

@@ -8,7 +8,6 @@
 int total_pcsnum = 28;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
-int g_flag_RecvNeed_PCS = 0;
 
 unsigned char flag_RecvNeed_PCS[MAX_PCS_NUM];
 EMU_ADJ_LCD g_emu_adj_lcd;
@@ -41,20 +40,18 @@ unsigned int countRecvPcsFlag(void)
 }
 int countRecvPcsFlagAry(void)
 {
-	//unsigned int flag = 0;
+	// unsigned int flag = 0;
 	int i;
-
 
 	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 	{
 
 		if (modbus_sockt_state[i] == STATUS_OFF)
 		{
-			flag_RecvNeed_PCS[i]=0;
+			flag_RecvNeed_PCS[i] = 0;
 		}
 		else
-		  flag_RecvNeed_PCS[i]=countRecvFlag(pPara_Modtcp->pcsnum[i]);
-
+			flag_RecvNeed_PCS[i] = countRecvFlag(pPara_Modtcp->pcsnum[i]);
 	}
 	return 0;
 }
@@ -134,41 +131,47 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	case Emu_Startup:
 		startAllPcs();
 		break;
-	case Emu_Stop :
+	case Emu_Stop:
 		stopAllPcs();
 		break;
 	case EMS_PW_SETTING: //有功功率
 	case ONE_FM_PW_SETTING:
 	{
-		
+
 		float tem;
 		tem = *(float *)pYkPara->data;
-		printf("············有功功率：%f", (unsigned int)tem);
-		if (g_emu_op_para.OperatingMode == PQ){
+		printf("············有功功率：%f", (float)tem);
+		if (g_emu_op_para.OperatingMode == PQ)
+		{
+			g_emu_op_para.pq_pw_total_last = g_emu_op_para.pq_pw_total;
 			g_emu_op_para.pq_pw_total = (unsigned int)tem;
 			printf("·········PQ···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
-		else{
+		else
+		{
+			g_emu_op_para.vsg_pw_total_last = g_emu_op_para.vsg_pw_total;
 			g_emu_op_para.vsg_pw_total = (unsigned int)tem;
 			printf("·········VSG···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
-
-		if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ)
+		if (g_emu_op_para.flag_start == 0)
 		{
+
 			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 			{
 				curTaskId[i] = 0;
 				curPcsId[i] = 0;
-				printf("61850 PQ模式有功功率下发\n");
-				lcd_state[i] = LCD_PQ_STP_PWVAL;
-			}
-		}else{
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				printf("61850 VSG模式有功功率下发\n");
-				lcd_state[i] = LCD_VSG_PW_VAL;
+				if (g_emu_op_para.OperatingMode == PQ  && g_emu_op_para.pq_pw_total_last != g_emu_op_para.pq_pw_total)
+				{
+					printf("61850 PQ模式有功功率下发\n");
+					lcd_state[i] = LCD_PQ_STP_PWVAL;
+				}
+				else if(g_emu_op_para.OperatingMode == VSG && g_emu_op_para.vsg_pw_total_last != g_emu_op_para.vsg_pw_total)
+				{
+					printf("61850 VSG模式有功功率下发\n");
+					lcd_state[i] = LCD_VSG_PW_VAL;
+				}
+				else
+				   printf("下发有功功率未发生变化，无需重新设置！\n");
 			}
 		}
 	}
@@ -178,151 +181,154 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	{
 		float tem;
 		tem = *(float *)pYkPara->data;
-		printf("············无功功率：%f", (unsigned int)tem);
-		if (g_emu_op_para.OperatingMode == PQ){
+		printf("············无功功率：%f", tem);
+		if (g_emu_op_para.OperatingMode == PQ)
+		{
+			g_emu_op_para.pq_qw_total_last = g_emu_op_para.pq_qw_total;
 			g_emu_op_para.pq_qw_total = (unsigned int)tem;
 			printf("-----------PQ---无功功率:%d\n", g_emu_op_para.pq_qw_total);
 		}
-		else{
+		else
+		{
+			g_emu_op_para.vsg_qw_total_last = g_emu_op_para.vsg_qw_total;
 			g_emu_op_para.vsg_qw_total = (unsigned int)tem;
 			printf("-----------VSG---无功功率:%d\n", g_emu_op_para.vsg_qw_total);
 		}
-		if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ){
+		if (g_emu_op_para.flag_start == 0)
+		{
 			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 			{
 				curTaskId[i] = 0;
 				curPcsId[i] = 0;
-				printf("61850 PQ模式无功功率下发\n");
-				lcd_state[i] = LCD_PQ_STP_QWVAL;
-			}
-		}else{
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
+				if (g_emu_op_para.OperatingMode == PQ && g_emu_op_para.pq_qw_total_last != g_emu_op_para.pq_qw_total)
+				{
+
+					printf("61850 PQ模式无功功率下发\n");
+					lcd_state[i] = LCD_PQ_STP_QWVAL;
+				}
+				else if(g_emu_op_para.OperatingMode == VSG && g_emu_op_para.vsg_qw_total_last != g_emu_op_para.vsg_qw_total)
+				{
 				printf("61850 VSG模式无功功率下发\n");
 				lcd_state[i] = LCD_VSG_QW_VAL;
-			}
-		}
-		// if (g_emu_op_para.flag_start == 0 && g_emu_op_para.OperatingMode == PQ)
-		// {
-		// 	printf("61850 PQ模式无功功率下发\n");
-		// 	lcd_state[i] = LCD_PQ_STP_QWVAL;
-		// }else{
-		// 	printf("61850 VSG模式无功功率下发\n");
-		// 	lcd_state[i] = LCD_VSG_QW_VAL;
-		// }
-	}
-	break;
-	case EMS_SET_MODE: //系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
-	{
-		int tem;
-		tem = *(int *)pYkPara->data;
-		if (tem != g_emu_op_para.OperatingMode && g_emu_op_para.flag_start == 0)
-		{
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				if (modbus_sockt_state[i] == STATUS_OFF)
-					continue;
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				lcd_state[i] = LCD_SET_MODE;
-			}
-			g_emu_op_para.OperatingMode = tem;
-		}
-	}
-	break;
-
-	case EMS_VSG_MODE: // 6				  //系统为VSG工作模式下，设置具体工作模式
-	{
-		// VSG_SCF_SCV 3 // 3：一次调频、一次调压 ；
-		// VSG_SCF_PQ 6  // 6：一次调频、并网无功 ；
-		// VSG_PP_SCV 9  // 9：并网有功、一次调压；
-		// VSG_PQ_PP 12  // 12：并网无功、并网有功；
-		int tem;
-		tem = *(int *)pYkPara->data;
-		if (g_emu_op_para.OperatingMode == VSG && (g_emu_op_para.vsg_mode_set != tem))
-		{
-
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				if (modbus_sockt_state[i] == STATUS_OFF)
-					continue;
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				lcd_state[i] = LCD_VSG_MODE;
-			}
-			g_emu_op_para.vsg_mode_set = tem;
-		}
-	}
-
-	break;
-	case EMS_PQ_MODE: //系统为PQ工作模式下，设置工作模式为恒功率模式或恒流模式
-	{
-		int tem;
-		tem = *(int *)pYkPara->data;
-		if (g_emu_op_para.OperatingMode == PQ && (g_emu_op_para.pq_mode_set != tem))
-		{
-
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				if (modbus_sockt_state[i] == STATUS_OFF)
-					continue;
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				lcd_state[i] = LCD_PQ_PCS_MODE;
-			}
-			g_emu_op_para.pq_mode_set = tem;
-		}
-	}
-
-	break;
-	case Parallel_Away_conversion_en: //并转离切换使能
-	{
-		unsigned char tem;
-		tem = pYkPara->data[0];
-		if (g_emu_op_para.OperatingMode == VSG)
-		{
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				if (modbus_sockt_state[i] == STATUS_OFF)
-					continue;
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				if (tem == 0)
-					lcd_state[i] = LCD_PARALLEL_AWAY_DN;
+				}
 				else
-					lcd_state[i] = LCD_PARALLEL_AWAY_EN;
+				   printf("下发无功功率未发生变化，无需重新设置！\n");
+
 			}
 		}
+
 	}
 
 	break;
-	case Away_Parallel_conversion_en: //离转并切换使能
+case EMS_SET_MODE: //系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
+{
+	int tem;
+	tem = *(int *)pYkPara->data;
+	if (tem != g_emu_op_para.OperatingMode && g_emu_op_para.flag_start == 0)
 	{
-		unsigned char tem;
-		tem = pYkPara->data[0];
-		if (g_emu_op_para.OperatingMode == VSG)
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 		{
-			for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-			{
-				if (modbus_sockt_state[i] == STATUS_OFF)
-					continue;
-				curTaskId[i] = 0;
-				curPcsId[i] = 0;
-				if (tem == 0)
-					lcd_state[i] = LCD_AWAY_PARALLEL_DN;
-				else
-					lcd_state[i] = LCD_AWAY_PARALLEL_EN;
-			}
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+			lcd_state[i] = LCD_SET_MODE;
+		}
+		g_emu_op_para.OperatingMode = tem;
+	}
+}
+break;
+
+case EMS_VSG_MODE: // 6				  //系统为VSG工作模式下，设置具体工作模式
+{
+	// VSG_SCF_SCV 3 // 3：一次调频、一次调压 ；
+	// VSG_SCF_PQ 6  // 6：一次调频、并网无功 ；
+	// VSG_PP_SCV 9  // 9：并网有功、一次调压；
+	// VSG_PQ_PP 12  // 12：并网无功、并网有功；
+	int tem;
+	tem = *(int *)pYkPara->data;
+	if (g_emu_op_para.OperatingMode == VSG && (g_emu_op_para.vsg_mode_set != tem))
+	{
+
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+		{
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+			lcd_state[i] = LCD_VSG_MODE;
+		}
+		g_emu_op_para.vsg_mode_set = tem;
+	}
+}
+
+break;
+case EMS_PQ_MODE: //系统为PQ工作模式下，设置工作模式为恒功率模式或恒流模式
+{
+	int tem;
+	tem = *(int *)pYkPara->data;
+	if (g_emu_op_para.OperatingMode == PQ && (g_emu_op_para.pq_mode_set != tem))
+	{
+
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+		{
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+			lcd_state[i] = LCD_PQ_PCS_MODE;
+		}
+		g_emu_op_para.pq_mode_set = tem;
+	}
+}
+
+break;
+case Parallel_Away_conversion_en: //并转离切换使能
+{
+	unsigned char tem;
+	tem = pYkPara->data[0];
+	if (g_emu_op_para.OperatingMode == VSG)
+	{
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+		{
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+			if (tem == 0)
+				lcd_state[i] = LCD_PARALLEL_AWAY_DN;
+			else
+				lcd_state[i] = LCD_PARALLEL_AWAY_EN;
 		}
 	}
-	break;
+}
 
-	default:
-		break;
+break;
+case Away_Parallel_conversion_en: //离转并切换使能
+{
+	unsigned char tem;
+	tem = pYkPara->data[0];
+	if (g_emu_op_para.OperatingMode == VSG)
+	{
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+		{
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			curTaskId[i] = 0;
+			curPcsId[i] = 0;
+			if (tem == 0)
+				lcd_state[i] = LCD_AWAY_PARALLEL_DN;
+			else
+				lcd_state[i] = LCD_AWAY_PARALLEL_EN;
+		}
 	}
-	return 0;
+}
+break;
+
+default:
+	break;
+}
+return 0;
 }
 
 int ckeckCurPcsStartEn(int lcdid, int pcsid)
@@ -364,9 +370,8 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	sn = pYkPara->item;
 
 	printf("aaaaaaaaaaaa__sn:%d\n", sn);
-	int lcdid = (sn-1) / 6;
-	int pcsid = (sn-1) % 6;
-	int ret;
+	int lcdid = (sn - 1) / 6;
+	int pcsid = (sn - 1) % 6;
 
 	printf("bbbbbbbbbbbb__lcdid:%d\n", lcdid);
 	printf("cccccccccccc__pcsid:%d\n", pcsid);
@@ -393,7 +398,7 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 		curTaskId[lcdid] = 0;
 		curPcsId[lcdid] = pcsid;
 	}
-endPcsYk:
+
 	pbackBmsFun(_BMS_YK_, (void *)flag);
 
 	return 0;
@@ -503,51 +508,74 @@ int countDP(int sn, unsigned short *pPw)
 	return ret;
 }
 
-int countDP_test(int lcdid, int pcsid, unsigned short *pQw)
+int countDP_test(int lcdid, int pcsid, int *pQw)
 {
-	unsigned short soc_ave = 30;
+	unsigned short soc_ave = g_emu_op_para.soc_ave;
+     int id=0,id_bms=0;
 	unsigned short soc = 0;
-	unsigned short qw1 = *pQw;
-	unsigned short qw2 = *pQw;
-	unsigned short dtqw;
-	soc = pcsid * 10;
-	if (soc > soc_ave)
-		qw1 *= (1 - (soc - soc_ave));
-	else if (soc < soc_ave)
-		qw1 *= (1 + (soc_ave - soc));
+    unsigned short dt_soc = 0;
+	unsigned int qw1 = *pQw;
+	unsigned int qw2 = *pQw;
+	int i;
+    printf("xxxxxxxxxxxxxxxxx9999\n");
+	for (i = 0; i < lcdid; i++)
+	{
+		id += pPara_Modtcp->pcsnum[i];
+	}
+	id += (pcsid-1);
+    printf("xxxxxxxxxxxxxxxxx8888 id=%d\n",id);
+    if(id>=g_emu_op_para.num_pcs_bms[0])
+	{
+		id-=g_emu_op_para.num_pcs_bms[0];
+	    id_bms=1;
+	}
+	else
+	    id_bms=0;
+    printf("xxxxxxxxxxxxxxxxx7777 id=%d id_bms=%d g_emu_op_para.num_pcs_bms[0]=%d\n",id,id_bms,g_emu_op_para.num_pcs_bms[0]);
+	soc=bmsdata_bak[id_bms][id].soc;
 
-	*pQw = qw1;
+    dt_soc=soc-soc_ave;
+    printf("lcdid=%d pcsid=%d id=%d soc_ave=%d soc=%d dt_soc=%d \n",lcdid,pcsid,id,soc_ave,soc,dt_soc);
 
-	dtqw = qw1 - qw2;
 
-	if (dtqw > 1 || dtqw < -1)
-		return 1;
+	printf("功率调节结果如下 qw1=%d qw2=%d",qw1,qw2);
+    // qw1*=(1000+dt_soc*balance_rate);
+	// dtqw = qw1 - qw2;
 
-	return 0;
+	// if (dtqw > 1 || dtqw < -1)
+	// 	return 1;
+
+
+    return 0;
 }
 int checkQw(int lcdid, int pcsid, unsigned short QW)
 {
 	unsigned short dtQW;
-	unsigned short qw;
+	int qw;
 	unsigned char flag = 0;
 	int ret;
-	dtQW = QW - (g_emu_op_para.pq_qw_total * 10) / total_pcsnum;
+	if((total_pcsnum==0) || (total_pcsnum-g_emu_op_para.err_num)==0)
+	{
+		return 1;
+	}
+	dtQW = QW - (g_emu_op_para.pq_qw_total * 10) /  (total_pcsnum-g_emu_op_para.err_num);
 	if (dtQW >= 10 || dtQW <= -10)
 	{
-		qw = g_emu_op_para.pq_qw_total / total_pcsnum;
+		qw = (g_emu_op_para.pq_qw_total*10) / (total_pcsnum-g_emu_op_para.err_num);
 		flag = 1;
 	}
+	#if(1)
 	ret = countDP_test(lcdid, pcsid, &qw);
 	if (ret == 1)
 		flag = 1;
-
+    #endif
 	if (flag == 1)
 	{
 		g_emu_adj_lcd.flag_adj_qw_lcd[lcdid] = 1;
 		g_emu_adj_lcd.adj_pcs[lcdid].flag_adj_qw[pcsid] = 1;
 		g_emu_adj_lcd.adj_pcs[lcdid].val_qw[pcsid] = qw;
 	}
-
+    
 	return 0;
 }
 

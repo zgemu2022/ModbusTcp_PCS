@@ -46,14 +46,14 @@ int _socket_client_connect(int sockfd, struct sockaddr *serv_addr, int timeout)
 				{
 					sleep(timeout); /* 防止远方拒绝时直接返回, 未等待30miao就跳出了*/
 				}
-				ret = -1;
+				ret = -3;
 			}
 		}
 		else
 		{
 			close(sockfd);
 			printf("%s:%d socket connect fail, select error! \n", __FILE__, __LINE__);
-			ret = -1;
+			ret = -4;
 		}
 	}
 	else
@@ -88,7 +88,7 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 	if (iSock < 0)
 	{
 		printf("%s:%d socket create fail! \n", __FILE__, __LINE__);
-		return -1;
+		return -2;
 	}
 	/* 二、准备通信地址 */
 	printf("建立Socket第二步 准备通信地址");
@@ -102,7 +102,7 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 	{
 		printf("%s:%d socket connect fail ret < 0 ! \n", __FILE__, __LINE__);
 		close(iSock);
-		return -1;
+		return -3;
 	}
 	printf("套接字成功连接\r\n");
 	sock->fd = iSock;

@@ -76,8 +76,8 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	int id = 0;
 	int i;
 	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
-	static int flag_recv_lcd;
-
+	static int flag_recv_lcd=0;
+		int xx=5;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
@@ -85,7 +85,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	id += pcsid;
 	// id = MAX_PCS_NUM * id_thread + pcsid;
 
-	// printf("saveYcData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
+	printf("saveYcData id_thread=%d pcsid=%d id=%d num=%d\n", id_thread, pcsid, id, len);
 
 	//  if(memcmp((char*)g_YcData[id].pcs_data,(char*)pyc,len))
 	{
@@ -97,14 +97,25 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 		outputdata(_YC_, id);
 	}
-	flag_recv_pcs[id_thread] |= (1 << pcsid);
+
+	flag_recv_pcs[id_thread] |= (1 << (pcsid-1));
 
 	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
 	{
-          flag_recv_lcd |= id_thread;
+          flag_recv_lcd |= (1<<id_thread);
 	}
+
+ 	if(g_emu_op_para.flag_soc_bak==1)
+		countDP_test(id_thread,pcsid,&xx);
+	else
+	    printf("nnnnnnnnnnnnnnnnnnnnnnnnnnn\n");
+	printf("YC pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ",pcsid,id_thread,flag_recv_pcs[id_thread],id_thread,flag_RecvNeed_PCS[id_thread],flag_recv_lcd,g_flag_RecvNeed_LCD);
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
+		printf("888888888888 pcsid=%d\n",pcsid);
+		for(i=0;i<MAX_PCS_NUM;i++)
+			flag_recv_pcs[i]=0;
+		flag_recv_lcd = 0;
 	}
 	return 0;
 }
@@ -177,7 +188,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 			}
 		}
 		printf("lcdid=%d pcsid=%d 有故障 目前故障总数=%d pcs总数=%d \n", id_thread, pcsid, err_num, total_pcsnum);
-		for(i=0;i<pPara_Modtcp->pcsnum[i];i++)
+		for(i=0;i<MAX_PCS_NUM;i++)
 			flag_recv_pcs[i]=0;
 		flag_recv_lcd = 0;
 	}
@@ -234,14 +245,11 @@ void initInterface61850(void)
 	int i;
 	printf("initInterface61850\n");
 	p_initlcd my_func = NULL;
-	para_61850.lcdnum = pconfig->lcd_num;
+	para_61850.lcdnum = pPara_Modtcp->lcdnum_cfg;
+
 	for (i = 0; i < MAX_PCS_NUM; i++)
 	{
-		para_61850.pcsnum[i] = 0;
-	}
 
-	for (i = 0; i < para_61850.lcdnum; i++)
-	{
 		para_61850.pcsnum[i] = pPara_Modtcp->pcsnum[i];
 	}
 	para_61850.balance_rate = pconfig->balance_rate;

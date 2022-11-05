@@ -490,6 +490,8 @@ static void init_emu_op_para(int id_thread)
 	g_emu_op_para.err_num = 0;
 	g_emu_op_para.num_pcs_bms[0] = 0;
 	g_emu_op_para.num_pcs_bms[1] = 0;
+	g_emu_op_para.soc_ave=0;
+	g_emu_op_para.flag_soc_bak=0;
 	//	g_flag_RecvNeed_LCD = countRecvLcdFlag();
 }
 
@@ -562,7 +564,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			//放在现场时，用以下获取LCD下PCS数量
 			flag_get_pcsnum |= (1 << id_thread);
 
-			Para_Modtcp.pcsnum[id_thread] = regAddr = emudata[3] * 256 + emudata[4];
+			Para_Modtcp.pcsnum[id_thread] = emudata[3] * 256 + emudata[4];
 
 #ifdef ifDebug
 			printf("000LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
@@ -571,6 +573,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 #endif
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
 			lcd_state[id_thread] = LCD_SET_MODE;
+				init_emu_op_para(id_thread);			
 			if (flag_get_pcsnum == g_flag_RecvNeed_LCD)
 			{
 				int i;
@@ -581,11 +584,14 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 						total_pcsnum += pPara_Modtcp->pcsnum[i];
 				}
 
-				init_emu_op_para(id_thread);
+
 				countRecvPcsFlagAry(); // countRecvPcsFlag(); //
 
+				bams_Init();
 				initInterface61850();
-				// bams_Init();
+
+
+
 				// Plc_Init();
 			}
 		}
@@ -771,7 +777,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			printf("lcd:%d 并转离切换成功！！！\n",id_thread);
 		}
 		else
-			printf("注意：lcd:%d 并转离切换 程序出错！！！！\n");
+			printf("注意：lcd:%d 并转离切换 程序出错！！！！\n",id_thread);
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_AWAY_PARALLEL_EN || lcd_state[id_thread] == LCD_AWAY_PARALLEL_DN))
 	{
@@ -784,7 +790,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			printf("lcd:%d 离转并切换成功！！！\n", id_thread);
 		}
 		else
-			printf("注意：lcd:%d 离转并切换 程序出错！！！！\n");
+			printf("注意：lcd:%d 离转并切换 程序出错！！！！\n",id_thread);
 	}
 
 	return 0;

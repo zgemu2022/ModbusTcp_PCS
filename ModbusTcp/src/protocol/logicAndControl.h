@@ -45,7 +45,7 @@ typedef struct
 	unsigned char flag_adj_pw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节有功功率的pcs
 	unsigned char flag_adj_qw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节无功功率的pcs
 	EMU_ADJ_PCS adj_pcs[MAX_LCD_NUM];
-} EMU_ADJ_LCD; //装置调节无功
+} EMU_ADJ_LCD; //LCD装置调节有功无功
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;
 extern int g_flag_RecvNeed_LCD;
@@ -66,4 +66,6 @@ int countRecvPcsFlagAry(void);
 int findCurPcsForStart(int lcdid, int pcsid);
 int findCurPcsForStop(int lcdid, int pcsid);
 int setStatusPw_Qw(void);
+
+int countDP_test(int lcdid, int pcsid, int *pQw);
 #endif

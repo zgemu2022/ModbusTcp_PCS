@@ -292,7 +292,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 	key_t key = 0;
-	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
+
 
 	// unsigned char code_fun[] = {0x03, 0x06, 0x10};
 	// unsigned char errid_fun[] = {0x83, 0x86, 0x90};
@@ -301,9 +301,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	{
 		usleep(10000);
 	}
-
+	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
 	wait_flag[id_thread] = 0;
-
+    sleep(2);
 	// printf("modbus_sockt_state[id_thread] == STATUS_ON\n") ;
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
@@ -394,13 +394,11 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	struct timeval tv;
 	int ret;
 	int i = 0;//, jj = 0;
-	int iconn = 10;
 
 	MyData recvbuf;
 	printf("LCD[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
 
-	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
-	//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
+		//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 	_SERVER_SOCKET server_sock;
 	server_sock.protocol = TCP;
 	server_sock.port = htons(pPara_Modtcp->server_port[id_thread]);
@@ -409,29 +407,20 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 
 	sleep(1);
 loop:
-	iconn = 1;
 	while (1)
 	{
-
-		if (iconn > 0)
-		{
-			server_sock.fd = -1;
-			ret = _socket_client_init(&server_sock);
-		}
+		server_sock.fd = -1;
+		ret = _socket_client_init(&server_sock);
 		if (ret != 0)
 		{
-			sleep(2);
-			iconn--;
-			if(iconn>0)
-				continue;
-			else 
-				goto endconn;
-
+			   goto endconn;
 		}
 		else
 			break;
 	}
 	printf("连接服务器成功！！！！\n");
+	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
+
 	pPara_Modtcp->lcdnum_real++;
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	g_flag_RecvNeed_LCD |= (1 << id_thread);
@@ -440,7 +429,6 @@ loop:
 
 //	jj = 0; //未接收到数据累计标志，大于1000清零
 	i = 0;
-	iconn=0;
     // while(1)
 	// {
 	// 	if(pPara_Modtcp->lcdnum_real==pPara_Modtcp->lcdnum_cfg)
@@ -464,8 +452,9 @@ loop:
 		ret = select(fd + 1, &maxFd, NULL, NULL, &tv);
 		if (ret < 0)
 		{
-
+            
 			printf("网络有问题！！！！！！！！！！！！");
+			sleep(1);
 			break;
 		}
 		else if (ret == 0)
@@ -530,7 +519,7 @@ loop:
 	}
 	modbus_sockt_state[id_thread] = STATUS_OFF;
 	pPara_Modtcp->lcdnum_real--;
-	g_flag_RecvNeed_LCD &= ~(1 << id_thread);
+	//g_flag_RecvNeed_LCD &= ~(1 << id_thread);
 	printf("网络断开，重连！！！！");
 	goto loop;
 endconn:	return NULL;
@@ -559,6 +548,7 @@ void CreateThreads(void)
 			printf("MODBUS THTREAD CREATE ERR!\n");
 			exit(1);
 		}
+		sleep(2);
 	}
 	cleanYcYxData();
 	// initInterface61850();
