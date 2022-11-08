@@ -77,7 +77,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	int i;
 	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
 	static int flag_recv_lcd=0;
-		int xx=5;
+	int qw;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
@@ -105,10 +105,21 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
           flag_recv_lcd |= (1<<id_thread);
 	}
 
- 	if(g_emu_op_para.flag_soc_bak==1)
-		countDP_test(id_thread,pcsid,&xx);
-	else
-	    printf("nnnnnnnnnnnnnnnnnnnnnnnnnnn\n");
+	if(g_emu_op_para.flag_soc_bak==1)
+	{
+		if(g_emu_op_para.OperatingMode == PQ)
+		{
+			qw=g_emu_op_para.pq_qw_total;
+
+		}
+		else if(g_emu_op_para.OperatingMode == VSG)
+		{
+			qw=g_emu_op_para.vsg_qw_total;
+			checkQw(id_thread,pcsid,&qw);
+		}
+		checkQw(id_thread,pcsid,&qw);
+
+	}
 	printf("YC pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ",pcsid,id_thread,flag_recv_pcs[id_thread],id_thread,flag_RecvNeed_PCS[id_thread],flag_recv_lcd,g_flag_RecvNeed_LCD);
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
@@ -116,6 +127,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		for(i=0;i<MAX_PCS_NUM;i++)
 			flag_recv_pcs[i]=0;
 		flag_recv_lcd = 0;
+		setStatusPw_Qw();
 	}
 	return 0;
 }

@@ -270,13 +270,40 @@ void RunAccordingtoStatus(int id_thread)
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
+
+	case LCD_ADJUST_PCS_PW://按策略要求调节有功功率
+	{
+		printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
+	}
+	break;
+
+	case LCD_ADJUST_PCS_QW://按策略要求调节无功功率
+	{
+		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		unsigned short val;
+	    printf("LCD:%d 按策略要求调节无功功率 ...\n", id_thread);	
+		if(findCurPcsidForAdjQw(id_thread)==1)
+		{
+			regaddr = pq_vsg_pcs_qw_set[curPcsId[id_thread]];
+			val = g_emu_adj_lcd.adj_pcs[curPcsId[id_thread]].val_qw;
+			 printf("LCD:%d PCSID:%d 按策略要求调节无功功率 ...\n", id_thread,curPcsId[id_thread]);	
+			ret = SetLcdFun06(id_thread, regaddr, val);
+		}
+
+			
+		
+	}
+	break;
+
+	case LCD_DO_NOTHING:
+		break;
 	default:
+		printf("注意：出现未经定义的状态！！！\n");
 		break;
 	}
 	if (ret == 0)
 		wait_flag[id_thread] = 1;
-	else
-		printf("注意：返回解析程序出错！！！\n");
+
 }
 
 void *Modbus_clientSend_thread(void *arg) // 25
@@ -301,6 +328,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	{
 		usleep(10000);
 	}
+
+
+
 	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
 	wait_flag[id_thread] = 0;
     sleep(2);
@@ -418,7 +448,7 @@ loop:
 		else
 			break;
 	}
-	printf("连接服务器成功！！！！\n");
+	printf("lcdid=%d 连接服务器成功！！！！\n",id_thread);
 	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
 
 	pPara_Modtcp->lcdnum_real++;
@@ -438,6 +468,10 @@ loop:
 	// 		break;
 	// 	sleep(1);
 	// }
+	while((pPara_Modtcp->lcdnum_err+pPara_Modtcp->lcdnum_real)<pPara_Modtcp->lcdnum_cfg)
+	{
+				sleep(1);
+	}
 	modbus_sockt_state[id_thread] = STATUS_ON;
 	while (1)
 	{
@@ -522,7 +556,9 @@ loop:
 	//g_flag_RecvNeed_LCD &= ~(1 << id_thread);
 	printf("网络断开，重连！！！！");
 	goto loop;
-endconn:	return NULL;
+endconn: 	printf("lcdid=%d 连接服务器失败！！！！\n",id_thread);
+            pPara_Modtcp->lcdnum_err++;
+            return NULL;
 }
 
 void CreateThreads(void)
@@ -551,7 +587,8 @@ void CreateThreads(void)
 		sleep(2);
 	}
 	cleanYcYxData();
-	// initInterface61850();
-	//  bams_Init();
+
+	// bams_Init();
+    // initInterface61850();
 	printf("MODBUS THTREAD CREATE success!\n");
 }

@@ -4,7 +4,8 @@
 		"modbus_tcp_main.h": "c",
 		"mytimer.h": "c",
 		"output.h": "c",
-		"logicandcontrol.h": "c"
+		"logicandcontrol.h": "c",
+		"importbams.h": "c"
 	},
 	"C_Cpp.errorSquiggles": "Disabled"
 }

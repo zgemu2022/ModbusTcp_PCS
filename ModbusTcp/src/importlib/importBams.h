@@ -71,6 +71,7 @@ typedef struct
 } PARA_BAMS; //
 extern BmsData_Newest bmsdata_cur[][18];
 extern BmsData_Newest bmsdata_bak[][18];
+extern PARA_BAMS para_bams;
 void bams_Init(void);
 int checkBmsForStart(int sn);
 #endif

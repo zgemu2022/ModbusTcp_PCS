@@ -507,23 +507,43 @@ int countDP(int sn, unsigned short *pPw)
 	*pPw = (short)f_pw;
 	return ret;
 }
+void printf_pcs_soc(void)
+{
+	int i;
+	if(para_bams.portnum==0)
+		return ;
+	for(i=0;i<g_emu_op_para.num_pcs_bms[0];i++)
+	{
+		printf(" %d ",bmsdata_bak[0][i].soc);
+	}
+	printf("\n");
 
+	if(para_bams.portnum==1)
+		return ;
+	for(i=0;i<g_emu_op_para.num_pcs_bms[1];i++)
+	{
+		printf(" %d ",bmsdata_bak[1][i].soc);
+	}	
+	printf("\n");
+}
 int countDP_test(int lcdid, int pcsid, int *pQw)
 {
 	unsigned short soc_ave = g_emu_op_para.soc_ave;
      int id=0,id_bms=0;
 	unsigned short soc = 0;
-    unsigned short dt_soc = 0;
-	unsigned int qw1 = *pQw;
-	unsigned int qw2 = *pQw;
+    short dt_soc = 0;
+	int qw1 = *pQw;
+	int qw2 = *pQw;
+	int dtqw;
+	//int temp;
 	int i;
-    printf("xxxxxxxxxxxxxxxxx9999\n");
 	for (i = 0; i < lcdid; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
 	}
 	id += (pcsid-1);
-    printf("xxxxxxxxxxxxxxxxx8888 id=%d\n",id);
+
+	printf_pcs_soc();
     if(id>=g_emu_op_para.num_pcs_bms[0])
 	{
 		id-=g_emu_op_para.num_pcs_bms[0];
@@ -531,21 +551,24 @@ int countDP_test(int lcdid, int pcsid, int *pQw)
 	}
 	else
 	    id_bms=0;
-    printf("xxxxxxxxxxxxxxxxx7777 id=%d id_bms=%d g_emu_op_para.num_pcs_bms[0]=%d\n",id,id_bms,g_emu_op_para.num_pcs_bms[0]);
 	soc=bmsdata_bak[id_bms][id].soc;
 
-    dt_soc=soc-soc_ave;
+    dt_soc=soc_ave-soc;
     printf("lcdid=%d pcsid=%d id=%d soc_ave=%d soc=%d dt_soc=%d \n",lcdid,pcsid,id,soc_ave,soc,dt_soc);
 
+    qw1*=(100000+dt_soc*pPara_Modtcp->balance_rate);
+	qw1/=100000;
 
-	printf("功率调节结果如下 qw1=%d qw2=%d",qw1,qw2);
-    // qw1*=(1000+dt_soc*balance_rate);
-	// dtqw = qw1 - qw2;
+	printf("功率调节结果如下 qw1=%d qw2=%d\n",qw1,qw2);
 
-	// if (dtqw > 1 || dtqw < -1)
-	// 	return 1;
+	dtqw = qw1 - qw2;
 
-
+	if (dtqw > 1 || dtqw < -1)
+	{
+       *pQw=qw1;
+	   return 1;
+	}
+    
     return 0;
 }
 int checkQw(int lcdid, int pcsid, unsigned short QW)
@@ -579,17 +602,6 @@ int checkQw(int lcdid, int pcsid, unsigned short QW)
 	return 0;
 }
 
-// int setStatusQw(void)
-// {
-// 	int i;
-// 	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
-// 	{
-// 		if (g_emu_adj_lcd.flag_adj_qw_lcd[i] == 1)
-// 		{
-// 			lcd_state[i] = LCD_ADJUST_PCS_QW;
-// 		}
-// 	}
-// }
 
 int setStatusPw_Qw(void)
 {
@@ -598,12 +610,43 @@ int setStatusPw_Qw(void)
 	{
 		if (g_emu_adj_lcd.flag_adj_pw_lcd[i] == 1)
 		{
+			curPcsId[i] = 0;
+			curTaskId[i] = 0;
 			lcd_state[i] = LCD_ADJUST_PCS_PW;
 		}
 		else if (g_emu_adj_lcd.flag_adj_qw_lcd[i] == 1)
 		{
+			curPcsId[i] = 0;
+			curTaskId[i] = 0;
 			lcd_state[i] = LCD_ADJUST_PCS_QW;
+			printf("abc需要调节无功功率的LCDid=%d\n",i);
 		}
 	}
 	return 0;
+}
+
+int findCurPcsidForAdjQw(int id_thread)
+{
+    int i;
+	for(i=curPcsId[id_thread];i<pPara_Modtcp->pcsnum[id_thread];i++)
+	{
+           if(g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_qw[i]==1)
+		   {
+			  curPcsId[id_thread]=i;
+			  break;
+		   }
+		   else
+			    printf("LCD:%d PCSID:%d 无需调节无功功率 ...\n", id_thread,i);	
+		      
+	}
+	if(i==pPara_Modtcp->pcsnum[id_thread])
+	{
+		printf("按策略要求调节无功功率完成\n");
+		curTaskId[id_thread] = 0;
+		curPcsId[id_thread] = 0;
+		lcd_state[id_thread] = LCD_RUNNING;
+		return 0;
+	}
+	return 1;
+
 }

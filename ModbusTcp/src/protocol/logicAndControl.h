@@ -68,4 +68,7 @@ int findCurPcsForStop(int lcdid, int pcsid);
 int setStatusPw_Qw(void);
 
 int countDP_test(int lcdid, int pcsid, int *pQw);
+void printf_pcs_soc(void);
+int checkQw(int lcdid, int pcsid, unsigned short QW);
+int findCurPcsidForAdjQw(int id_thread);
 #endif

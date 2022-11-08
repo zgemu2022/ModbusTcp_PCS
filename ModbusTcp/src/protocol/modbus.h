@@ -31,6 +31,7 @@ typedef struct
 	char type; // 1 Master 2 Slave
 	unsigned char lcdnum_cfg;
 	unsigned char lcdnum_real;
+	unsigned char lcdnum_err;	
 	unsigned char pcsnum[MAX_PCS_NUM];
 	unsigned char devNo[MAX_PCS_NUM];
 	char server_ip[6][64];
@@ -103,9 +104,11 @@ enum LCD_WORK_STATE // LCD当前工作状态
 
 	LCD_AWAY_PARALLEL_EN = 16, //离转并切换使能
 	LCD_AWAY_PARALLEL_DN = 17, //离转并切换失能
-	LCD_ADJUST_PCS_PW = 29,
-	LCD_ADJUST_PCS_QW = 30,
+	LCD_ADJUST_PCS_PW = 29,//按策略要求调节有功功率
+	LCD_ADJUST_PCS_QW = 30,//按策略要求调节无功功率
 
+
+	LCD_DO_NOTHING = 0xfe, //什么都不做
 	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
 };
 // <<<<<<< HEAD
@@ -138,8 +141,6 @@ typedef struct
 	unsigned short soc_ave;
 	unsigned char flag_soc_bak;
 	unsigned int err_num;
-
-	unsigned char LcdStatus[MAX_LCD_NUM]; //当前LCD状态，整机运行前0 整机运行后 1
 	unsigned char OperatingMode;		  //当前工作模式，PQ=1 VSG=5
 	// unsigned char LcdOperatingMode[MAX_LCD_NUM]; //当前LCD工作模式，PQ=1 VSG=5
 	// unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
