@@ -88,7 +88,7 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PQ_STP_QWVAL:
 	{
-		printf("LCD:%d PCS:%d PQ 无功参数设置 ...\n", id_thread, curPcsId[id_thread]);
+		printf("LCD:%d PQ 无功参数设置  PCS:%d ...\n", id_thread, curPcsId[id_thread]);
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 
@@ -160,20 +160,12 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val;
 		if (g_emu_op_para.flag_start == 0)
 			g_emu_op_para.flag_start = 1;
-		printf("111LCD_PCS_START LCD_PCS_START curPcsId[id_thread]=%d\n", curPcsId[id_thread]);
-#ifndef ifDebug
-		findCurPcsForStart(id_thread, curPcsId[id_thread]);
-#endif
-		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
+		printf("111LCD_PCS_START LCD_PCS_START curPcsId[%d]=%d\n", id_thread, curPcsId[id_thread]);
+		if (findCurPcsForStart(id_thread, curPcsId[id_thread]) == 1)
 		{
-			curPcsId[id_thread] = 0;
-			curTaskId[id_thread] = 0;
-			lcd_state[id_thread] = LCD_RUNNING;
-		}
-		else
-		{
+
 			regaddr = pcs_on_off_set[curPcsId[id_thread]];
-			printf("LCD:%d 开机 ...\n", id_thread);
+			printf("LCD:%d 开机 ...regaddr=0x%x\n", id_thread, regaddr);
 			val = 0xff00;
 			ret = SetLcdFun06(id_thread, regaddr, val);
 		}
@@ -202,28 +194,33 @@ void RunAccordingtoStatus(int id_thread)
 		}
 	}
 	break;
-	case LCD_PCS_START_ONE:
-		if (g_emu_op_para.flag_start == 0)
-			g_emu_op_para.flag_start = 1;
-	case LCD_PCS_STOP_ONE:
+	case LCD_PCS_START_STOP_ONE:
 	{
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 		printf("PCS单机启动 LCD_PCS_START_ONE id_thread:%d , curPcsId[%d]:%d \n", id_thread, id_thread, curPcsId[id_thread]);
 
+		findCurPcsidForStart_Stop(id_thread);
+
 		regaddr = pcs_on_off_set[curPcsId[id_thread]];
-		// regaddr = 0x3000;
-		if (lcd_state[id_thread] == LCD_PCS_START_ONE)
+
+		if (g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] == 0x55)
 		{
+			if (g_emu_op_para.flag_start == 0)
+				g_emu_op_para.flag_start = 1;
 			printf("LCD:%d 开机 ...\n", id_thread);
 			val = 0xff00;
 		}
-		else
+		else if (g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] == 0xaa)
 		{
 			printf("LCD:%d 关机 ...\n", id_thread);
 			val = 0x00ff;
 		}
-
+		else
+		{
+			printf("启停数据出现错误！！！！\n");
+			return 1;
+		}
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
 	break;
@@ -271,27 +268,24 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	break;
 
-	case LCD_ADJUST_PCS_PW://按策略要求调节有功功率
+	case LCD_ADJUST_PCS_PW: //按策略要求调节有功功率
 	{
 		printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
 	}
 	break;
 
-	case LCD_ADJUST_PCS_QW://按策略要求调节无功功率
+	case LCD_ADJUST_PCS_QW: //按策略要求调节无功功率
 	{
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
-	    printf("LCD:%d 按策略要求调节无功功率 ...\n", id_thread);	
-		if(findCurPcsidForAdjQw(id_thread)==1)
+		printf("LCD:%d 按策略要求调节无功功率 ...\n", id_thread);
+		if (findCurPcsidForAdjQw(id_thread) == 1)
 		{
 			regaddr = pq_vsg_pcs_qw_set[curPcsId[id_thread]];
-			val = g_emu_adj_lcd.adj_pcs[curPcsId[id_thread]].val_qw;
-			 printf("LCD:%d PCSID:%d 按策略要求调节无功功率 ...\n", id_thread,curPcsId[id_thread]);	
+			val = g_emu_adj_lcd.adj_pcs[id_thread].val_qw[curPcsId[id_thread]] / 10;
+			printf("LCD:%d PCSID:%d 按策略要求调节无功功率 ...val=%d\n", id_thread, curPcsId[id_thread], val);
 			ret = SetLcdFun06(id_thread, regaddr, val);
 		}
-
-			
-		
 	}
 	break;
 
@@ -303,7 +297,6 @@ void RunAccordingtoStatus(int id_thread)
 	}
 	if (ret == 0)
 		wait_flag[id_thread] = 1;
-
 }
 
 void *Modbus_clientSend_thread(void *arg) // 25
@@ -320,7 +313,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 	key_t key = 0;
 
-
 	// unsigned char code_fun[] = {0x03, 0x06, 0x10};
 	// unsigned char errid_fun[] = {0x83, 0x86, 0x90};
 
@@ -329,11 +321,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 		usleep(10000);
 	}
 
-
-
 	g_comm_qmegid[id_thread] = os_create_msgqueue(&key, 1);
 	wait_flag[id_thread] = 0;
-    sleep(2);
+	sleep(2);
 	// printf("modbus_sockt_state[id_thread] == STATUS_ON\n") ;
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
@@ -423,12 +413,12 @@ void *Modbus_clientRecv_thread(void *arg) // 25
 	fd_set maxFd;
 	struct timeval tv;
 	int ret;
-	int i = 0;//, jj = 0;
+	int i = 0; //, jj = 0;
 
 	MyData recvbuf;
 	printf("LCD[%d] Modbus_clientRecv_thread is Starting!\n", id_thread);
 
-		//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
+	//	printf("network parameters  connecting to server IP=%s   port=%d\n", pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]); //
 	_SERVER_SOCKET server_sock;
 	server_sock.protocol = TCP;
 	server_sock.port = htons(pPara_Modtcp->server_port[id_thread]);
@@ -443,12 +433,12 @@ loop:
 		ret = _socket_client_init(&server_sock);
 		if (ret != 0)
 		{
-			   goto endconn;
+			goto endconn;
 		}
 		else
 			break;
 	}
-	printf("lcdid=%d 连接服务器成功！！！！\n",id_thread);
+	printf("lcdid=%d 连接服务器成功！！！！\n", id_thread);
 	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
 
 	pPara_Modtcp->lcdnum_real++;
@@ -457,9 +447,9 @@ loop:
 	//	init_emu_op_para(id_thread);
 	// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
-//	jj = 0; //未接收到数据累计标志，大于1000清零
+	//	jj = 0; //未接收到数据累计标志，大于1000清零
 	i = 0;
-    // while(1)
+	// while(1)
 	// {
 	// 	if(pPara_Modtcp->lcdnum_real==pPara_Modtcp->lcdnum_cfg)
 	// 	  break;
@@ -468,9 +458,9 @@ loop:
 	// 		break;
 	// 	sleep(1);
 	// }
-	while((pPara_Modtcp->lcdnum_err+pPara_Modtcp->lcdnum_real)<pPara_Modtcp->lcdnum_cfg)
+	while ((pPara_Modtcp->lcdnum_err + pPara_Modtcp->lcdnum_real) < pPara_Modtcp->lcdnum_cfg)
 	{
-				sleep(1);
+		sleep(1);
 	}
 	modbus_sockt_state[id_thread] = STATUS_ON;
 	while (1)
@@ -486,7 +476,7 @@ loop:
 		ret = select(fd + 1, &maxFd, NULL, NULL, &tv);
 		if (ret < 0)
 		{
-            
+
 			printf("网络有问题！！！！！！！！！！！！");
 			sleep(1);
 			break;
@@ -507,7 +497,7 @@ loop:
 		else
 		{
 
-			//jj = 0;
+			// jj = 0;
 
 			// printf("貌似收到数据！！！！！！！！！！！！");
 			if (FD_ISSET(fd, &maxFd))
@@ -541,7 +531,7 @@ loop:
 				else
 				{
 					i = 0;
-					printf("接收线程发送到发送线程成功！wait_flag[%d]=%d modbus_sockt_state[%d]=%d\r\n",id_thread, wait_flag[id_thread],id_thread, modbus_sockt_state[id_thread]);
+					printf("接收线程发送到发送线程成功！wait_flag[%d]=%d modbus_sockt_state[%d]=%d\r\n", id_thread, wait_flag[id_thread], id_thread, modbus_sockt_state[id_thread]);
 				}
 			}
 			else
@@ -553,12 +543,13 @@ loop:
 	}
 	modbus_sockt_state[id_thread] = STATUS_OFF;
 	pPara_Modtcp->lcdnum_real--;
-	//g_flag_RecvNeed_LCD &= ~(1 << id_thread);
+	// g_flag_RecvNeed_LCD &= ~(1 << id_thread);
 	printf("网络断开，重连！！！！");
 	goto loop;
-endconn: 	printf("lcdid=%d 连接服务器失败！！！！\n",id_thread);
-            pPara_Modtcp->lcdnum_err++;
-            return NULL;
+endconn:
+	printf("lcdid=%d 连接服务器失败！！！！\n", id_thread);
+	pPara_Modtcp->lcdnum_err++;
+	return NULL;
 }
 
 void CreateThreads(void)
@@ -587,8 +578,8 @@ void CreateThreads(void)
 		sleep(2);
 	}
 	cleanYcYxData();
-
+	initEmuParaData();
 	// bams_Init();
-    // initInterface61850();
+	// initInterface61850();
 	printf("MODBUS THTREAD CREATE success!\n");
 }

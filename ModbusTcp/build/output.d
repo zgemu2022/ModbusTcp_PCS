@@ -39,7 +39,8 @@
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/sys/sysmacros.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/arm-linux-gnueabihf/bits/pthreadtypes.h \
  /opt/gcc-linaro-arm-linux-gnueabihf-4.7-2013.03-20130313_linux/bin/../arm-linux-gnueabihf/libc/usr/include/./alloca.h \
- src/protocol/logicAndControl.h src/protocol/YX_Define.h
+ src/protocol/logicAndControl.h src/protocol/YX_Define.h \
+ src/protocol/YC_Define.h
 
 src/protocol/output.h:
 
@@ -128,3 +129,5 @@ src/protocol/modbus.h:
 src/protocol/logicAndControl.h:
 
 src/protocol/YX_Define.h:
+
+src/protocol/YC_Define.h:

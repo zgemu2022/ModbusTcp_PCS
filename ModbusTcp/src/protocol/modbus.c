@@ -341,55 +341,6 @@ int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val)
 	return 0;
 }
 
-#if 0
-int AnalysModbus(unsigned char *datain, unsigned int len, int id_client)
-{
-	PcsData pcs;
-	int index = 0;
-	int flag_comm_succ = 0;
-	unsigned short addr;
-	unsigned short crccode = 0;
-	unsigned short lendata;
-	pcs.errflag = 0;
-	pcs.dev_id = datain[index++];
-	pcs.code_fun = datain[index++];
-
-	switch (pcs.code_fun)
-	{
-	case 0x90:
-	case 0x83:
-	case 0x86:
-		pcs.errflag = datain[index++];
-		crccode = crc(datain, 3);
-		if (datain[index] == crccode / 256 && datain[index + 1] == crccode % 256)
-		{
-			pcs.code_fun -= 0x80;
-			flag_comm_succ = 1;
-		}
-		break;
-	case 0x03:
-		pcs.addr = datain[index] * 256 + datain[index + 1];
-		index += 2;
-		lendata = datain[index] * 256 + datain[index];
-		//	if(lendata+)
-
-		break;
-	default:
-		break;
-	}
-	if (flag_comm_succ == 1)
-	{
-		// if(msgsnd(g_comm_qmegid, &pcs, sizeof(PcsData), IPC_NOWAIT) != -1)
-		// {
-		// 	printf("接收到完整modbus-tcp协议包，通过队列发送给发送任务处理！！")
-		// }
-	}
-
-	// unsigned char *dataout
-	return 0;
-}
-#endif
-
 int AnalysModbus_fun03(int id_thread, unsigned short regAddr, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
 	int pcsid;
@@ -467,11 +418,11 @@ static void init_emu_op_para(void)
 	g_emu_op_para.OperatingMode = PQ;
 	g_emu_op_para.pq_mode_set = PQ_STP;
 	g_emu_op_para.vsg_mode_set = VSG_PQ_PP;
-	g_emu_op_para.pq_pw_total = 0;				   // 180 * total_pcsnum;  // 180.0kW*28
+	g_emu_op_para.pq_pw_total = 8*total_pcsnum;				   // 180 * total_pcsnum;  // 180.0kW*28
 	g_emu_op_para.pq_cur_total = 0;				   // 140 * 28; // 140.0A*28
-	g_emu_op_para.vsg_pw_total = 0;				   // 50 * 28;  // 180.0kW*28
-	g_emu_op_para.pq_qw_total = 5 * total_pcsnum;  // pq模式下无功
-	g_emu_op_para.vsg_qw_total = 5 * total_pcsnum; // -180~180 vsg模式下无功kVar
+	g_emu_op_para.vsg_pw_total = 8*total_pcsnum;				   // 50 * 28;  // 180.0kW*28
+	g_emu_op_para.pq_qw_total = 7 * total_pcsnum;  // pq模式下无功
+	g_emu_op_para.vsg_qw_total = 7 * total_pcsnum; // -180~180 vsg模式下无功kVar
 
 	// PCS
 	// for (i = 0; i < MAX_PCS_NUM; i++)
@@ -488,8 +439,8 @@ static void init_emu_op_para(void)
 	g_emu_op_para.err_num = 0;
 	g_emu_op_para.num_pcs_bms[0] = 0;
 	g_emu_op_para.num_pcs_bms[1] = 0;
-	g_emu_op_para.soc_ave=0;
-	g_emu_op_para.flag_soc_bak=0;
+	g_emu_op_para.soc_ave = 0;
+	g_emu_op_para.flag_soc_bak = 0;
 	//	g_flag_RecvNeed_LCD = countRecvLcdFlag();
 }
 
@@ -570,7 +521,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
 #endif
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
-	
+
 			if (flag_get_pcsnum == g_flag_RecvNeed_LCD)
 			{
 				int i;
@@ -582,22 +533,18 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 					{
 						total_pcsnum += pPara_Modtcp->pcsnum[i];
 						g_send_data[i].flag_waiting = 0;
-					    lcd_state[i] = LCD_SET_MODE;	
+						lcd_state[i] = LCD_SET_MODE;
 					}
-						
-
 				}
-		printf("EMU PCS总数量=%d\n", total_pcsnum);
-				init_emu_op_para();	
+				printf("EMU PCS总数量=%d\n", total_pcsnum);
+				init_emu_op_para();
 
-                flag_get_pcsnum=0;
+				flag_get_pcsnum = 0;
 
 				countRecvPcsFlagAry(); // countRecvPcsFlag(); //
 
 				bams_Init();
-			//	initInterface61850();
-
-
+				initInterface61850();
 
 				// Plc_Init();
 			}
@@ -731,6 +678,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		if (regAddr == pq_vsg_pcs_qw_set[curPcsId[id_thread]]) // VSG模式下无功功率数值设置
 		{
 			curTaskId[id_thread] = 0;
+
 			curPcsId[id_thread]++;
 			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
@@ -747,26 +695,34 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //启动或停止
 		{
 			curTaskId[id_thread] = 0;
+			g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] = 0;
 			curPcsId[id_thread]++;
 			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
+				g_emu_action_lcd.flag_start_stop_lcd[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
+				printf("cpp启动或停止LCD[%d]成功\n", id_thread);
 			}
 		}
 		else
 			printf("注意：整机启动或停止程序出错！！！！\n");
 	}
-	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START_ONE || lcd_state[id_thread] == LCD_PCS_STOP_ONE))
+	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START_STOP_ONE))
 	{
 		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) //单pcs启动或停止
 		{
 
 			curTaskId[id_thread] = 0;
-			curPcsId[id_thread] = 0;
-			lcd_state[id_thread] = LCD_RUNNING;
-
+			g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] = 0;
+			curPcsId[id_thread]++;
+			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
+			{
+				g_emu_action_lcd.flag_start_stop_lcd[id_thread] = 0;
+				curPcsId[id_thread] = 0;
+				lcd_state[id_thread] = LCD_RUNNING;
+			}
 			printf("pcs单机启动或停止成功！！！\n");
 		}
 		else
@@ -781,10 +737,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			curPcsId[id_thread] = 0;
 			lcd_state[id_thread] = LCD_RUNNING;
 
-			printf("lcd:%d 并转离切换成功！！！\n",id_thread);
+			printf("lcd:%d 并转离切换成功！！！\n", id_thread);
 		}
 		else
-			printf("注意：lcd:%d 并转离切换 程序出错！！！！\n",id_thread);
+			printf("注意：lcd:%d 并转离切换 程序出错！！！！\n", id_thread);
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_AWAY_PARALLEL_EN || lcd_state[id_thread] == LCD_AWAY_PARALLEL_DN))
 	{
@@ -797,30 +753,33 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			printf("lcd:%d 离转并切换成功！！！\n", id_thread);
 		}
 		else
-			printf("注意：lcd:%d 离转并切换 程序出错！！！！\n",id_thread);
+			printf("注意：lcd:%d 离转并切换 程序出错！！！！\n", id_thread);
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_ADJUST_PCS_QW))
 	{
-		if (regAddr ==  pq_vsg_pcs_qw_set[curPcsId[id_thread]]) //按策略要求调节无功功率
+		if (regAddr == pq_vsg_pcs_qw_set[curPcsId[id_thread]]) //按策略要求调节无功功率
 		{
 			curTaskId[id_thread] = 0;
+			g_emu_adj_lcd.adj_pcs[id_thread].val_qw[curPcsId[id_thread]] = 0;
+			g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_qw[curPcsId[id_thread]] = 0;
 			curPcsId[id_thread]++;
 			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
+				g_emu_adj_lcd.flag_adj_qw_lcd[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
 			}
-			printf("lcdid=%d pcsid=%d 按策略要求调节无功功率！！！\n", id_thread,curPcsId[id_thread]);
+			printf("lcdid=%d pcsid=%d 按策略要求调节无功功率！！！\n", id_thread, curPcsId[id_thread]);
 		}
 		else
-		    printf("注意：lcdid=%d pcsid=%d 按策略要求调节无功功率程序出错！！！\n", id_thread,curPcsId[id_thread]);
+			printf("注意：lcdid=%d pcsid=%d 按策略要求调节无功功率程序出错！！！\n", id_thread, curPcsId[id_thread]);
 	}
 	return 0;
 }
 static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned char *framebuf)
 {
-	static int status[] = {_YX_,_YX_,_YX_,_YX_,_YX_,_YX_};
+	static int status[] = {_YX_, _YX_, _YX_, _YX_, _YX_, _YX_};
 	unsigned short regStart;
 	int pcsid = *p_pcsid;
 	int pos = 0;
@@ -877,7 +836,7 @@ static int createFun03Frame(int id_thread, int *p_pcsid, int *lenframe, unsigned
 		status[id_thread] = _YX_;
 		pcsid++;
 
-		if (pcsid >= (Para_Modtcp.pcsnum[id_thread]+1))
+		if (pcsid >= (Para_Modtcp.pcsnum[id_thread] + 1))
 			pcsid = 0;
 	}
 

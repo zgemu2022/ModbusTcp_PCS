@@ -93,11 +93,10 @@ enum LCD_WORK_STATE // LCD当前工作状态
 	LCD_VSG_PW_VAL = 8,	   //整机设置为VSG后,有功值
 	LCD_VSG_QW_VAL = 9,	   //整机设置为VSG后，无功值
 
-	LCD_PCS_START = 10, //启动本LCD下的PCS
-	LCD_PCS_STOP = 11,	//停止本LCD下的PCS
+	LCD_PCS_START = 10, //启动本LCD下所有的PCS
+	LCD_PCS_STOP = 11,	//停止本LCD下所有的PCS
 
-	LCD_PCS_START_ONE = 12, //启动本LCD下一个PCS
-	LCD_PCS_STOP_ONE = 13,	//停止本LCD下一个PCS
+	LCD_PCS_START_STOP_ONE = 12, //启动本LCD下一个PCS
 
 	LCD_PARALLEL_AWAY_EN = 14, //并转离切换使能
 	LCD_PARALLEL_AWAY_DN = 15, //并转离切换失能

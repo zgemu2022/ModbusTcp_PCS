@@ -42,15 +42,43 @@ typedef struct
 } EMU_ADJ_PCS;
 typedef struct
 {
-	unsigned char flag_adj_pw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节有功功率的pcs
-	unsigned char flag_adj_qw_lcd[MAX_LCD_NUM]; // lcd里面是否包含需要调节无功功率的pcs
+	unsigned char flag_adj_pw_lcd_cfg[MAX_LCD_NUM]; // Lcd收到有功功率调节要求
+	unsigned char flag_adj_qw_lcd_cfg[MAX_LCD_NUM]; // Lcd收到无功功率调节要求
+	unsigned char flag_adj_pw_lcd[MAX_LCD_NUM];		// lcd里面是否包含需要调节有功功率的pcs
+	unsigned char flag_adj_qw_lcd[MAX_LCD_NUM];		// lcd里面是否包含需要调节无功功率的pcs
 	EMU_ADJ_PCS adj_pcs[MAX_LCD_NUM];
-} EMU_ADJ_LCD; //LCD装置调节有功无功
+} EMU_ADJ_LCD; // LCD装置调节有功无功
+typedef struct
+{
+	unsigned char flag_start_stop_pcs[MAX_PCS_NUM]; // pcs启动或停止 0x55：启动  0xAA：停止 0：不变；
+} EMU_ACTION_PCS;
+
+typedef struct
+{
+	unsigned char flag_start_stop_lcd[MAX_LCD_NUM]; // lcd 0：本lcd中没有需要启停动作的设备 1 lcd中的所有pcs启动 2 lcd中所有pcs停止
+													// 3 lcd中的pcs各自判断启停
+	EMU_ACTION_PCS action_pcs[MAX_LCD_NUM];
+} EMU_ACTION_LCD; // LCD动作定义
+
+typedef struct
+{
+	unsigned char flag_start_stop[MAX_PCS_NUM]; // pcs当前状态 0停止 1启动
+	unsigned char flag_err[MAX_PCS_NUM];		// pcs当前故障 0无故障 1故障
+} EMU_STATUS_PCS;								// pcs当前状态
+
+typedef struct
+{
+	// unsigned char flag_start_stop_lcd[MAX_LCD_NUM]; // lcd 0：本lcd中没有需要启停动作的设备
+	EMU_STATUS_PCS status_pcs[MAX_LCD_NUM];
+} EMU_STATUS_LCD; // LCD当前状态
+
 extern int total_pcsnum;
 extern int g_flag_RecvNeed;
 extern int g_flag_RecvNeed_LCD;
 extern unsigned char flag_RecvNeed_PCS[];
 extern EMU_ADJ_LCD g_emu_adj_lcd;
+extern EMU_STATUS_LCD g_emu_status_lcd;
+extern EMU_ACTION_LCD g_emu_action_lcd;
 // int (YK_PARA *pYkPara);
 int handleYkFromEms(YK_PARA *pYkPara);
 int handlePcsYkFromEms(YK_PARA *pYkPara);
@@ -65,10 +93,17 @@ int countRecvPcsFlagAry(void);
 
 int findCurPcsForStart(int lcdid, int pcsid);
 int findCurPcsForStop(int lcdid, int pcsid);
-int setStatusPw_Qw(void);
+int setStatusPw(int lcdid);
+int setStatusQw(int lcdid);
 
-int countDP_test(int lcdid, int pcsid, int *pQw);
+// int countDP_test(int lcdid, int pcsid, int *pQw);
 void printf_pcs_soc(void);
-int checkQw(int lcdid, int pcsid, unsigned short QW);
+// int checkQw(int lcdid, int pcsid, unsigned short QW);
 int findCurPcsidForAdjQw(int id_thread);
+void initEmuParaData(void); //初始化EMU参数和数据
+int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc);
+int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc);
+// int setStatusStart_Stop(void);
+int setStatusStart_Stop(int lcdid);
+int findCurPcsidForStart_Stop(int id_thread);
 #endif

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "logicAndControl.h"
 #include "YX_Define.h"
+#include "YC_Define.h"
 //所有的LCD整机信息数据数据标识1都用2来表示，#
 //数据标识2编号从1-6，
 //每个LCD下模块信息，数据标识1都3来表示，
@@ -75,9 +76,10 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 	int id = 0;
 	int i;
-	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
-	static int flag_recv_lcd=0;
-	int qw;
+	static unsigned char flag_recv_pcs[] = {0, 0, 0, 0, 0, 0};
+	static int flag_recv_lcd = 0;
+	int pw, qw, aw;
+	unsigned short temp_pw, temp_qw, temp_aw;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
@@ -98,36 +100,90 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		outputdata(_YC_, id);
 	}
 
-	flag_recv_pcs[id_thread] |= (1 << (pcsid-1));
+	myprintbuf(len, (unsigned char *)g_YcData[id - 1].pcs_data);
+
+	temp_pw = g_YcData[id - 1].pcs_data[Active_power];
+	pw = (temp_pw % 256) * 256 + temp_pw / 256;
+	temp_qw = g_YcData[id - 1].pcs_data[Reactive_power];
+	qw = (temp_qw % 256) * 256 + temp_qw / 256;
+
+	temp_aw = g_YcData[id - 1].pcs_data[Apparent_power];
+	aw = (temp_aw % 256) * 256 + temp_aw / 256;
+	printf("遥测得到的有功功率 lcdid=%d pcsid=%d pw=%d %x\n", id_thread, pcsid, pw, g_YcData[id - 1].pcs_data[Active_power]);
+	printf("遥测得到的无功功率 lcdid=%d pcsid=%d qw=%d %x\n", id_thread, pcsid, qw, g_YcData[id - 1].pcs_data[Reactive_power]);
+	printf("遥测得到的视在功率 lcdid=%d pcsid=%d aw=%d %x \n", id_thread, pcsid, aw, g_YcData[id - 1].pcs_data[Apparent_power]);
+	// checkQw(id_thread,pcsid,qw);
+	if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
+	{
+
+		if (g_emu_op_para.flag_soc_bak == 1)
+		{
+			countPwAdj(id_thread, pcsid, pw, 1);
+			countQwAdj(id_thread, pcsid, qw, 1);
+		}
+		else
+		{
+			countPwAdj(id_thread, pcsid, pw, 0);
+			countQwAdj(id_thread, pcsid, qw, 0);
+		}
+	}
+
+	flag_recv_pcs[id_thread] |= (1 << (pcsid - 1));
 
 	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
 	{
-          flag_recv_lcd |= (1<<id_thread);
-	}
 
-	if(g_emu_op_para.flag_soc_bak==1)
-	{
-		if(g_emu_op_para.OperatingMode == PQ)
+		if (setStatusStart_Stop(id_thread) == 0)
 		{
-			qw=g_emu_op_para.pq_qw_total;
+			if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
+			{
+				if (setStatusPw(id_thread) == 0)
+				{
+					setStatusQw(id_thread);
+					g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
+				}
+				else
+					g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+			}
+			else if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 0 && g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] == 1)
+			{
+				if (g_emu_op_para.OperatingMode == PQ)
+				{
+					lcd_state[id_thread] = LCD_PQ_STP_PWVAL;
+				}
+				else if (g_emu_op_para.OperatingMode == VSG)
+				{
+					lcd_state[id_thread] = LCD_VSG_PW_VAL;
+				}
+				g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+			}
+			else if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 0 && g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] == 1)
+			{
 
+				if (g_emu_op_para.OperatingMode == PQ)
+				{
+					lcd_state[id_thread] = LCD_PQ_STP_QWVAL;
+				}
+				else if (g_emu_op_para.OperatingMode == VSG)
+				{
+					lcd_state[id_thread] = LCD_VSG_QW_VAL;
+				}
+				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
+			}
 		}
-		else if(g_emu_op_para.OperatingMode == VSG)
-		{
-			qw=g_emu_op_para.vsg_qw_total;
-			checkQw(id_thread,pcsid,&qw);
-		}
-		checkQw(id_thread,pcsid,&qw);
 
+		flag_recv_lcd |= (1 << id_thread);
+		flag_recv_pcs[id_thread] = 0;
 	}
-	printf("YC pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ",pcsid,id_thread,flag_recv_pcs[id_thread],id_thread,flag_RecvNeed_PCS[id_thread],flag_recv_lcd,g_flag_RecvNeed_LCD);
+	printf("YC pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ", pcsid, id_thread, flag_recv_pcs[id_thread], id_thread, flag_RecvNeed_PCS[id_thread], flag_recv_lcd, g_flag_RecvNeed_LCD);
+
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
-		printf("888888888888 pcsid=%d\n",pcsid);
-		for(i=0;i<MAX_PCS_NUM;i++)
-			flag_recv_pcs[i]=0;
+		printf("888888888888 pcsid=%d\n", pcsid);
+		//	for (i = 0; i < MAX_PCS_NUM; i++)
 		flag_recv_lcd = 0;
-		setStatusPw_Qw();
+		// if (setStatusStart_Stop() == 0)
+		// 	setStatusPw_Qw();
 	}
 	return 0;
 }
@@ -137,7 +193,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 
 	int id = 0; //, id_z;
 	int i;
-	static unsigned char flag_recv_pcs[] = {0,0,0,0,0,0};
+	static unsigned char flag_recv_pcs[] = {0, 0, 0, 0, 0, 0};
 	static int flag_recv_lcd;
 
 	unsigned short temp;
@@ -167,41 +223,53 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		temp = g_YxData[id - 1].pcs_data[u16_InvRunState1];
 
 		printf("lcdid=%d pcsid=%d g_YxData[id - 1].pcs_data[u16_InvRunState1]=%x \n", id_thread, pcsid, temp);
-		if ((temp && (1 << bPcsStoped)) == 0 && (temp && (1 << bPcsRunning)) != 0) //当前pcs已经启动
+		if ((temp & (1 << bPcsStoped)) == 0 && (temp & (1 << bPcsRunning)) != 0) //当前pcs已经启动
 		{
 			if (g_emu_op_para.flag_start == 0)
 				g_emu_op_para.flag_start = 1;
+			printf("xyz当前pcs已经启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] = 1;
 		}
+		else
+		{
+
+			printf("zyx当前pcs没有启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] = 0;
+		}
+
 		if ((temp & (1 << bFaultStatus)) != 0)
 		{
 			printf("lcdid=%d pcsid=%d 有故障 temp=%x\n", id_thread, pcsid, temp);
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid] = 1;
 		}
+		else
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid] = 0;
+
 		outputdata(_YX_, id);
 	}
-	flag_recv_pcs[id_thread] |= (1 << (pcsid-1));
+	flag_recv_pcs[id_thread] |= (1 << (pcsid - 1));
 
 	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
 	{
-          flag_recv_lcd |= (1<<id_thread);
+		flag_recv_lcd |= (1 << id_thread);
 	}
 
-	printf("pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ",pcsid,id_thread,flag_recv_pcs[id_thread],id_thread,flag_RecvNeed_PCS[id_thread],flag_recv_lcd,g_flag_RecvNeed_LCD);
+	printf("pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ", pcsid, id_thread, flag_recv_pcs[id_thread], id_thread, flag_RecvNeed_PCS[id_thread], flag_recv_lcd, g_flag_RecvNeed_LCD);
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
 		int err_num = 0;
-		
+
 		printf("99999999999999999999\n");
 		for (i = 0; i < total_pcsnum; i++)
 		{
 			if ((g_YxData[id - 1].pcs_data[u16_InvRunState1] & (1 << bFaultStatus)) != 0)
 			{
 				err_num++;
-				
 			}
 		}
 		printf("lcdid=%d pcsid=%d 有故障 目前故障总数=%d pcs总数=%d \n", id_thread, pcsid, err_num, total_pcsnum);
-		for(i=0;i<MAX_PCS_NUM;i++)
-			flag_recv_pcs[i]=0;
+		for (i = 0; i < MAX_PCS_NUM; i++)
+			flag_recv_pcs[i] = 0;
 		flag_recv_lcd = 0;
 	}
 	return 0;
@@ -243,8 +311,6 @@ void cleanYcYxData(void)
 
 	memset((unsigned char *)&g_ZjyxData, 0x00, sizeof(LCD_YC_YX_DATA));
 	memset((unsigned char *)&g_ZjycData, 0x00, sizeof(LCD_YC_YX_DATA));
-
-	memset((unsigned char *)&g_emu_adj_lcd, 0, sizeof(EMU_ADJ_LCD));
 }
 
 PARA_61850 para_61850;
