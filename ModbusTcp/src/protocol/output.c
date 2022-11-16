@@ -115,7 +115,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	// checkQw(id_thread,pcsid,qw);
 	if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
 	{
-
+          
 		if (g_emu_op_para.flag_soc_bak == 1)
 		{
 			countPwAdj(id_thread, pcsid, pw, 1);
@@ -175,7 +175,6 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		flag_recv_lcd |= (1 << id_thread);
 		flag_recv_pcs[id_thread] = 0;
 	}
-	printf("YC pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ", pcsid, id_thread, flag_recv_pcs[id_thread], id_thread, flag_RecvNeed_PCS[id_thread], flag_recv_lcd, g_flag_RecvNeed_LCD);
 
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{

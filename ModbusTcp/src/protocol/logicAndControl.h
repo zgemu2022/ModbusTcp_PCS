@@ -100,10 +100,12 @@ int setStatusQw(int lcdid);
 void printf_pcs_soc(void);
 // int checkQw(int lcdid, int pcsid, unsigned short QW);
 int findCurPcsidForAdjQw(int id_thread);
+int findCurPcsidForAdjPw(int id_thread);
 void initEmuParaData(void); //初始化EMU参数和数据
 int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc);
 int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc);
 // int setStatusStart_Stop(void);
 int setStatusStart_Stop(int lcdid);
 int findCurPcsidForStart_Stop(int id_thread);
+
 #endif

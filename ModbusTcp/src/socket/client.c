@@ -176,7 +176,7 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
 		unsigned short val;
 #ifndef ifDebug
-		findCurPcsForStop(id_thread, curPcsId[id_thread]);
+//		findCurPcsForStop(id_thread, curPcsId[id_thread]);
 #endif
 		if (curPcsId[id_thread] >= pPara_Modtcp->pcsnum[id_thread])
 		{
@@ -270,7 +270,20 @@ void RunAccordingtoStatus(int id_thread)
 
 	case LCD_ADJUST_PCS_PW: //按策略要求调节有功功率
 	{
+		unsigned short regaddr; 
+		unsigned short val;
 		printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
+		if (findCurPcsidForAdjPw(id_thread) == 1)
+		{
+			if(g_emu_op_para.OperatingMode==PQ)
+			   regaddr = pqpcs_pw_set[curPcsId[id_thread]];
+			else if(g_emu_op_para.OperatingMode==VSG)
+			   regaddr = vsgpcs_pw_set[curPcsId[id_thread]];
+			val = g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] / 10;
+			printf("LCD:%d PCSID:%d 按策略要求调节有功功率 ...val=%d\n", id_thread, curPcsId[id_thread], val);
+			ret = SetLcdFun06(id_thread, regaddr, val);			
+		}
+
 	}
 	break;
 

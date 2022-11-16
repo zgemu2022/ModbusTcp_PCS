@@ -134,7 +134,7 @@ void stopAllPcs(void)
 			g_emu_action_lcd.flag_start_stop_lcd[i] = 2;
 		}
 	}
-	pbackBmsFun(_BMS_YK_, (void *)flag);
+//	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
 int handleYkFromEms(YK_PARA *pYkPara)
@@ -160,6 +160,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		float tem;
 		tem = *(float *)pYkPara->data;
 		printf("············有功功率：%f", (float)tem);
+
 		if (g_emu_op_para.OperatingMode == PQ)
 		{
 			g_emu_op_para.pq_pw_total_last = g_emu_op_para.pq_pw_total;
@@ -200,6 +201,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 			}
 			else
 			{
+				printf("收到有功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n",i,tem);
 				g_emu_adj_lcd.flag_adj_pw_lcd_cfg[i] = 1; // Lcd收到有功功率调节要求
 			}
 		}
@@ -251,6 +253,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 			}
 			else
 			{
+				printf("收到无功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n",i,tem);
 				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[i] = 1; // Lcd收到无功功率调节要求
 			}
 		}
@@ -553,51 +556,7 @@ void printf_pcs_soc(void)
 	}
 	printf("\n");
 }
-/*int countDP_test(int lcdid, int pcsid, int *pQw)
-{
-	unsigned short soc_ave = g_emu_op_para.soc_ave;
-	 int id=0,id_bms=0;
-	unsigned short soc = 0;
-	short dt_soc = 0;
-	int qw1 = *pQw;
-	int qw2 = *pQw;
-	int dtqw;
-	//int temp;
-	int i;
-	for (i = 0; i < lcdid; i++)
-	{
-		id += pPara_Modtcp->pcsnum[i];
-	}
-	id += (pcsid-1);
 
-	printf_pcs_soc();
-	if(id>=g_emu_op_para.num_pcs_bms[0])
-	{
-		id-=g_emu_op_para.num_pcs_bms[0];
-		id_bms=1;
-	}
-	else
-		id_bms=0;
-	soc=bmsdata_bak[id_bms][id].soc;
-
-	dt_soc=soc_ave-soc;
-	printf("lcdid=%d pcsid=%d id=%d soc_ave=%d soc=%d dt_soc=%d \n",lcdid,pcsid,id,soc_ave,soc,dt_soc);
-
-	qw1*=(100000+dt_soc*pPara_Modtcp->balance_rate);
-	qw1/=100000;
-
-	printf("功率调节结果如下 qw1=%d qw2=%d\n",qw1,qw2);
-
-	dtqw = qw1 - qw2;
-
-	if (dtqw > 10 || dtqw < -10)
-	{
-	   *pQw=qw1;
-	   return 1;
-	}
-
-	return 0;
-}*/
 int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 {
 	int i;
@@ -624,7 +583,7 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 				goto settingAdjPw;
 			}
 		}
-		pw = (g_emu_op_para.pq_qw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
 	}
 	else if (g_emu_op_para.OperatingMode == VSG)
 	{
@@ -953,7 +912,30 @@ int findCurPcsidForStart_Stop(int id_thread)
 	}
 	return 1;
 }
-
+int findCurPcsidForAdjPw(int id_thread)
+{
+	int i;
+	for (i = curPcsId[id_thread]; i < pPara_Modtcp->pcsnum[id_thread]; i++)
+	{
+		if (g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_pw[i] == 1)
+		{
+			curPcsId[id_thread] = i;
+			break;
+		}
+		else
+			printf("LCD:%d PCSID:%d 无需调节有功功率 ...\n", id_thread, i);
+	}
+	if (i == pPara_Modtcp->pcsnum[id_thread])
+	{
+		printf("按策略要求调节有功功率完成\n");
+		curTaskId[id_thread] = 0;
+		curPcsId[id_thread] = 0;
+		g_emu_adj_lcd.flag_adj_pw_lcd[id_thread] = 0;
+		lcd_state[id_thread] = LCD_RUNNING;
+		return 0;
+	}
+	return 1;
+}
 int findCurPcsidForAdjQw(int id_thread)
 {
 	int i;
