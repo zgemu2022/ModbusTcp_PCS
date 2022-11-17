@@ -418,9 +418,9 @@ static void init_emu_op_para(void)
 	g_emu_op_para.OperatingMode = PQ;
 	g_emu_op_para.pq_mode_set = PQ_STP;
 	g_emu_op_para.vsg_mode_set = VSG_PQ_PP;
-	g_emu_op_para.pq_pw_total = 9*total_pcsnum;				   // 180 * total_pcsnum;  // 180.0kW*28
+	g_emu_op_para.pq_pw_total = 9 * total_pcsnum;  // 180 * total_pcsnum;  // 180.0kW*28
 	g_emu_op_para.pq_cur_total = 0;				   // 140 * 28; // 140.0A*28
-	g_emu_op_para.vsg_pw_total = 9*total_pcsnum;				   // 50 * 28;  // 180.0kW*28
+	g_emu_op_para.vsg_pw_total = 9 * total_pcsnum; // 50 * 28;  // 180.0kW*28
 	g_emu_op_para.pq_qw_total = 7 * total_pcsnum;  // pq模式下无功
 	g_emu_op_para.vsg_qw_total = 7 * total_pcsnum; // -180~180 vsg模式下无功kVar
 
@@ -619,7 +619,13 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
-				lcd_state[id_thread] = LCD_PQ_STP_QWVAL; // 切换状态为PQ恒功率模式下无功参数设置
+				if (g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] == 1)
+				{
+					g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+					lcd_state[id_thread] = LCD_RUNNING; //
+				}
+				else
+					lcd_state[id_thread] = LCD_PQ_STP_QWVAL; // 切换状态为PQ恒功率模式下无功参数设置
 			}
 		}
 		else
@@ -635,6 +641,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
+				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
 			}
 		}
@@ -667,7 +674,13 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
 			{
 				curPcsId[id_thread] = 0;
-				lcd_state[id_thread] = LCD_VSG_QW_VAL;
+				if (g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] == 1)
+				{
+					g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+					lcd_state[id_thread] = LCD_RUNNING;
+				}
+				else
+					lcd_state[id_thread] = LCD_VSG_QW_VAL;
 			}
 		}
 		else
@@ -684,6 +697,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 			{
 				curTaskId[id_thread] = 0;
 				curPcsId[id_thread] = 0;
+				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
 				lcd_state[id_thread] = LCD_RUNNING;
 			}
 		}

@@ -155,7 +155,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 				{
 					lcd_state[id_thread] = LCD_VSG_PW_VAL;
 				}
-				g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+				//g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
 			}
 			else if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 0 && g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] == 1)
 			{
@@ -168,7 +168,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 				{
 					lcd_state[id_thread] = LCD_VSG_QW_VAL;
 				}
-				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
+				//g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
 			}
 		}
 
