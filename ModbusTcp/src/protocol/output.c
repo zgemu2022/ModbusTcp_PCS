@@ -115,7 +115,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	// checkQw(id_thread,pcsid,qw);
 	if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
 	{
-          
+
 		if (g_emu_op_para.flag_soc_bak == 1)
 		{
 			countPwAdj(id_thread, pcsid, pw, 1);
@@ -155,7 +155,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 				{
 					lcd_state[id_thread] = LCD_VSG_PW_VAL;
 				}
-				//g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
+				// g_emu_adj_lcd.flag_adj_pw_lcd_cfg[id_thread] = 0;
 			}
 			else if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 0 && g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] == 1)
 			{
@@ -168,7 +168,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 				{
 					lcd_state[id_thread] = LCD_VSG_QW_VAL;
 				}
-				//g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
+				// g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
 			}
 		}
 
@@ -227,22 +227,24 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 			if (g_emu_op_para.flag_start == 0)
 				g_emu_op_para.flag_start = 1;
 			printf("xyz当前pcs已经启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
-			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid-1] = 1;
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid - 1] = 1;
 		}
-		else if((temp & (1 << bPcsStoped)) != 0 && (temp & (1 << bPcsRunning)) == 0)
+		else if ((temp & (1 << bPcsStoped)) != 0 && (temp & (1 << bPcsRunning)) == 0)
 		{
 
 			printf("zyx当前pcs没有启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
-			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid-1] = 0;
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid - 1] = 0;
 		}
 
 		if ((temp & (1 << bFaultStatus)) != 0)
 		{
 			printf("lcdid=%d pcsid=%d 有故障 temp=%x\n", id_thread, pcsid, temp);
-			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid-1] = 1;
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid - 1] = 1;
 		}
 		else
-			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid-1] = 0;
+		{
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid - 1] = 0;
+		}
 
 		outputdata(_YX_, id);
 	}

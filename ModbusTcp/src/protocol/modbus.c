@@ -546,7 +546,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				bams_Init();
 				initInterface61850();
 
-				// Plc_Init();
+				 Plc_Init();
 			}
 		}
 		else
