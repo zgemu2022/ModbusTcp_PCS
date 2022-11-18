@@ -160,10 +160,10 @@ void RunAccordingtoStatus(int id_thread)
 		unsigned short val;
 		if (g_emu_op_para.flag_start == 0)
 			g_emu_op_para.flag_start = 1;
-		printf("111LCD_PCS_START LCD_PCS_START curPcsId[%d]=%d\n", id_thread, curPcsId[id_thread]);
+		printf("000 LCD_PCS_START LCD_PCS_START curPcsId[%d]=%d\n", id_thread, curPcsId[id_thread]);
 		if (findCurPcsForStart(id_thread, curPcsId[id_thread]) == 1)
 		{
-
+		    printf("111 LCD_PCS_START LCD_PCS_START curPcsId[%d]=%d\n", id_thread, curPcsId[id_thread]);
 			regaddr = pcs_on_off_set[curPcsId[id_thread]];
 			printf("LCD:%d 开机 ...regaddr=0x%x\n", id_thread, regaddr);
 			val = 0xff00;

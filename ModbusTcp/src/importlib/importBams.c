@@ -110,7 +110,9 @@ int recvfromBams(unsigned char pcsid_bms, unsigned char type, void *pdata)
 			g_emu_op_para.num_pcs_bms[1] = num_pcs2;
 			memcpy((unsigned char*)bmsdata_bak,(unsigned char*)bmsdata_cur,sizeof(BmsData_Newest)*36);
             g_emu_op_para.flag_soc_bak=1;
-			printf("g_emu_op_para.soc_ave=%d num_pcs_bms1=%d num_pcs_bms2=%d\n", g_emu_op_para.soc_ave, g_emu_op_para.num_pcs_bms[0], g_emu_op_para.num_pcs_bms[1]);
+			printf("g_emu_op_para.soc_ave=%d  num_pcs_bms1=%d  num_pcs_bms2=%d\n", g_emu_op_para.soc_ave, g_emu_op_para.num_pcs_bms[0], g_emu_op_para.num_pcs_bms[1]);
+			
+			printf("emu中每个pcs的soc打印:\n");
 			printf_pcs_soc();
 			
 			flag_recv_bms[0] = 0;

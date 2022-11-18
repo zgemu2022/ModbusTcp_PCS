@@ -457,13 +457,15 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 int findCurPcsForStart(int lcdid, int pcsid)
 {
 	int i;
-	printf("findCurPcsForStart lcdid=%d, pcsid=%d\n", lcdid, pcsid);
+
 	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
 	{
 		if (g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid] == 0)
 		{
 			break;
 		}
+		else
+		  	printf("lcdid=%d, pcsid=%d 已经启动\n", lcdid, pcsid); 
 	}
 	if (i == pPara_Modtcp->pcsnum[lcdid])
 	{
