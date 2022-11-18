@@ -449,7 +449,7 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 
 	// }
 
-	pbackBmsFun(_BMS_YK_, (void *)flag);
+	// pbackBmsFun(_BMS_YK_, (void *)flag);
 
 	return 0;
 }

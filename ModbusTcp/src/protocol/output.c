@@ -227,22 +227,22 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 			if (g_emu_op_para.flag_start == 0)
 				g_emu_op_para.flag_start = 1;
 			printf("xyz当前pcs已经启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
-			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] = 1;
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid-1] = 1;
 		}
 		else
 		{
 
 			printf("zyx当前pcs没有启动 lcd[%d] pcsid[%d]\n", id_thread, pcsid);
-			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] = 0;
+			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid=1] = 0;
 		}
 
 		if ((temp & (1 << bFaultStatus)) != 0)
 		{
 			printf("lcdid=%d pcsid=%d 有故障 temp=%x\n", id_thread, pcsid, temp);
-			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid] = 1;
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid=1] = 1;
 		}
 		else
-			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid] = 0;
+			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid=1] = 0;
 
 		outputdata(_YX_, id);
 	}
