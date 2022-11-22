@@ -87,8 +87,8 @@ unsigned int countRecvPcsFlag(void);
 int handleYxFromEms(int item, unsigned char data);
 // int (int item, unsigned char data);
 // int handleYkFromEms(int item, unsigned char data);
-int countDP(int sn, unsigned short *pPw);
-
+void startAllPcs(void);
+void stopAllPcs(void);
 int countRecvPcsFlagAry(void);
 
 int findCurPcsForStart(int lcdid, int pcsid);
@@ -96,7 +96,6 @@ int findCurPcsForStop(int lcdid, int pcsid);
 int setStatusPw(int lcdid);
 int setStatusQw(int lcdid);
 
-// int countDP_test(int lcdid, int pcsid, int *pQw);
 void printf_pcs_soc(void);
 // int checkQw(int lcdid, int pcsid, unsigned short QW);
 int findCurPcsidForAdjQw(int id_thread);

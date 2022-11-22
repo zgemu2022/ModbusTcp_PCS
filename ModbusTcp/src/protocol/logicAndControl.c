@@ -505,40 +505,7 @@ int findCurPcsForStop(int lcdid, int pcsid)
 	return 1;
 }
 
-int countDP(int sn, unsigned short *pPw)
-{
-	int ret = 0;
-	float soc_ave;
-	float soc;
-	float dt_pw;
-	short pw = *pPw;
-	float f_pw = (float)pw;
 
-	soc_ave = (float)g_emu_op_para.soc_ave;
-	if (sn <= g_emu_op_para.num_pcs_bms[0])
-	{
-		soc = (float)bmsdata_cur[0][sn].soc;
-	}
-	else
-	{
-		soc = (float)bmsdata_cur[1][sn - g_emu_op_para.num_pcs_bms[0] + 1].soc;
-	}
-
-	dt_pw = (float)pPara_Modtcp->balance_rate * (soc - soc_ave);
-	if (dt_pw > -10 && dt_pw < 10)
-	{
-		ret = 0;
-	}
-	else
-	{
-		f_pw *= (1 + dt_pw / 10000);
-		ret = 1;
-	}
-	if ((dt_pw > 0 && dt_pw > 10) || (dt_pw < 0 && dt_pw < -10))
-		f_pw *= (1 + dt_pw / 10000);
-	*pPw = (short)f_pw;
-	return ret;
-}
 void printf_pcs_soc(void)
 {
 	int i;
@@ -715,48 +682,7 @@ int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc)
 endAdjQw:
 	return 0;
 }
-/*int checkQw(int lcdid, int pcsid, unsigned short QW)
-{
-	unsigned short dtQW;
-	int qw;
-	unsigned char flag = 0;
-	int ret;
-	if((total_pcsnum==0) || (total_pcsnum-g_emu_op_para.err_num)==0)
-	{
-		return 1;
-	}
 
-		if(g_emu_op_para.OperatingMode == PQ)
-		{
-			qw =  (g_emu_op_para.pq_qw_total * 10) /  (total_pcsnum-g_emu_op_para.err_num);
-
-		}
-		else if(g_emu_op_para.OperatingMode == VSG)
-		{
-			qw = (g_emu_op_para.vsg_qw_total * 10) /  (total_pcsnum-g_emu_op_para.err_num);
-		}
-
-	dtQW = QW-qw;
-	if (dtQW >= 10 || dtQW <= -10)
-	{
-		flag = 1;
-	}
-
-	printf("cba checkQw qw=%d dtQW=%d flag=%d\n",qw,dtQW,flag);
-	#if(1)
-	ret = countDP_test(lcdid, pcsid, &qw);
-	if (ret == 1)
-		flag = 1;
-	#endif
-	if (flag == 1)
-	{
-		g_emu_adj_lcd.flag_adj_qw_lcd[lcdid] = 1;
-		g_emu_adj_lcd.adj_pcs[lcdid].flag_adj_qw[pcsid-1] = 1;
-		g_emu_adj_lcd.adj_pcs[lcdid].val_qw[pcsid-1] = qw;
-	}
-
-	return 0;
-}*/
 
 void printf_adj_qw(int lcdid)
 {

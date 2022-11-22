@@ -6,28 +6,43 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "modbus_tcp_main.h"
+#include "modbus.h"
+#include "logicAndControl.h"
 #define LIB_PLC_PATH "/usr/lib/libplc.so"
-PARA_PLC para_plc = {{"192.168.3.230" }, 502 };
+PARA_PLC para_plc = {{"192.168.4.230"}, 2502, 6, {0, 0, 0, 0, 0, 0},NULL};
 
-int recvfromPlc(void *pdata)
+static int orderfromPlc(int order)
 {
-	short plcYK = *(short *)pdata;
-	printf("LCD模块收到PLC传来的数据！plcYK=%d\n", plcYK);
-
+	// short plcYK = *(short *)pdata;
+	printf("LCD模块收到PLC传来的指令！order=%d\n", order);
+	if(order==1)
+        startAllPcs();
+	else if(order==2)
+	   stopAllPcs();
 	return 0;
 }
 
 void Plc_Init(void)
 {
+	int i;
 	typedef int (*p_initlcd)(void *);
-	typedef int (*outPlcData2Other)(void *);			  //输出数据
-	typedef int (*indata_fun_plc)(outPlcData2Other pfun); //命令处理函数指针
+
 	printf("yy LCD模块动态调用PLC模块！\n");
 	void *handle;
 	char *error;
+	para_plc.lcdnum = pPara_Modtcp->lcdnum_cfg;
+    para_plc.funOrder = orderfromPlc;
+	for (i = 0; i < MAX_PCS_NUM; i++)
+	{
+
+		para_plc.pcsnum[i] = pPara_Modtcp->pcsnum[i];
+	}
+
+    para_plc.server_port=pconfig->plc_server_port;
+	strcpy(para_plc.server_ip,pconfig->plc_server_ip);
 	printf("plc Init\n");
 	p_initlcd my_func = NULL;
-	indata_fun_plc my_func_putin_plc = (void *)0;
 
 	handle = dlopen(LIB_PLC_PATH, RTLD_LAZY);
 	if (!handle)
@@ -46,10 +61,6 @@ void Plc_Init(void)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("2LCD模块动态调用PLC模块！\n");
-	*(void **)(&my_func_putin_plc) = dlsym(handle, "SubscribePlcData");
-
-	printf("yyy LCD模块读取PLC模块！\n");
+	// para_plc.funOrder = orderfromPlc;
 	my_func((void *)&para_plc);
-	my_func_putin_plc(recvfromPlc);
 }

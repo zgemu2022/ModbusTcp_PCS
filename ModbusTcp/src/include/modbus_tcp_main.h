@@ -41,25 +41,31 @@ enum LIB_NAME // 模块名称编号
 // 	unsigned short server_port;
 // } PARA_FROM_EMU_APP; //从主控传到Modbus-Tcp模块的结构
 
-typedef struct
-{
-	int firm_id; //公司编号
-				 // LCD参数
-	char lcd_server_ip[6][64];
+
+typedef struct {
+	int firm_id;//公司编号
+//LCD参数
+	char  lcd_server_ip[6][64];
 	u32 lcd_server_port[6];
-	int lcd_num;
-	int pcs_num;
-	int balance_rate;
-	int sys_max_pw;
-	//系统参数
-	char iflog;		   //是否将协议日志记录到flash中
-	char hardware_ver; //硬件版本
+    int lcd_num;
+    int pcs_num;
+    char plc_server_ip[64];
+    u32 plc_server_port;
+    int balance_rate;
+    int sys_max_pw;
+////
+//    char bams1_pcsid[8];
+//    char bams2_pcsid[8];
+
+//系统参数
+	char iflog;//是否将协议日志记录到flash中
+	char hardware_ver;//硬件版本
 	TDateTime StartLogDay;
 	int logdays;
 	char main_ver[6];
 
-} pconf;
 
+}pconf;
 typedef struct
 {
 	int sn;

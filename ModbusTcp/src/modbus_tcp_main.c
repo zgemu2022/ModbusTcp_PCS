@@ -39,7 +39,7 @@ int modbus_tcp_main(void *para_app)
 
 	pPara_Modtcp->lcdnum_cfg = pconfig->lcd_num;
 	pPara_Modtcp->lcdnum_real = 0;
-	pPara_Modtcp->lcdnum_err = 0;	
+	pPara_Modtcp->lcdnum_err = 0;
 	pPara_Modtcp->balance_rate = pconfig->balance_rate;
 	printf("LCD 模块启动 系统定义最大功率=%d\n", pconfig->sys_max_pw);
 
