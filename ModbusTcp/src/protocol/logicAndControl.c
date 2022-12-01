@@ -586,7 +586,11 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 		else
 			id_bms = 0;
 		soc = bmsdata_bak[id_bms][id].soc;
-		dt_soc = soc_ave - soc;
+		if(pw<0)
+			soc=soc-soc_ave;
+		else if(pw>0)
+			soc=soc_ave-soc;
+		//dt_soc = soc_ave - soc;
 		pw *= (100000 + dt_soc * pPara_Modtcp->balance_rate);
 		pw /= 100000;
 	}
