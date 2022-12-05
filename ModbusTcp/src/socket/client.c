@@ -16,6 +16,7 @@
 #include "importBams.h"
 #include "logicAndControl.h"
 #include "output.h"
+#include "mytimer.h"
 //当使用Modbus/TCP时，modbus poll一般模拟客户端，modbus slave一般模拟服务端
 int wait_flag[] = {0, 0, 0, 0, 0, 0};
 char modbus_sockt_state[MAX_LCD_NUM];
@@ -25,10 +26,24 @@ MyData clent_data_temp[MAX_LCD_NUM];
 int g_comm_qmegid[MAX_LCD_NUM];
 
 unsigned int g_num_frame[] = {1, 1, 1, 1, 1, 1};
-
+int send_heat_beat(int id_thread)
+{
+		printf("LCD:%d 发送心跳帧\n", id_thread);
+		static unsigned short beatnum[]={0,0,0,0,0,0};
+		unsigned short regaddr=0x3056;
+		unsigned short val=beatnum[id_thread];
+		int ret;
+		//modbus_sockt_timer[id_thread]=0x7fffffff;
+		ret = SetLcdFun06(id_thread, regaddr, val);
+		wait_flag[id_thread] = 1;
+		beatnum[id_thread]++;
+		if(beatnum[id_thread]>=1000)
+                beatnum[id_thread]=0;
+		return ret;
+}
 void RunAccordingtoStatus(int id_thread)
 {
-	printf("\n\nLCD:%d lcd_state[id_thread]=%d  StateMachine...\n", id_thread, lcd_state[id_thread]);
+	printf("\n\nLCD:%d lcd_state[id_thread]=%d  modbus_sockt_timer=%x %d\n", id_thread, lcd_state[id_thread],modbus_sockt_timer[id_thread],modbus_sockt_timer[id_thread]);
 	int ret = 1;
 	switch (lcd_state[id_thread])
 	{
@@ -219,7 +234,7 @@ void RunAccordingtoStatus(int id_thread)
 		else
 		{
 			printf("启停数据出现错误！！！！\n");
-			return 1;
+		//	return 1;
 		}
 		ret = SetLcdFun06(id_thread, regaddr, val);
 	}
@@ -341,7 +356,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 	while (modbus_sockt_state[id_thread] == STATUS_ON) //
 	{
 		// printf("wait_flag:%d\n", wait_flag);
-		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
+		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 10);
 		if (ret_value >= 0)
 		{
 			waittime = 0;
@@ -374,7 +389,15 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			continue;
 		}
 		else
-			RunAccordingtoStatus(id_thread);
+		{
+            if(modbus_sockt_timer[id_thread]==0)
+			{
+                 send_heat_beat(id_thread);
+			}
+			else
+				RunAccordingtoStatus(id_thread);
+		}
+			
 	}
 	return NULL;
 }
@@ -451,12 +474,13 @@ loop:
 		else
 			break;
 	}
-	printf("lcdid=%d 连接服务器成功！！！！\n", id_thread);
+
 	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
 
 	pPara_Modtcp->lcdnum_real++;
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	g_flag_RecvNeed_LCD |= (1 << id_thread);
+
 	//	init_emu_op_para(id_thread);
 	// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
@@ -476,6 +500,9 @@ loop:
 		sleep(1);
 	}
 	modbus_sockt_state[id_thread] = STATUS_ON;
+	modbus_sockt_timer[id_thread]=MX_HEART_BEAT;
+
+	printf("lcdid=%d 连接服务器成功！！！！modbus_sockt_timer=%d\n", id_thread,modbus_sockt_timer[id_thread]);
 	while (1)
 	{
 		fd = modbus_client_sockptr[id_thread];
@@ -577,6 +604,7 @@ void CreateThreads(void)
 		pPara_Modtcp->pcsnum[i] = 0;
 		pPara_Modtcp->devNo[i] = 0xa;
 		modbus_sockt_state[i] = STATUS_OFF;
+		modbus_sockt_timer[i]=0x7fffffff;
 		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)Modbus_clientRecv_thread, (int *)i, 1, 1))
 		{
 			printf("MODBUS CONNECT THTREAD CREATE ERR!\n");
@@ -592,6 +620,7 @@ void CreateThreads(void)
 	}
 	cleanYcYxData();
 	initEmuParaData();
+	CreateTmThreads();
 	// bams_Init();
 	// initInterface61850();
 	printf("MODBUS THTREAD CREATE success!\n");

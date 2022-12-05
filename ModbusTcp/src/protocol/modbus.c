@@ -19,6 +19,7 @@
 #include "importBams.h"
 #include "logicAndControl.h"
 #include "importPlc.h"
+#include "mytimer.h"
 /*
 
 EMU 参数
@@ -493,7 +494,13 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	{
 		regAddr = emudata[2] * 256 + emudata[3];
 		val = emudata[4] * 256 + emudata[5];
-		if (regAddr != g_send_data[id_thread].regaddr)
+		if(regAddr==0x3056)
+		{
+			printf("lcdid=%d 心跳帧返回！！！\n", id_thread);
+			modbus_sockt_timer[id_thread]=MX_HEART_BEAT;
+			return 0;
+		}
+		else if(regAddr != g_send_data[id_thread].regaddr)
 		{
 			return 4;
 		}

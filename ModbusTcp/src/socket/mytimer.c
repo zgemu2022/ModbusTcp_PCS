@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-int modbus_sockt_timer[6];
+#include "logicAndControl.h"
+int modbus_sockt_timer[MAX_LCD_NUM];
 void *TimerThread(void *arg)
 {
 	unsigned int second;
@@ -15,7 +16,6 @@ void *TimerThread(void *arg)
 
 	int i;
 	// int grp_no;
-
 	second = 100;
 	min = 6000;
 	hour = 360000;
@@ -25,6 +25,13 @@ void *TimerThread(void *arg)
 	while (1)
 	{
 		usleep(10000); // 10ms
+		for (i = 0; i < MAX_LCD_NUM; i++)
+		{
+			if (modbus_sockt_timer[i] > 0)
+			{
+				modbus_sockt_timer[i]--;
+			}
+		}
 
 		if (second > 0)
 		{
@@ -34,13 +41,13 @@ void *TimerThread(void *arg)
 			{
 				second = 100;
 
-				for (i = 0; i < MX_HEART_BEAT; i++)
-				{
-					if (modbus_sockt_timer[i] > 0) 
-					{
-						modbus_sockt_timer[i]--;
-					}
-				}
+				// for (i = 0; i < MX_HEART_BEAT; i++)
+				// {
+				// 	if (modbus_sockt_timer[i] > 0)
+				// 	{
+				// 		modbus_sockt_timer[i]--;
+				// 	}
+				// }
 			}
 		}
 
@@ -66,16 +73,14 @@ void *TimerThread(void *arg)
 	}
 }
 
-
 void CreateTmThreads(void)
 {
 	pthread_t ThreadID;
 	pthread_attr_t Thread_attr;
 
-		if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)TimerThread, NULL, 1, 1))
-		{
-			printf("MODBUS THTREAD CREATE ERR!\n");
-			exit(1);
-		}
-
+	if (FAIL == CreateSettingThread(&ThreadID, &Thread_attr, (void *)TimerThread, NULL, 1, 1))
+	{
+		printf("MODBUS THTREAD CREATE ERR!\n");
+		exit(1);
+	}
 }

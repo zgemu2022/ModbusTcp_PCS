@@ -115,7 +115,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	// checkQw(id_thread,pcsid,qw);
 	if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
 	{
-
+	
 		if (g_emu_op_para.flag_soc_bak == 1)
 		{
 			countPwAdj(id_thread, pcsid, pw, 1);
