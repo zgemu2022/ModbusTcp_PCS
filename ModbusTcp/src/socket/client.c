@@ -369,11 +369,22 @@ void *Modbus_clientSend_thread(void *arg) // 25
 				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
 				if (0 == res)
 				{
+
 					printf("数据解析成功！！！\n");
 				}
 			}
 			else
-				printf("111检查是否发生丢包现象！！！！！id_thread=%d g_num_frame=%d  id_frame=%d\n", id_thread, g_num_frame[id_thread], id_frame);
+			{
+				printf("警告：收到的包序号与发送不一致，调整！！！！！id_thread=%d g_num_frame=%d  id_frame=%d\n", id_thread, g_num_frame[id_thread], id_frame);
+				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				if (0 == res)
+				{
+
+					printf("数据解析成功！！！\n");
+				}
+				g_num_frame[id_thread]=id_frame+1;
+			}
+				
 			wait_flag[id_thread] = 0;
 			continue;
 		}
