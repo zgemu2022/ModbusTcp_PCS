@@ -78,7 +78,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	int i;
 	static unsigned char flag_recv_pcs[] = {0, 0, 0, 0, 0, 0};
 	static int flag_recv_lcd = 0;
-	int pw, qw, aw;
+	short pw, qw, aw;
 	unsigned short temp_pw, temp_qw, temp_aw;
 	for (i = 0; i < id_thread; i++)
 	{
@@ -108,6 +108,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	qw = (temp_qw % 256) * 256 + temp_qw / 256;
 
 	temp_aw = g_YcData[id - 1].pcs_data[Apparent_power];
+    //temp_aw=0xf9ff;
 	aw = (temp_aw % 256) * 256 + temp_aw / 256;
 	printf("遥测得到的有功功率 lcdid=%d pcsid=%d pw=%d %x\n", id_thread, pcsid, pw, g_YcData[id - 1].pcs_data[Active_power]);
 	printf("遥测得到的无功功率 lcdid=%d pcsid=%d qw=%d %x\n", id_thread, pcsid, qw, g_YcData[id - 1].pcs_data[Reactive_power]);

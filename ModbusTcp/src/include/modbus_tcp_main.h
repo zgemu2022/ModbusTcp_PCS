@@ -53,6 +53,7 @@ typedef struct {
     u32 plc_server_port;
     int balance_rate;
     int sys_max_pw;
+    int flag_init_lcd;	
 ////
 //    char bams1_pcsid[8];
 //    char bams2_pcsid[8];

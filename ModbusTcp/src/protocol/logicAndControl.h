@@ -37,8 +37,8 @@ typedef struct
 {
 	unsigned char flag_adj_pw[MAX_PCS_NUM]; //有功调节标志
 	unsigned char flag_adj_qw[MAX_PCS_NUM]; //无功调节标志
-	unsigned short val_pw[MAX_PCS_NUM];		//有功调节功率数值
-	unsigned short val_qw[MAX_PCS_NUM];		//无功调节功率数值
+	short val_pw[MAX_PCS_NUM];		//有功调节功率数值
+	short val_qw[MAX_PCS_NUM];		//无功调节功率数值
 } EMU_ADJ_PCS;
 typedef struct
 {

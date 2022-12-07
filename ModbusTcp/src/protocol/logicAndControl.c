@@ -164,13 +164,13 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		if (g_emu_op_para.OperatingMode == PQ)
 		{
 			g_emu_op_para.pq_pw_total_last = g_emu_op_para.pq_pw_total;
-			g_emu_op_para.pq_pw_total = (unsigned int)tem;
+			g_emu_op_para.pq_pw_total = (int)tem;
 			printf("·········PQ···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
 		else
 		{
 			g_emu_op_para.vsg_pw_total_last = g_emu_op_para.vsg_pw_total;
-			g_emu_op_para.vsg_pw_total = (unsigned int)tem;
+			g_emu_op_para.vsg_pw_total = (int)tem;
 			printf("·········VSG···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
 		// if (g_emu_op_para.flag_start == 0 || tem == 0)
@@ -217,13 +217,13 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		{
 
 			g_emu_op_para.pq_qw_total_last = g_emu_op_para.pq_qw_total;
-			g_emu_op_para.pq_qw_total = (unsigned int)tem;
+			g_emu_op_para.pq_qw_total = (int)tem;
 			printf("-----------PQ---无功功率:%d\n", g_emu_op_para.pq_qw_total);
 		}
 		else
 		{
 			g_emu_op_para.vsg_qw_total_last = g_emu_op_para.vsg_qw_total;
-			g_emu_op_para.vsg_qw_total = (unsigned int)tem;
+			g_emu_op_para.vsg_qw_total = (int)tem;
 			printf("-----------VSG---无功功率:%d\n", g_emu_op_para.vsg_qw_total);
 		}
 
@@ -552,7 +552,14 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 				goto settingAdjPw;
 			}
 		}
-		pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		if((total_pcsnum - g_emu_op_para.err_num) !=0)
+		{
+
+             pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		}
+		   
+		else
+		   pw = 0;
 	}
 	else if (g_emu_op_para.OperatingMode == VSG)
 	{
@@ -566,11 +573,23 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 				goto settingAdjPw;
 			}
 		}
-
-		pw = (g_emu_op_para.vsg_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		if((total_pcsnum - g_emu_op_para.err_num) !=0)
+		   pw = (g_emu_op_para.vsg_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		else 
+		   pw=0;
 	}
+
+
 	if (flag_soc == 1)
 	{
+		// pw = (g_emu_op_para.pq_pw_total * 10);
+		// printf("功率调节目标值 lcdid=%d  pcsid=%d  pw=%d g_emu_op_para.pq_pw_total=%d num=%d\n",lcdid,pcsid,pw,g_emu_op_para.pq_pw_total,(total_pcsnum - g_emu_op_para.err_num));
+
+		// pw /= (total_pcsnum);
+		printf("功率调节目标值 lcdid=%d  pcsid=%d  pw=%d g_emu_op_para.pq_pw_total=%d pcsnum=%d errnum=%d\n",lcdid,pcsid,pw,g_emu_op_para.pq_pw_total,
+		total_pcsnum ,g_emu_op_para.err_num);
+
+	
 		for (i = 0; i < lcdid; i++)
 		{
 			id += pPara_Modtcp->pcsnum[i];

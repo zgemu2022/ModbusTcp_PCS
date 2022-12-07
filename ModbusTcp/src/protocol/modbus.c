@@ -528,7 +528,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 				Para_Modtcp.pcsnum[id_thread] = 6; //测试时获取PCS数量
 #endif
 			printf("LCD[%d]的PCS数量=%d\n", id_thread, Para_Modtcp.pcsnum[id_thread]);
-
+            lcd_state[id_thread] = LCD_DO_NOTHING; 
 			if (flag_get_pcsnum == g_flag_RecvNeed_LCD)
 			{
 				int i;
@@ -540,7 +540,10 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 					{
 						total_pcsnum += pPara_Modtcp->pcsnum[i];
 						g_send_data[i].flag_waiting = 0;
-						lcd_state[i] = LCD_SET_MODE;
+						if(pconfig->flag_init_lcd==1)
+							lcd_state[i] = LCD_SET_MODE;
+						else
+						   lcd_state[i] = LCD_RUNNING; 
 					}
 				}
 				printf("EMU PCS总数量=%d\n", total_pcsnum);

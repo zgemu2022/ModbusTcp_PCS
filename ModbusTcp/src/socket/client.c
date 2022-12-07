@@ -147,7 +147,10 @@ void RunAccordingtoStatus(int id_thread)
 
 		regaddr = vsgpcs_pw_set[curPcsId[id_thread]];
 		if (g_emu_op_para.err_num < total_pcsnum)
-			val = g_emu_op_para.vsg_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+		{
+	         val = g_emu_op_para.vsg_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+			printf("LCD:%d PCSID:%d 调节有功功率 ...val=%d\n", id_thread, curPcsId[id_thread], val);
+		}
 		else
 			val = 0;
 		ret = SetLcdFun06(id_thread, regaddr, val);
@@ -286,7 +289,7 @@ void RunAccordingtoStatus(int id_thread)
 	case LCD_ADJUST_PCS_PW: //按策略要求调节有功功率
 	{
 		unsigned short regaddr; 
-		unsigned short val;
+		short val;
 		printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
 		if (findCurPcsidForAdjPw(id_thread) == 1)
 		{
@@ -340,7 +343,9 @@ void *Modbus_clientSend_thread(void *arg) // 25
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 	key_t key = 0;
-
+    int xx = -18;
+	int yy = (-522*10)/(29-0);
+	printf("count yy = %d\n",yy);
 	// unsigned char code_fun[] = {0x03, 0x06, 0x10};
 	// unsigned char errid_fun[] = {0x83, 0x86, 0x90};
 
