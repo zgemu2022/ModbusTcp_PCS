@@ -554,7 +554,6 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 		}
 		if((total_pcsnum - g_emu_op_para.err_num) !=0)
 		{
-
              pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
 		}
 		   

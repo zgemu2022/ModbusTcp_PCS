@@ -195,7 +195,7 @@ extern int curPcsId[];
 extern unsigned int g_num_frame[];
 extern int lcd_state[];
 
-int AnalysModbus(int id_thread, unsigned char *pdata, int len);
+int AnalysModbus(int id_thread, unsigned char *pdata, int len,int flag);
 int myprintbuf(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
 // int getTime(void *ptime);

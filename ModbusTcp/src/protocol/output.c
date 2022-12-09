@@ -333,6 +333,7 @@ void initInterface61850(void)
 		para_61850.pcsnum[i] = pPara_Modtcp->pcsnum[i];
 	}
 	para_61850.balance_rate = pconfig->balance_rate;
+	para_61850.flag_RecvNeed_LCD = g_flag_RecvNeed_LCD;
 	printf("传输到61850接口的参数 %d %d \n", para_61850.lcdnum, para_61850.balance_rate);
 	handle = dlopen(LIB_61850_PATH, RTLD_LAZY);
 	if (!handle)

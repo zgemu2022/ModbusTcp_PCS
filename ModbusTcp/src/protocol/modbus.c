@@ -445,7 +445,7 @@ static void init_emu_op_para(void)
 	//	g_flag_RecvNeed_LCD = countRecvLcdFlag();
 }
 
-int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char *datain, unsigned short len, unsigned char *dataout
+int AnalysModbus(int id_thread, unsigned char *pdata, int len,int flag) // unsigned char *datain, unsigned short len, unsigned char *dataout
 {
 
 	unsigned char emudata[256];
@@ -467,7 +467,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 	printf("---------pdata[0] * 256 + pdata[1]:%#x   g_send_data[id_thread].num_frame:%#x--------\n", pdata[0] * 256 + pdata[1], g_send_data[id_thread].num_frame);
 	if (g_send_data[id_thread].flag_waiting == 0)
 		return 1;
-	if ((pdata[0] * 256 + pdata[1]) != g_send_data[id_thread].num_frame)
+	if ((pdata[0] * 256 + pdata[1]) != g_send_data[id_thread].num_frame && flag==0)
 	{
 		return 2;
 	}
@@ -496,7 +496,7 @@ int AnalysModbus(int id_thread, unsigned char *pdata, int len) // unsigned char 
 		val = emudata[4] * 256 + emudata[5];
 		if(regAddr==0x3056)
 		{
-			printf("lcdid=%d 心跳帧返回！！！\n", id_thread);
+			printf("lcdid=%d 心跳帧返回！！！val=%d\n", id_thread,val);
 			modbus_sockt_timer[id_thread]=MX_HEART_BEAT;
 			return 0;
 		}

@@ -7,6 +7,7 @@ typedef struct
 	unsigned char pcsnum[MAX_PCS_NUM];
 
 	unsigned short balance_rate;
+	int flag_RecvNeed_LCD
 } PARA_61850; //从LCD到61850模块的结构
 
 extern LCD_YC_YX_DATA g_YxData[];

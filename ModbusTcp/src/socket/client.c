@@ -343,9 +343,6 @@ void *Modbus_clientSend_thread(void *arg) // 25
 
 	printf("PCS[%d] Modbus_clientSend_thread  is Starting!\n", id_thread);
 	key_t key = 0;
-    int xx = -18;
-	int yy = (-522*10)/(29-0);
-	printf("count yy = %d\n",yy);
 	// unsigned char code_fun[] = {0x03, 0x06, 0x10};
 	// unsigned char errid_fun[] = {0x83, 0x86, 0x90};
 
@@ -371,7 +368,7 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			if ((id_frame != 0xffff && (g_num_frame[id_thread] - 1) == id_frame) || (id_frame == 0xffff && g_num_frame[id_thread] == 1))
 			{
 				printf("recv form pcs!!!!!g_num_frame=%d  id_frame=%d\n", g_num_frame[id_thread], id_frame);
-				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len,0);
 				if (0 == res)
 				{
 
@@ -381,13 +378,18 @@ void *Modbus_clientSend_thread(void *arg) // 25
 			else
 			{
 				printf("警告：收到的包序号与发送不一致，调整！！！！！id_thread=%d g_num_frame=%d  id_frame=%d\n", id_thread, g_num_frame[id_thread], id_frame);
-				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len);
+				int res = AnalysModbus(id_thread, pcsdata.buf, pcsdata.len,1);
 				if (0 == res)
 				{
 
-					printf("数据解析成功！！！\n");
+					printf("调整前数据解析成功！！！\n");
 				}
-				g_num_frame[id_thread]=id_frame+1;
+				else
+					printf("调整前数据解析失败 res=%d！！！\n",res);
+				if(id_frame >= 0xffff)
+				  g_num_frame[id_thread]=1;
+				else
+				  g_num_frame[id_thread]=id_frame+1;
 			}
 				
 			wait_flag[id_thread] = 0;
