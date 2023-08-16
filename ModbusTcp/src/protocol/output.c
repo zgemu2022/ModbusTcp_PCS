@@ -151,6 +151,8 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	if (flag_recv_pcs[id_thread] == flag_RecvNeed_PCS[id_thread])
 	{
 
+		printf("LCDID=%d 收到了全部pcs数据 flag_recv_pcs=%x  flag_RecvNeed_PCS=%x\n", id_thread, flag_recv_pcs[id_thread], flag_RecvNeed_PCS[id_thread]);
+
 		if (setStatusStart_Stop(id_thread) == 0)
 		{
 			if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid] == 1)
@@ -241,7 +243,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 
 		temp = g_YxData[id - 1].pcs_data[u16_InvRunState1];
 
-		printf("saveYxData id_thread=%d pcsid=%d id=%d num=%d g_flag_RecvNeed_LCD:%d flag_recv_lcd:%d\n", id_thread, pcsid, id, len, g_flag_RecvNeed_LCD, flag_recv_lcd);
+		printf("saveYxData id_thread=%d pcsid=%d id=%d num=%d g_flag_RecvNeed_LCD:%x flag_recv_lcd:%x\n", id_thread, pcsid, id, len, g_flag_RecvNeed_LCD, flag_recv_lcd);
 		myprintbuf(len, (unsigned char *)g_YxData[id - 1].pcs_data);
 
 		// printf("lcdid=%d pcsid=%d g_YxData[id - 1].pcs_data[u16_InvRunState1]=%x \n", id_thread, pcsid, temp);

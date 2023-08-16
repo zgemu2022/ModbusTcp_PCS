@@ -381,12 +381,13 @@ void bams_Init(void)
 	printf("xxLCD模块动态调用BAMS模块！\n");
 	init_fun my_func = (void *)0;
 	indata_fun my_func_putin = (void *)0;
+	para_bams.portnum = pPara_Modtcp->bams_num;
 	for (i = 0; i < pPara_Modtcp->bams_num; i++)
 	{
-		para_bams.portnum = pPara_Modtcp->bams_num;
+
 		para_bams.baud[i] = 9600;
-		para_bams.devid[i] = i;
-		para_bams.pcs_num[i] = 8;
+		para_bams.devid[i] = 1;
+		para_bams.pcs_num[i] = 6;
 	}
 	// 打开动态链接库
 	handle = dlopen(LIB_MODBMS_PATH, RTLD_LAZY);

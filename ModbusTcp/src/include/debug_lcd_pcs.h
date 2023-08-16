@@ -24,6 +24,13 @@ extern "C"
 #define pcs_debug(x, ...)
 #endif
 
+#define _LCD_PCS_SYS_ 1 // LCD模块系统相关调试
+#if (_LCD_PCS_SYS_ == 1)
+#define sys_debug(x, ...) log_debug_new(TITLE_MAIN, "[SYS]" #x "\n", ##__VA_ARGS__) // 12345
+#else
+#define sys_debug(x, ...)
+#endif
+
 #ifdef __cplusplus
 }
 

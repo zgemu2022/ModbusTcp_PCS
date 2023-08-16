@@ -597,7 +597,7 @@ write_loop:
 				else
 					g_num_frame[id_thread] = id_frame + 1;
 			}
-				
+
 			wait_flag[id_thread] = 0;
 			continue;
 		}
@@ -620,7 +620,7 @@ write_loop:
 		else
 		{
 
-			if (modbus_sockt_timer[id_thread] == 0)
+			if (modbus_sockt_timer[id_thread] == 0 && lcd_state[id_thread] == LCD_RUNNING)
 			{
 				send_heat_beat(id_thread);
 			}
@@ -682,7 +682,7 @@ write_loop:
 	return NULL;
 }
 
-static int recvFrame(int fd, int qid, MyData *recvbuf)
+static int recvFrame(int fd, int id_thread, int qid, MyData *recvbuf)
 {
 	int readlen;
 
@@ -708,6 +708,7 @@ static int recvFrame(int fd, int qid, MyData *recvbuf)
 
 	recvbuf->len = readlen;
 	// myprintbuf(readlen, recvbuf->buf);
+	sys_debug("打印从LCD接收的信息 lcdid = %d\n", id_thread);
 	myprintbuf_pcs(readlen, recvbuf->buf);
 	msg.msgtype = 1;
 	memcpy((char *)&msg.data, recvbuf->buf, readlen);
@@ -763,12 +764,10 @@ loop:
 			break;
 	}
 
-	printf("111LCD[%d] ip=%s  port=%d\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread]);
-
 	pPara_Modtcp->lcdnum_real++;
 	modbus_client_sockptr[id_thread] = server_sock.fd;
 	g_flag_RecvNeed_LCD |= (1 << id_thread);
-
+	printf("111LCD[%d] ip=%s  port=%d g_flag_RecvNeed_LCD=%x\n", id_thread, pPara_Modtcp->server_ip[id_thread], pPara_Modtcp->server_port[id_thread], g_flag_RecvNeed_LCD);
 	//	init_emu_op_para(id_thread);
 	// >>>>>>> db5448e3e13a7539dcb9a4a0240a049b602dcd2b
 
@@ -832,7 +831,7 @@ loop:
 			// printf("貌似收到数据！！！！！！！！！！！！");
 			if (FD_ISSET(fd, &maxFd))
 			{
-				ret = recvFrame(fd, g_comm_qmegid[id_thread], &recvbuf);
+				ret = recvFrame(fd, id_thread, g_comm_qmegid[id_thread], &recvbuf);
 				if (ret == -1)
 				{
 					printf("客户端连接异常！！！！！！！！！！！！！！！！\r\n", i);
