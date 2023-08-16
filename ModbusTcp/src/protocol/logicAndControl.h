@@ -1,7 +1,7 @@
 #ifndef _LOGIC_AND_CONTROL_H_
 #define _LOGIC_AND_CONTROL_H_
 
-#define MAX_PCS_NUM 6 //每个LCD下最多包含pcs的个数
+#define MAX_PCS_NUM 6 // 每个LCD下最多包含pcs的个数
 #define MAX_LCD_NUM 6
 #define EMS_communication_status 0
 #define one_FM_GOOSE_link_status_A 1 //  一次调频A网GOOSE链路状态
@@ -9,36 +9,36 @@
 #define one_FM_Enable 3				 //  一次调频使能
 #define one_FM_Disable 4			 //  一次调频使能
 
-#define Emu_Startup 1				  //【整机】启机命令
-#define Emu_Stop 2					  //【整机】停机命令
-#define Parallel_Away_conversion_en 3 //并转离切换使能
-#define Away_Parallel_conversion_en 4 //离转并切换使能
-#define EMS_SET_MODE 5				  //产品运行模式设置
+#define Emu_Startup 1				  // 【整机】启机命令
+#define Emu_Stop 2					  // 【整机】停机命令
+#define Parallel_Away_conversion_en 3 // 并转离切换使能
+#define Away_Parallel_conversion_en 4 // 离转并切换使能
+#define EMS_SET_MODE 5				  // 产品运行模式设置
 #define EMS_VSG_MODE 6				  // VSG工作模式设置
 #define EMS_PQ_MODE 7				  // PQ工作模式设置
 #define BOX_35kV_ON 8				  // 35kV进线柜合闸
 #define BOX_35kV_OFF 9,				  // 35kV进线柜分闸
-#define BOX_SwitchD1_ON 10			  //开关柜D1合闸
-#define BOX_SwitchD1_OFF 11			  //开关柜D1分闸
-#define BOX_SwitchD2_ON 12			  //开关柜D2合闸
-#define BOX_SwitchD2_OFF 13			  //开关柜D2分闸
-#define EMS_PW_SETTING 14			  //有功功率
-#define EMS_QW_SETTING 15			  //无功功率
-#define ONE_FM_PW_SETTING 16		  //一次调频有功功率
-#define ONE_FM_QW_SETTING 17		  //一次调频无功功率
+#define BOX_SwitchD1_ON 10			  // 开关柜D1合闸
+#define BOX_SwitchD1_OFF 11			  // 开关柜D1分闸
+#define BOX_SwitchD2_ON 12			  // 开关柜D2合闸
+#define BOX_SwitchD2_OFF 13			  // 开关柜D2分闸
+#define EMS_PW_SETTING 14			  // 有功功率
+#define EMS_QW_SETTING 15			  // 无功功率
+#define ONE_FM_PW_SETTING 16		  // 一次调频有功功率
+#define ONE_FM_QW_SETTING 17		  // 一次调频无功功率
 
 typedef struct
 {
-	unsigned char item;	   //项目编号
+	unsigned char item;	   // 项目编号
 	unsigned char el_tag;  //  数据类型
-	unsigned char data[5]; //参数
-} YK_PARA;				   //遥测、遥控参数
+	unsigned char data[5]; // 参数
+} YK_PARA;				   // 遥测、遥控参数
 typedef struct
 {
-	unsigned char flag_adj_pw[MAX_PCS_NUM]; //有功调节标志
-	unsigned char flag_adj_qw[MAX_PCS_NUM]; //无功调节标志
-	short val_pw[MAX_PCS_NUM];		//有功调节功率数值
-	short val_qw[MAX_PCS_NUM];		//无功调节功率数值
+	unsigned char flag_adj_pw[MAX_PCS_NUM]; // 有功调节标志
+	unsigned char flag_adj_qw[MAX_PCS_NUM]; // 无功调节标志
+	short val_pw[MAX_PCS_NUM];				// 有功调节功率数值
+	short val_qw[MAX_PCS_NUM];				// 无功调节功率数值
 } EMU_ADJ_PCS;
 typedef struct
 {
@@ -79,6 +79,12 @@ extern unsigned char flag_RecvNeed_PCS[];
 extern EMU_ADJ_LCD g_emu_adj_lcd;
 extern EMU_STATUS_LCD g_emu_status_lcd;
 extern EMU_ACTION_LCD g_emu_action_lcd;
+extern unsigned char bms_ov_status[6];
+extern unsigned char bms_err_status[];
+#if TEST_PLC_D1D2
+extern int PLC_EMU_BOX_SwitchD1, PLC_EMU_BOX_SwitchD2;
+#endif
+
 // int (YK_PARA *pYkPara);
 int handleYkFromEms(YK_PARA *pYkPara);
 int handlePcsYkFromEms(YK_PARA *pYkPara);
@@ -100,11 +106,15 @@ void printf_pcs_soc(void);
 // int checkQw(int lcdid, int pcsid, unsigned short QW);
 int findCurPcsidForAdjQw(int id_thread);
 int findCurPcsidForAdjPw(int id_thread);
-void initEmuParaData(void); //初始化EMU参数和数据
-int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc);
-int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc);
+void initEmuParaData(void); // 初始化EMU参数和数据
+int countQwAdj(int lcdid, int pcsid, short QW, int flag_soc);
+int countPwAdj(int lcdid, int pcsid, short PW, int flag_soc);
 // int setStatusStart_Stop(void);
 int setStatusStart_Stop(int lcdid);
 int findCurPcsidForStart_Stop(int id_thread);
+
+void time_now(void);
+
+// int checkBmsStatus(int lcdid, int pcsid,int sn);
 
 #endif

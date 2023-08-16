@@ -2,7 +2,7 @@
 #define _MODBUS_H
 
 #include "modbus_tcp_main.h"
-
+#include "debug_lcd_pcs.h"
 #define _NO_RESET 0
 #define _NEED_RESET 1
 #define PQ 1
@@ -19,7 +19,7 @@
 #define PQ_STA 3 // 3：恒流模式；
 
 #define NUM_READ_YC 29 // 0x1d
-#define NUM_READ_YX 15
+#define NUM_READ_YX 16
 #define NUM_READ_ZJYX 7
 #define NUM_READ_ZJYC 15
 
@@ -31,84 +31,97 @@ typedef struct
 	char type; // 1 Master 2 Slave
 	unsigned char lcdnum_cfg;
 	unsigned char lcdnum_real;
-	unsigned char lcdnum_err;	
+	unsigned char lcdnum_err;
 	unsigned char pcsnum[MAX_PCS_NUM];
 	unsigned char devNo[MAX_PCS_NUM];
 	char server_ip[6][64];
 	unsigned short server_port[6];
 	unsigned short balance_rate;
-} PARA_MODTCP; //系统运行参数  从主控传到Modbus-Tcp模块的结构
+
+	// BMS参数 用于lcd模块做判断对pcs停机
+	int Maximum_individual_voltage; // 电池分系统 n 单体最高电压
+	int Minimum_individual_voltage; // 电池分系统 n 单体最低电压
+
+	int bams_num; // BAMS数量
+} PARA_MODTCP;	  // 系统运行参数  从主控传到Modbus-Tcp模块的结构
 
 typedef struct
 {
-	unsigned short RegStart;  //寄存器开始地址
-	unsigned short numData;	  //抄取数据个数
-	unsigned short totalData; //总数据个数
+	unsigned short RegStart;  // 寄存器开始地址
+	unsigned short numData;	  // 抄取数据个数
+	unsigned short totalData; // 总数据个数
 
 } Pcs_Fun03_Struct;
 
 typedef struct
 {
-	unsigned char dev_id;	//从设备地址
-	unsigned char code_fun; //功能码
-	unsigned char errflag;	//错误码
+	unsigned char dev_id;	// 从设备地址
+	unsigned char code_fun; // 功能码
+	unsigned char errflag;	// 错误码
 	unsigned short addr;
-	unsigned char buf_data[255]; //收到的数据部分
-	unsigned int lendata;		 //收到的数据长度
+	unsigned char buf_data[255]; // 收到的数据部分
+	unsigned int lendata;		 // 收到的数据长度
 } PcsData;
 typedef struct
 {
-	unsigned char flag_waiting; //等待接收 0 不等待 1等待
-	unsigned short num_frame;	//帧序号
-	unsigned char dev_id;		//从设备地址
-	unsigned char code_fun;		//功能码
-	unsigned short regaddr;		//寄存器地址
-	unsigned short numdata;		//数据个数
+	unsigned char flag_waiting; // 等待接收 0 不等待 1等待
+	unsigned short num_frame;	// 帧序号
+	unsigned char dev_id;		// 从设备地址
+	unsigned char code_fun;		// 功能码
+	unsigned short regaddr;		// 寄存器地址
+	unsigned short numdata;		// 数据个数
 
-} PcsData_send; //当前发送到led数据，发送前记录，作为接收对比依据
+} PcsData_send; // 当前发送到led数据，发送前记录，作为接收对比依据
 extern PcsData_send g_send_data[];
 // extern unsigned short pq_pcspw_set[6][2];//整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
 // extern unsigned short pq_pcscur_set[6][2];//整机设置为PQ后、设置pcs为恒流模式，再设置电流值
 
-extern unsigned short pqpcs_mode_set[]; //整机设置为PQ模式后，设置pcs模块模式
-extern unsigned short pqpcs_pw_set[];	//恒功率模式 功率给定设置0.1kW正为放电，负为充电
-extern unsigned short pqpcs_cur_set[];	//恒流模式 电流给定设置0.1A正为放电，负为充电
+extern unsigned short pqpcs_mode_set[]; // 整机设置为PQ模式后，设置pcs模块模式
+extern unsigned short pqpcs_pw_set[];	// 恒功率模式 功率给定设置0.1kW正为放电，负为充电
+extern unsigned short pqpcs_cur_set[];	// 恒流模式 电流给定设置0.1A正为放电，负为充电
 
 extern unsigned short vsgpcs_pw_set[];	   // VSG模式 有功给定设置
 extern unsigned short pq_vsg_pcs_qw_set[]; // PQ或VSG模式 无功
-extern unsigned short pcs_on_off_set[];	   //开机关机
+extern unsigned short pcs_on_off_set[];	   // 开机关机
 extern post_list_t *post_list_l;
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE // LCD当前工作状态
 {
 
-	LCD_SET_TIME = 0,	   //开机对时
-	LCD_INIT = 1,		   //首先读取PCS个数(功能码03)
-	LCD_SET_MODE = 2,	   //开机前整机模式参数设置(功能码06)
-	LCD_PQ_PCS_MODE = 3,   //整机设置为PQ后、将pcs设置为恒功率模式或恒流模式
-	LCD_PQ_STP_PWVAL = 4,  //整机设置为PQ恒功率后,有功值
-	LCD_PQ_STP_QWVAL = 5,  //整机设置为PQ恒功率后,无功值
-	LCD_PQ_STA_CURVAL = 6, //整机设置为PQ恒流后，电流值
-	LCD_VSG_MODE = 7,	   //整机设置为VSG后、设置工作模式
-	LCD_VSG_PW_VAL = 8,	   //整机设置为VSG后,有功值
-	LCD_VSG_QW_VAL = 9,	   //整机设置为VSG后，无功值
+	LCD_SET_TIME = 0,	   // 开机对时
+	LCD_INIT = 1,		   // 首先读取PCS个数(功能码03)
+	LCD_SET_MODE = 2,	   // 开机前整机模式参数设置(功能码06)
+	LCD_PQ_PCS_MODE = 3,   // 整机设置为PQ后、将pcs设置为恒功率模式或恒流模式
+	LCD_PQ_STP_PWVAL = 4,  // 整机设置为PQ恒功率后,有功值
+	LCD_PQ_STP_QWVAL = 5,  // 整机设置为PQ恒功率后,无功值
+	LCD_PQ_STA_CURVAL = 6, // 整机设置为PQ恒流后，电流值
+	LCD_VSG_MODE = 7,	   // 整机设置为VSG后、设置工作模式
+	LCD_VSG_PW_VAL = 8,	   // 整机设置为VSG后,有功值
+	LCD_VSG_QW_VAL = 9,	   // 整机设置为VSG后，无功值
 
-	LCD_PCS_START = 10, //启动本LCD下所有的PCS
-	LCD_PCS_STOP = 11,	//停止本LCD下所有的PCS
+	LCD_PCS_START = 10, // 启动本LCD下所有的PCS
+	LCD_PCS_STOP = 11,	// 停止本LCD下所有的PCS
 
-	LCD_PCS_START_STOP_ONE = 12, //启动本LCD下一个PCS
+	LCD_PCS_START_STOP_ONE = 12, // 启动本LCD下一个PCS
 
-	LCD_PARALLEL_AWAY_EN = 14, //并转离切换使能
-	LCD_PARALLEL_AWAY_DN = 15, //并转离切换失能
+	LCD_PCS_STOP_BMS_ERR = 13, // BAMS故障停机
+	LCD_PARALLEL_AWAY_EN = 14, // 并转离切换使能
+	LCD_PARALLEL_AWAY_DN = 15, // 并转离切换失能
 
-	LCD_AWAY_PARALLEL_EN = 16, //离转并切换使能
-	LCD_AWAY_PARALLEL_DN = 17, //离转并切换失能
-	LCD_ADJUST_PCS_PW = 29,//按策略要求调节有功功率
-	LCD_ADJUST_PCS_QW = 30,//按策略要求调节无功功率
+	LCD_AWAY_PARALLEL_EN = 16, // 离转并切换使能
+	LCD_AWAY_PARALLEL_DN = 17, // 离转并切换失能
+	LCD_ADJUST_PCS_PW = 29,	   // 按策略要求调节有功功率
+	LCD_ADJUST_PCS_QW = 30,	   // 按策略要求调节无功功率
 
+	LCD_PQ_STP_PWVAL_ALL = 31, // EMS下发整机有功功率，LCD调节
+	LCD_PCS_START_ALL = 32,	   // 整机启动所有pcs
 
-	LCD_DO_NOTHING = 0xfe, //什么都不做
-	LCD_RUNNING = 0xff, //正常工作中，循环抄取遥信遥测
+	LCD_PCS_STOP_YXERR = 33, // 遥信故障情况下关机
+
+	LCD_PCS_BMAS_OV = 34, // 充电电压超过阈值进入待机
+
+	LCD_DO_NOTHING = 0xfe, // 什么都不做
+	LCD_RUNNING = 0xff,	   // 正常工作中，循环抄取遥信遥测
 };
 // <<<<<<< HEAD
 
@@ -140,7 +153,7 @@ typedef struct
 	unsigned short soc_ave;
 	unsigned char flag_soc_bak;
 	int err_num;
-	unsigned char OperatingMode;		  //当前工作模式，PQ=1 VSG=5
+	unsigned char OperatingMode; // 当前工作模式，PQ=1 VSG=5
 	// unsigned char LcdOperatingMode[MAX_LCD_NUM]; //当前LCD工作模式，PQ=1 VSG=5
 	// unsigned char ifNeedResetLcdOp[MAX_LCD_NUM];
 	unsigned short pq_mode_set; //[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ模式下PCS模块工作模式
@@ -163,9 +176,8 @@ typedef struct
 	// short vsg_pw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式，pcs模块有功功率
 	// short vsg_qw[MAX_LCD_NUM][MAX_PCS_NUM]; // VSG模式、pcs模块无功功率
 
-	int num_pcs_bms[2];
-
-} EMU_OP_PARA; //装置运行参数
+	int num_pcs_bms[4]; // PORTNUM_MAX
+} EMU_OP_PARA;			// 装置运行参数
 
 // typedef struct
 // {
@@ -186,17 +198,20 @@ extern EMU_OP_PARA g_emu_op_para;
 extern PARA_MODTCP *pPara_Modtcp;
 typedef struct
 {
-	unsigned short Reg; //寄存器开始地址
+	unsigned short Reg; // 寄存器开始地址
 
 } Pcs_Fun06_Struct;
+extern char _tmp_print_str[];
 extern pconf *pconfig;
+extern callbackFun_log fs_debug_lcd;
 extern int curTaskId[];
 extern int curPcsId[];
 extern unsigned int g_num_frame[];
 extern int lcd_state[];
 
-int AnalysModbus(int id_thread, unsigned char *pdata, int len,int flag);
+int AnalysModbus(int id_thread, unsigned char *pdata, int len, int flag);
 int myprintbuf(int len, unsigned char *buf);
+int myprintbuf_pcs(int len, unsigned char *buf);
 int ReadNumPCS(int id_thread);
 // int getTime(void *ptime);
 int setTime(int id_threa);

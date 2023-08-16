@@ -7,7 +7,8 @@
 #include "modbus.h"
 #include <sys/mman.h>
 #include <string.h>
-int total_pcsnum = 28;
+#include "modbus_tcp_main.h"
+int total_pcsnum = 32;
 int g_flag_RecvNeed = 0;
 int g_flag_RecvNeed_LCD = 0;
 
@@ -17,6 +18,9 @@ EMU_ADJ_LCD g_emu_adj_lcd;
 EMU_STATUS_LCD g_emu_status_lcd;
 
 EMU_ACTION_LCD g_emu_action_lcd;
+
+// int bams_heartbeat_timer_flag[2][18];
+
 unsigned int countRecvFlag(int num_read)
 {
 	unsigned int flag = 0;
@@ -85,8 +89,25 @@ int handleYxFromEms(int item, unsigned char data)
 
 void startAllPcs(void)
 {
+
 	int i;
 	int flag = 0;
+	YK_PARA para;
+#if TEST_PLC_D1D2
+	// 整机开机前检查D1、D2为分闸的情况下合闸
+	if (PLC_EMU_BOX_SwitchD1 == 0)
+	{
+		para.item = BOX_SwitchD1_ON;
+		para.data[0] = 1;
+		ykOrder_pcs_plc(_BMS_PLC_YK_, &para, NULL);
+	}
+	if (PLC_EMU_BOX_SwitchD2 == 0)
+	{
+		para.item = BOX_SwitchD2_ON;
+		para.data[0] = 1;
+		ykOrder_pcs_plc(_BMS_PLC_YK_, &para, NULL);
+	}
+#endif
 
 	for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 	{
@@ -97,7 +118,12 @@ void startAllPcs(void)
 		{
 			flag = 1;
 			printf("LCD[%d] 立即启动 startAllPcs lcd_state[i]=%d\n", i, lcd_state[i]);
-			lcd_state[i] = LCD_PCS_START;
+			
+			if (g_emu_op_para.err_num != 0)
+				lcd_state[i] = LCD_PCS_START;
+			else
+				lcd_state[i] = LCD_PCS_START_ALL;
+			// lcd_state[i] = LCD_PCS_START;
 			curTaskId[i] = 0;
 			curPcsId[i] = 0;
 		}
@@ -108,9 +134,8 @@ void startAllPcs(void)
 			g_emu_action_lcd.flag_start_stop_lcd[i] = 1;
 		}
 	}
-
-	//		pbackBmsFun(_BMS_YK_, (void *)flag);
 }
+	//		pbackBmsFun(_BMS_YK_, (void *)flag);
 
 void stopAllPcs(void)
 {
@@ -134,12 +159,12 @@ void stopAllPcs(void)
 			g_emu_action_lcd.flag_start_stop_lcd[i] = 2;
 		}
 	}
-//	pbackBmsFun(_BMS_YK_, (void *)flag);
+	//	pbackBmsFun(_BMS_YK_, (void *)flag);
 }
 
 int handleYkFromEms(YK_PARA *pYkPara)
 {
-	unsigned char item; //项目编号
+	unsigned char item; // 项目编号
 	int i;
 	item = pYkPara->item;
 	printf("aaaaaaaaaa item:%d \n", (int)pYkPara->item);
@@ -147,13 +172,18 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	switch (item)
 	{
 	case Emu_Startup:
+	{
 		printf("handleYkFromEms startAllPcs\n");
 		startAllPcs();
-		break;
+	}
+	break;
 	case Emu_Stop:
+	{
+		printf("stopAllPcs \n");
 		stopAllPcs();
-		break;
-	case EMS_PW_SETTING: //有功功率
+	}
+	break;
+	case EMS_PW_SETTING: // 有功功率
 	case ONE_FM_PW_SETTING:
 	{
 
@@ -164,18 +194,24 @@ int handleYkFromEms(YK_PARA *pYkPara)
 		if (g_emu_op_para.OperatingMode == PQ)
 		{
 			g_emu_op_para.pq_pw_total_last = g_emu_op_para.pq_pw_total;
-			g_emu_op_para.pq_pw_total = (int)tem;
+			g_emu_op_para.pq_pw_total = (int)tem * 10;
 			printf("·········PQ···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
 		else
 		{
 			g_emu_op_para.vsg_pw_total_last = g_emu_op_para.vsg_pw_total;
-			g_emu_op_para.vsg_pw_total = (int)tem;
+			g_emu_op_para.vsg_pw_total = (int)tem * 10;
 			printf("·········VSG···有功功率：%d\n", g_emu_op_para.pq_pw_total);
 		}
-		// if (g_emu_op_para.flag_start == 0 || tem == 0)
-		// {
-
+		//////////////////////////////////////////
+		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
+		{
+			if (modbus_sockt_state[i] == STATUS_OFF)
+				continue;
+			lcd_state[i] = LCD_PQ_STP_PWVAL_ALL;
+		}
+/////////////////////////////////////////////////////
+#if 0
 		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 		{
 			if (modbus_sockt_state[i] == STATUS_OFF)
@@ -184,15 +220,16 @@ int handleYkFromEms(YK_PARA *pYkPara)
 			{
 				curTaskId[i] = 0;
 				curPcsId[i] = 0;
-				if (g_emu_op_para.OperatingMode == PQ && g_emu_op_para.pq_pw_total_last != g_emu_op_para.pq_pw_total)
+				// if (g_emu_op_para.OperatingMode == PQ && g_emu_op_para.pq_pw_total_last != g_emu_op_para.pq_pw_total)
+				if (g_emu_op_para.OperatingMode == PQ)
 				{
-					printf("61850 PQ模式有功功率下发 g_emu_op_para.pq_pw_total_last=%d g_emu_op_para.pq_pw_total=%d \n", g_emu_op_para.pq_pw_total_last,g_emu_op_para.pq_pw_total);
+					printf("61850 PQ模式有功功率下发 g_emu_op_para.pq_pw_total_last=%d g_emu_op_para.pq_pw_total=%d \n", g_emu_op_para.pq_pw_total_last, g_emu_op_para.pq_pw_total);
 					lcd_state[i] = LCD_PQ_STP_PWVAL;
 				}
 				else if (g_emu_op_para.OperatingMode == VSG && g_emu_op_para.vsg_pw_total_last != g_emu_op_para.vsg_pw_total)
 				{
 					printf("61850 VSG模式有功功率下发\n");
-					printf("61850 PQ模式有功功率下发 g_emu_op_para.vsg_pw_total_last=%d g_emu_op_para.vsg_pw_total=%d \n", g_emu_op_para.vsg_pw_total_last,g_emu_op_para.vsg_pw_total);
+					printf("61850 PQ模式有功功率下发 g_emu_op_para.vsg_pw_total_last=%d g_emu_op_para.vsg_pw_total=%d \n", g_emu_op_para.vsg_pw_total_last, g_emu_op_para.vsg_pw_total);
 
 					lcd_state[i] = LCD_VSG_PW_VAL;
 				}
@@ -201,13 +238,14 @@ int handleYkFromEms(YK_PARA *pYkPara)
 			}
 			else
 			{
-				printf("收到有功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n",i,tem);
+				printf("收到有功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n", i, tem);
 				g_emu_adj_lcd.flag_adj_pw_lcd_cfg[i] = 1; // Lcd收到有功功率调节要求
 			}
 		}
+#endif
 	}
 	break;
-	case EMS_QW_SETTING: //无功功率
+	case EMS_QW_SETTING: // 无功功率
 	case ONE_FM_QW_SETTING:
 	{
 		float tem;
@@ -253,14 +291,14 @@ int handleYkFromEms(YK_PARA *pYkPara)
 			}
 			else
 			{
-				printf("收到无功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n",i,tem);
+				printf("收到无功功率调节要求LCD[%d]（第一次启动完成已经完成） tem=%f \n", i, tem);
 				g_emu_adj_lcd.flag_adj_qw_lcd_cfg[i] = 1; // Lcd收到无功功率调节要求
 			}
 		}
 	}
 
 	break;
-	case EMS_SET_MODE: //系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
+	case EMS_SET_MODE: // 系统未启动下改变运行模式：从PQ-->VSG 或VSG-->PQ
 	{
 		int tem;
 		tem = *(int *)pYkPara->data;
@@ -303,7 +341,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	}
 
 	break;
-	case EMS_PQ_MODE: //系统为PQ工作模式下，设置工作模式为恒功率模式或恒流模式
+	case EMS_PQ_MODE: // 系统为PQ工作模式下，设置工作模式为恒功率模式或恒流模式
 	{
 		int tem;
 		tem = *(int *)pYkPara->data;
@@ -323,7 +361,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	}
 
 	break;
-	case Parallel_Away_conversion_en: //并转离切换使能
+	case Parallel_Away_conversion_en: // 并转离切换使能
 	{
 		unsigned char tem;
 		tem = pYkPara->data[0];
@@ -344,7 +382,7 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	}
 
 	break;
-	case Away_Parallel_conversion_en: //离转并切换使能
+	case Away_Parallel_conversion_en: // 离转并切换使能
 	{
 		unsigned char tem;
 		tem = pYkPara->data[0];
@@ -403,6 +441,7 @@ int ckeckCurPcsStartEn(int lcdid, int pcsid)
 
 	return 0;
 }
+
 int handlePcsYkFromEms(YK_PARA *pYkPara)
 {
 	unsigned char sn;
@@ -410,8 +449,24 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	sn = pYkPara->item;
 
 	printf("aaaaaaaaaaaa__sn:%d\n", sn);
-	int lcdid = (sn - 1) / 6;
-	int pcsid = (sn - 1) % 6;
+	int lcd_pcs_id = 0, lcdid = 0, pcsid = 0;
+	int i;
+	// int lcdid = (sn - 1) / 6;
+	// int pcsid = (sn - 1) % 6;
+
+	for (i = 0; i < MAX_PCS_NUM; i++)
+	{
+		lcd_pcs_id += pPara_Modtcp->pcsnum[i];
+		if (sn > lcd_pcs_id)
+		{
+			lcdid++;
+		}
+		else
+		{
+			pcsid = sn - (lcd_pcs_id - pPara_Modtcp->pcsnum[i]);
+			break;
+		}
+	}
 
 	printf("bbbbbbbbbbbb__lcdid:%d\n", lcdid);
 	printf("cccccccccccc__pcsid:%d\n", pcsid);
@@ -420,13 +475,14 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	// 	goto endPcsYk;
 	// }
 
-	// ret = ckeckCurPcsStartEn(lcdid, pcsid);
+	// int ret = (lcdid, pcsid);
 
 	// if (ret != 0)
 	// {
 	// 	printf("lcdid=%d pcsid=%d 不满足启动条件，ret=%d\n", lcdid, pcsid, ret);
-	// 	goto endPcsYk;
+	// 	return;
 	// }
+
 	printf("lcdid=%d pcsid=%d 满足启动条件，等待启动\n", lcdid, pcsid);
 	// if (lcd_state[lcdid] == LCD_RUNNING)
 	// {
@@ -443,9 +499,9 @@ int handlePcsYkFromEms(YK_PARA *pYkPara)
 	flag = 1;
 	g_emu_action_lcd.flag_start_stop_lcd[lcdid] = 3;
 	if (pYkPara->data[0] == 0)
-		g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid] = 0xaa;
+		g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid - 1] = 0xaa;
 	else
-		g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid] = 0x55;
+		g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid - 1] = 0x55;
 
 	// }
 
@@ -460,12 +516,12 @@ int findCurPcsForStart(int lcdid, int pcsid)
 
 	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
 	{
-		if (g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid] == 0)
+		if (g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[i] == 0 && g_emu_status_lcd.status_pcs[lcdid].flag_err[i] == 0)
 		{
 			break;
 		}
 		else
-		  	printf("lcdid=%d, pcsid=%d 已经启动\n", lcdid, pcsid); 
+			printf("lcdid=%d, pcsid=%d 已经启动 或发生故障\n", lcdid, pcsid);
 	}
 	if (i == pPara_Modtcp->pcsnum[lcdid])
 	{
@@ -486,10 +542,12 @@ int findCurPcsForStop(int lcdid, int pcsid)
 	printf("findCurPcsForStop lcdid=%d, pcsid=%d\n", lcdid, pcsid);
 	for (i = pcsid; i < pPara_Modtcp->pcsnum[lcdid]; i++)
 	{
-		if (g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid] == 1)
+		if (g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[i] == 1)
 		{
 			break;
 		}
+		else
+			printf("findCurPcsForStop 没有启动 lcdid=%d, pcsid=%d  err=%d\n", lcdid, pcsid, g_emu_status_lcd.status_pcs[lcdid].flag_err[i]);
 	}
 	if (i == pPara_Modtcp->pcsnum[lcdid])
 	{
@@ -508,25 +566,21 @@ int findCurPcsForStop(int lcdid, int pcsid)
 
 void printf_pcs_soc(void)
 {
-	int i;
+	int i, j;
 	if (para_bams.portnum == 0)
 		return;
-	for (i = 0; i < g_emu_op_para.num_pcs_bms[0]; i++)
+	for (j = 0; j < pPara_Modtcp->bams_num; j++)
 	{
-		printf(" %d ", bmsdata_bak[0][i].soc);
+		for (i = 0; i < g_emu_op_para.num_pcs_bms[j]; i++)
+		{
+			printf(" %d ", bmsdata_bak[j][i].soc);
+		}
 	}
-	printf("\n");
 
-	if (para_bams.portnum == 1)
-		return;
-	for (i = 0; i < g_emu_op_para.num_pcs_bms[1]; i++)
-	{
-		printf(" %d ", bmsdata_bak[1][i].soc);
-	}
 	printf("\n");
 }
 
-int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
+int countPwAdj(int lcdid, int pcsid, short PW, int flag_soc)
 {
 	int i;
 	unsigned short soc_ave = g_emu_op_para.soc_ave;
@@ -535,11 +589,12 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 	short dt_soc = 0;
 	int pw, dtpw;
 
+	printf("test asdfdsf  PW:%d\n", PW);
 	if ((total_pcsnum == 0) || (total_pcsnum - g_emu_op_para.err_num) == 0)
 	{
 		return 1;
 	}
-
+	printf("test asdfdsf222\n");
 	if (g_emu_op_para.OperatingMode == PQ)
 	{
 		if (g_emu_op_para.pq_pw_total == 0)
@@ -549,16 +604,18 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 			else
 			{
 				pw = 0;
+				printf("有功功率直接进行调成0\n");
 				goto settingAdjPw;
 			}
 		}
-		if((total_pcsnum - g_emu_op_para.err_num) !=0)
+		if ((total_pcsnum - g_emu_op_para.err_num) != 0)
 		{
-             pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+			pw = (g_emu_op_para.pq_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+			// pw = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
 		}
-		   
+
 		else
-		   pw = 0;
+			pw = 0;
 	}
 	else if (g_emu_op_para.OperatingMode == VSG)
 	{
@@ -572,12 +629,13 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 				goto settingAdjPw;
 			}
 		}
-		if((total_pcsnum - g_emu_op_para.err_num) !=0)
-		   pw = (g_emu_op_para.vsg_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
-		else 
-		   pw=0;
+		if ((total_pcsnum - g_emu_op_para.err_num) != 0)
+			pw = (g_emu_op_para.vsg_pw_total * 10) / (total_pcsnum - g_emu_op_para.err_num);
+		// pw = g_emu_op_para.vsg_pw_total / (total_pcsnum - g_emu_op_para.err_num);
+		else
+			pw = 0;
 	}
-
+	printf("test asdfdsf11\n");
 
 	if (flag_soc == 1)
 	{
@@ -585,10 +643,9 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 		// printf("功率调节目标值 lcdid=%d  pcsid=%d  pw=%d g_emu_op_para.pq_pw_total=%d num=%d\n",lcdid,pcsid,pw,g_emu_op_para.pq_pw_total,(total_pcsnum - g_emu_op_para.err_num));
 
 		// pw /= (total_pcsnum);
-		printf("功率调节目标值 lcdid=%d  pcsid=%d  pw=%d g_emu_op_para.pq_pw_total=%d pcsnum=%d errnum=%d\n",lcdid,pcsid,pw,g_emu_op_para.pq_pw_total,
-		total_pcsnum ,g_emu_op_para.err_num);
+		printf("功率调节目标值 lcdid=%d  pcsid=%d  pw=%d g_emu_op_para.pq_pw_total=%d pcsnum=%d errnum=%d\n", lcdid, pcsid, pw, g_emu_op_para.pq_pw_total,
+			   total_pcsnum, g_emu_op_para.err_num);
 
-	
 		for (i = 0; i < lcdid; i++)
 		{
 			id += pPara_Modtcp->pcsnum[i];
@@ -604,18 +661,18 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 		else
 			id_bms = 0;
 		soc = bmsdata_bak[id_bms][id].soc;
-		if(pw<0)
-			soc=soc-soc_ave;
-		else if(pw>0)
-			soc=soc_ave-soc;
-		//dt_soc = soc_ave - soc;
+		if (pw < 0)
+			soc = soc - soc_ave;
+		else if (pw > 0)
+			soc = soc_ave - soc;
+		// dt_soc = soc_ave - soc;
 		pw *= (100000 + dt_soc * pPara_Modtcp->balance_rate);
 		pw /= 100000;
 	}
-
-	dtpw = pw - PW;
+	dtpw = pw - (PW * 10);
+	printf("test asdfdsf22222\n");
 	printf("计算出当前需要调节的有功lcd[%d] pcsid[%d] qw=%d 测量值PW=%d 差值=%d\n", lcdid, pcsid, pw, PW, dtpw);
-	if (dtpw >= 10 || dtpw <= -10)
+	if (dtpw >= 30 || dtpw <= -30)
 	{
 	settingAdjPw:
 		g_emu_adj_lcd.flag_adj_pw_lcd[lcdid] = 1;
@@ -626,7 +683,7 @@ int countPwAdj(int lcdid, int pcsid, int PW, int flag_soc)
 endAdjPw:
 	return 0;
 }
-int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc)
+int countQwAdj(int lcdid, int pcsid, short QW, int flag_soc)
 {
 	int i;
 	unsigned short soc_ave = g_emu_op_para.soc_ave;
@@ -693,7 +750,7 @@ int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc)
 
 	dtqw = qw - QW;
 	printf("计算出当前需要调节的无功lcd[%d] pcsid[%d] qw=%d 测量值QW=%d 差值=%d\n", lcdid, pcsid, qw, QW, dtqw);
-	if (dtqw > 10 || dtqw < -10)
+	if (dtqw > 30 || dtqw < -30)
 	{
 	settingAdjQw:
 		g_emu_adj_lcd.flag_adj_qw_lcd[lcdid] = 1;
@@ -704,7 +761,6 @@ int countQwAdj(int lcdid, int pcsid, int QW, int flag_soc)
 endAdjQw:
 	return 0;
 }
-
 
 void printf_adj_qw(int lcdid)
 {
@@ -911,9 +967,147 @@ int findCurPcsidForAdjQw(int id_thread)
 	return 1;
 }
 
-void initEmuParaData(void) //初始化EMU参数和数据
+void initEmuParaData(void) // 初始化EMU参数和数据
 {
 	memset((unsigned char *)&g_emu_adj_lcd, 0, sizeof(EMU_ADJ_LCD));
 	memset((unsigned char *)&g_emu_action_lcd, 0, sizeof(EMU_ACTION_LCD));
 	memset((unsigned char *)&g_emu_status_lcd, 0, sizeof(EMU_STATUS_LCD));
+
+	memset((unsigned char *)&bmsdata_cur, 0, sizeof(BmsData_Newest));
+	memset((unsigned char *)&bmsdata_bak, 0, sizeof(BmsData_Newest));
 }
+
+// int lcdPcsCount(unsigned char bmsid,unsigned char pcsid_bms,unsigned char *pLcdid,unsigned char *pLcd_pcs_id){
+// 	int i;
+// 	unsigned char lcdid=0,lcd_pcs_id=0;
+// 	if(bmsid == 0){
+// 		for(i=0;i<MAX_PCS_NUM;i++){
+// 			lcd_pcs_id +=pPara_Modtcp->pcsnum[i];
+// 			if((pcsid_bms+1) > lcd_pcs_id){
+// 				lcdid++;
+// 			}else{
+// 				lcd_pcs_id = (pcsid_bms+1)-(lcd_pcs_id-pPara_Modtcp->pcsnum[i]);
+// 				break;
+// 			}
+// 		}
+// 	}else if(bmsid == 1){
+// 		unsigned char pcsid_bms1 = (pcsid_bms+1) + 14;
+// 		for(i=0;i<MAX_PCS_NUM;i++){
+// 			lcd_pcs_id +=pPara_Modtcp->pcsnum[i];
+// 			if(pcsid_bms1 > lcd_pcs_id){
+// 				lcdid++;
+// 			}else{
+// 				lcd_pcs_id = pcsid_bms1-(lcd_pcs_id-pPara_Modtcp->pcsnum[i]);
+// 				break;
+// 			}
+// 		}
+// 	}
+// 	*pLcdid=lcdid;
+// 	*pLcd_pcs_id=lcd_pcs_id-1;
+// 	return 0;
+// }
+
+// int checkBmsStatus(int lcdid, int pcsid,int sn){
+// int bmsid,pcsid_bms;
+// int i,j;
+// if(sn<14){
+// 	bmsid=0;
+// 	pcsid_bms=sn;
+// }else if(sn>=14){
+// 	bmsid=1;
+// 	pcsid_bms=sn-14;
+// }
+
+// printf("tttaaa bmsid:%d pcsid_bms:%d sn:%d\n",bmsid,pcsid_bms,sn);
+// int all_stop_flag;
+
+// // 总需求1停机
+// if(bmsdata_bak[bmsid][pcsid_bms].if_sys_fault == 1){
+
+// 	for(i=0;i<MAX_LCD_NUM;i++){
+// 		for(j=0;j<MAX_PCS_NUM;j++){
+// 			if(g_emu_status_lcd.status_pcs[i].flag_start_stop[j] != 1){
+// 				all_stop_flag=1;
+// 			}
+// 			else{
+// 				all_stop_flag=0;
+// 				break;
+// 			}
+// 		}
+// 	}
+// 	if(all_stop_flag==1)
+// 		return 31;
+
+// 	printf("bms发停机指令 总需求1停机，对所有PCS发停机指令;\n");
+// 	stopAllPcs();
+// }
+
+// // // 电池分系统n通讯心跳不更新超过10s（通讯中断），对所有PCS发停机指令;
+// if(bmsdata_cur[bmsid][pcsid_bms].heartbeat == bmsdata_bak[bmsid][pcsid_bms].heartbeat){
+// 	if(bams_heartbeat_timer_flag[bmsid][pcsid_bms] == 0){
+// 		bams_heartbeat_timer[bmsid][pcsid_bms] = 900;
+// 		bams_heartbeat_timer_flag[bmsid][pcsid_bms] = 1;
+// 	}
+// 	if(bams_heartbeat_timer[bmsid][pcsid_bms] <= 0){
+// 		for(i=0;i<MAX_LCD_NUM;i++){
+// 			for(j=0;j<MAX_PCS_NUM;j++){
+// 				if(g_emu_status_lcd.status_pcs[i].flag_start_stop[j] == 0){
+// 					all_stop_flag=1;
+// 				}
+// 				else{
+// 					all_stop_flag=0;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if(all_stop_flag==1)
+// 				return 0;
+
+// 			printf("bms发停机指令 电池分系统n通讯心跳不更新超过10s（通讯中断），对所有PCS发停机指令;\n");
+// 			stopAllPcs();
+// 		}
+// }else{
+// 		bams_heartbeat_timer[bmsid][pcsid_bms] = 0;
+// 		bams_heartbeat_timer_flag[bmsid][pcsid_bms] = 0;
+// }
+
+/*
+	1.单体正常充放电截止电压区间 2.90V~3.55V，PCS 检测到电池分系统单体最高电压达到3.6V，PCS 应停机或封脉冲；电池分系统单体,最高电压达到 3.63V，PCS 应关机；
+	2.单体正常充放电截止电压区间 2.90V~3.55V，PCS 检测到电池分系统单体最低电压达到2.85V，PCS 应停机或封脉冲；电池分系统单体,最低电压达到 2.75V，PCS 应关机；
+*/
+// float single_mx_vol =  (float)bmsdata_bak[bmsid][pcsid_bms].single_mx_vol/1000;
+// float single_mi_vol =  (float)bmsdata_bak[bmsid][pcsid_bms].single_mi_vol/1000;
+
+// printf("tttaaa bms 最高单体电压：%f  最低单体电压：%f lcdid:%d pcsid:%d flag_start_stop:%d\n",single_mx_vol,single_mi_vol,lcdid,pcsid,g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid-1]);
+// if( single_mx_vol>= 3.41 || single_mi_vol <= 2.9){
+
+// 	printf("tttaaa bmsid:%d pcsid_bms:%d g_emu_status_lcd.status_pcs[%d].flag_start_stop[%d]:%d \n",bmsid,pcsid_bms,lcdid,pcsid,g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid-1]);
+// 	if(g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid-1] != 1)
+// 		return 21;
+
+// 	printf("bms发停机指令 单体正常充放电截止电压区间 向对应的PCS发停机指令 lcdid：%d  lcd_pcs_id:%d \n",lcdid,pcsid-1);
+// 	g_emu_action_lcd.flag_start_stop_lcd[lcdid] = 3;
+// 	g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid-1] = 0xaa;
+// }
+
+// //电池分系统n状态为1、4、5、9、255时（停机、待机、故障、关机、调试中），向对应的PCS发停机指令
+// if(bmsdata_bak[bmsid][pcsid_bms].sys_status == 1 || bmsdata_bak[bmsid][pcsid_bms].sys_status == 4 || bmsdata_bak[bmsid][pcsid_bms].sys_status == 5 \
+	// || bmsdata_bak[bmsid][pcsid_bms].sys_status == 9 || bmsdata_bak[bmsid][pcsid_bms].sys_status == 255 ){
+// 	if(g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid-1] != 1)
+// 		return 23;
+
+// 	printf("bms发停机指令 电池分系统n状态为1、4、5、9、255时（停机、待机、故障、关机、调试中），向对应的PCS发停机指令\n");
+// 	g_emu_action_lcd.flag_start_stop_lcd[lcdid] = 3;
+// 	g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid-1] = 0xaa;
+// }
+
+// // 电池分系统n需求为0时（PCS禁止充放电、停机）
+// if(bmsdata_bak[bmsid][pcsid_bms].sys_need == 0){
+// 	if(g_emu_status_lcd.status_pcs[lcdid].flag_start_stop[pcsid-1] != 1)
+// 		return 24;
+
+// 	printf("bms发停机指令 电池分系统n需求为0时（PCS禁止充放电、停机）\n");
+// 	g_emu_action_lcd.flag_start_stop_lcd[lcdid] = 3;
+// 	g_emu_action_lcd.action_pcs[lcdid].flag_start_stop_pcs[pcsid-1] = 0xaa;
+// }
+// }

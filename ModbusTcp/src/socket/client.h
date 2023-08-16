@@ -29,6 +29,7 @@ extern char modbus_sockt_state[];
 extern int modbus_client_sockptr[];
 extern unsigned int modbus_sockt_timer[];
 
+
 void CreateThreads(void);
 
 #endif //_CLIENT_H_

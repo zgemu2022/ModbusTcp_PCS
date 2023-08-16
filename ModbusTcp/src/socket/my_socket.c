@@ -18,30 +18,30 @@ int _socket_client_connect(int sockfd, struct sockaddr *serv_addr, int timeout)
 	struct timeval tm;
 	fd_set set;
 	len = sizeof(int);
-	printf("使用客户端连接服务器  sockfd=%d", sockfd);
+	printf("lcd模块 使用客户端连接服务器  sockfd=%d", sockfd);
 	if (sockfd < 0 || timeout < 0)
 		return -1;
 	ioctl(sockfd, FIONBIO, &ul); /*  设置为非阻塞模式*/
-	printf("设置为非阻塞模式");
+	printf("lcd模块 设置为非阻塞模式");
 	if (connect(sockfd, /*(struct sockaddr *)&*/ serv_addr, sizeof(struct sockaddr_in)) == -1)
 	{
 		tm.tv_sec = timeout;
 		tm.tv_usec = 0;
 		FD_ZERO(&set);
 		FD_SET(sockfd, &set);
-		printf("等待  等待 select"); // comport
+		printf("lcd模块 等待  等待 select"); // comport
 		if (select(sockfd + 1, NULL, &set, NULL, &tm) > 0)
 		{
 			getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, (socklen_t *)&len);
 			if (error == 0)
 			{
-				printf("连接成功！！！！！");
+				printf("lcd模块 连接成功！！！！！");
 				ret = 0;
 			}
 			else
 			{
 				close(sockfd);
-				printf("对方拒绝  %s:%d socket connect fail error:%s! \n", __FILE__, __LINE__, strerror(error));
+				printf("lcd模块 对方拒绝  %s:%d socket connect fail error:%s! \n", __FILE__, __LINE__, strerror(error));
 				if (error != ETIMEDOUT)
 				{
 					sleep(timeout); /* 防止远方拒绝时直接返回, 未等待30miao就跳出了*/
@@ -59,11 +59,11 @@ int _socket_client_connect(int sockfd, struct sockaddr *serv_addr, int timeout)
 	else
 	{
 		close(sockfd);
-		printf("连接套接字失败！！！！！！！！！！！\r\n");
+		printf("lcd模块 连接套接字失败！！！！！！！！！！！\r\n");
 		ret = 0;
 	}
 	ul = 0;
-	printf("查看连接结果   ret=%d\r\n", ret);
+	printf("lcd模块 查看连接结果   ret=%d\r\n", ret);
 	ioctl(sockfd, FIONBIO, &ul); /* 设置为阻塞模式*/
 	return ret;
 }
@@ -76,13 +76,13 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 
 	if (sock == NULL)
 	{
-		printf("socket 结构为空！！！！");
+		printf("lcd模块 socket 结构为空！！！！");
 		return -1;
 	}
 
-	printf("建立Socket第一步 获取套接字");
+	printf("lcd模块 建立Socket第一步 获取套接字");
 	iType = (sock->protocol == UDP) ? SOCK_DGRAM : SOCK_STREAM;
-	printf("建立Socket第一步 获取套接字：选择TCU或UDP  iType=%d\r\n", iType);
+	printf("lcd模块 建立Socket第一步 获取套接字：选择TCU或UDP  iType=%d\r\n", iType);
 	/*   一、获取套接字 */
 	iSock = socket(AF_INET, iType, 0);
 	if (iSock < 0)
@@ -91,7 +91,7 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 		return -2;
 	}
 	/* 二、准备通信地址 */
-	printf("建立Socket第二步 准备通信地址");
+	printf("lcd模块 建立Socket第二步 准备通信地址");
 	ServerAddr.sin_family = AF_INET;
 	ServerAddr.sin_port = sock->port;		 //监视的端口号
 	ServerAddr.sin_addr.s_addr = sock->addr; //本地IP
@@ -104,7 +104,7 @@ int _socket_client_init(_SERVER_SOCKET *sock)
 		close(iSock);
 		return -3;
 	}
-	printf("套接字成功连接\r\n");
+	printf("lcd模块 套接字成功连接\r\n");
 	sock->fd = iSock;
 	return 0;
 }

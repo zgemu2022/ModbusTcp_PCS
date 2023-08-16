@@ -6,7 +6,9 @@
 #include "client.h"
 #include <string.h>
 #include <malloc.h>
-
+#include "output.h"
+#include "importPlc.h"
+#include "debug_lcd_pcs.h"
 CallbackYK pbackBmsFun = NULL;
 // int modbus_tcp_main(void *para_app)
 // {
@@ -27,7 +29,9 @@ CallbackYK pbackBmsFun = NULL;
 int modbus_tcp_main(void *para_app)
 {
 	int i = 0;
-	*pconfig = *(pconf *)para_app;
+	PARA_FROM_EMU_APP *p = (PARA_FROM_EMU_APP *)para_app;
+	fs_debug_lcd = p->writelog;
+	pconfig = p->pconfig;
 
 	pPara_Modtcp->type = 1;
 	for (i = 0; i < pconfig->lcd_num; i++)
@@ -41,13 +45,27 @@ int modbus_tcp_main(void *para_app)
 	pPara_Modtcp->lcdnum_real = 0;
 	pPara_Modtcp->lcdnum_err = 0;
 	pPara_Modtcp->balance_rate = pconfig->balance_rate;
-	printf("LCD 模块启动 系统定义最大功率=%d\n", pconfig->sys_max_pw);
+	pPara_Modtcp->Maximum_individual_voltage = pconfig->Maximum_individual_voltage;
+	pPara_Modtcp->Minimum_individual_voltage = pconfig->Minimum_individual_voltage;
 
+	pPara_Modtcp->bams_num = pconfig->bams_num;
+	lcd_debug("LCD 模块启动 系统定义最大功率111=%d\n", pconfig->sys_max_pw);
+	lcd_debug("LCD 模块启动 最高单体电压=%d  最低单体电压=%d\n", pPara_Modtcp->Maximum_individual_voltage, pPara_Modtcp->Minimum_individual_voltage);
+	lcd_debug("LCD 模块启动 最高单体电压=%d  最低单体电压=%d\n", pconfig->Maximum_individual_voltage, pconfig->Minimum_individual_voltage);
+
+	pcs_debug("BAMS 的个数 pPara_Modtcp->bams_num=%d\n", pPara_Modtcp->bams_num);
+
+	sprintf(_tmp_print_str, "BAMS 的个数 pPara_Modtcp->bams_num=%d\n", pPara_Modtcp->bams_num);
+	fs_debug_lcd(_tmp_print_str);
+
+	// bams_Init();
+	Plc_Init();
+	initInterface61850();
 	CreateThreads();
 	return 0;
 }
 
-int SubscribeLcdData(unsigned char type, outData2Other pfun) //订阅pcs数据
+int SubscribeLcdData(unsigned char type, outData2Other pfun) // 订阅pcs数据
 {
 	printf("正在订阅pcs数据 type=%d！！！！！\n", type);
 	post_list_t *note = (post_list_t *)malloc(sizeof(post_list_t));
@@ -76,7 +94,6 @@ int ykOrderFromBms(unsigned char type, YK_PARA *pYkPara, CallbackYK pfun)
 		// handleYkFromEms(pYkPara->item, pYkPara->data[0]);
 		break;
 	case _PCS_YK_:
-
 		printf("BMS模块调用PCS_YK\n");
 		handlePcsYkFromEms(pYkPara);
 		break;
