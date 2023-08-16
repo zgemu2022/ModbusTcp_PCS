@@ -37,7 +37,7 @@ typedef struct
 	char server_ip[6][64];
 	unsigned short server_port[6];
 	unsigned short balance_rate;
-
+	int sys_max_pw;
 	// BMS参数 用于lcd模块做判断对pcs停机
 	int Maximum_individual_voltage; // 电池分系统 n 单体最高电压
 	int Minimum_individual_voltage; // 电池分系统 n 单体最低电压

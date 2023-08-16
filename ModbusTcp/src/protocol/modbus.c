@@ -365,7 +365,7 @@ int StartPcsFun10(int id_thread)
 int SetLcdPWFun10(int id_thread)
 {
 	unsigned short regaddr_start; // = pq_pcspw_set[curPcsId][curTaskId];
-	unsigned short val;
+	short val;
 	unsigned char sendbuf[256];
 	int pos = 0;
 	int i;
@@ -377,11 +377,10 @@ int SetLcdPWFun10(int id_thread)
 		val = g_emu_op_para.pq_pw_total / (total_pcsnum - g_emu_op_para.err_num);
 	else
 		val = 0;
-
-	if ((short)val > 1800)
-		val = 1800;
-	else if ((short)val < -1800)
-		val = -1800;
+	if (val > pPara_Modtcp->sys_max_pw)
+		val = pPara_Modtcp->sys_max_pw;
+	if (val < -pPara_Modtcp->sys_max_pw)
+		val = -pPara_Modtcp->sys_max_pw;
 
 	printf("10指令下发 val:%d val:%d\n", val, (short)val);
 	sendbuf[pos++] = (unsigned char)(g_num_frame[id_thread] / 256);

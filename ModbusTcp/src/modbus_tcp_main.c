@@ -47,7 +47,7 @@ int modbus_tcp_main(void *para_app)
 	pPara_Modtcp->balance_rate = pconfig->balance_rate;
 	pPara_Modtcp->Maximum_individual_voltage = pconfig->Maximum_individual_voltage;
 	pPara_Modtcp->Minimum_individual_voltage = pconfig->Minimum_individual_voltage;
-
+	pPara_Modtcp->sys_max_pw = pconfig->sys_max_pw;
 	pPara_Modtcp->bams_num = pconfig->bams_num;
 	lcd_debug("LCD 模块启动 系统定义最大功率111=%d\n", pconfig->sys_max_pw);
 	lcd_debug("LCD 模块启动 最高单体电压=%d  最低单体电压=%d\n", pPara_Modtcp->Maximum_individual_voltage, pPara_Modtcp->Minimum_individual_voltage);
