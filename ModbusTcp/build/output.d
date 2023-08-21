@@ -1,4 +1,4 @@
-/mnt/hgfs/off-zgemu/ModbusTcp_PCS/ModbusTcp/build/output.o: \
+/mnt/hgfs/emu0817/ModbusTcp_PCS/ModbusTcp/build/output.o: \
  src/protocol/output.c src/protocol/output.h \
  src/include/modbus_tcp_main.h src/include/share_type.h \
  src/include/lib_time.h src/protocol/logicAndControl.h \

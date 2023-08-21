@@ -28,6 +28,7 @@ LCD_YC_YX_DATA g_YxData[(MAX_PCS_NUM * MAX_LCD_NUM)];
 LCD_YC_YX_DATA g_ZjyxData;
 LCD_YC_YX_DATA g_ZjycData;
 unsigned char g_lcdyx_err_status[6] = {0, 0, 0, 0, 0, 0};
+unsigned char g_lcd_need_status[6] = {0, 0, 0, 0, 0, 0};
 // static void outputdata(unsigned char libName,unsigned char type,unsigned char ifcomp)
 static void outputdata(unsigned char type, int id)
 {
@@ -93,6 +94,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 	static int flag_recv_lcd = 0;
 	short pw, qw, aw;
 	unsigned short temp_pw, temp_qw, temp_aw;
+	int flag_recv = 0;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
@@ -191,7 +193,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 				// g_emu_adj_lcd.flag_adj_qw_lcd_cfg[id_thread] = 0;
 			}
 		}
-
+		flag_recv = 1;
 		flag_recv_lcd |= (1 << id_thread);
 		flag_recv_pcs[id_thread] = 0;
 	}
@@ -204,7 +206,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 		// if (setStatusStart_Stop() == 0)
 		// 	setStatusPw_Qw();
 	}
-	return 0;
+	return flag_recv;
 }
 
 int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
@@ -217,6 +219,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 	static unsigned char lcdyx_err_status[6] = {0, 0, 0, 0, 0, 0};
 	unsigned short temp;
 	unsigned char b1, b2;
+	int flag_recv = 0;
 	for (i = 0; i < id_thread; i++)
 	{
 		id += pPara_Modtcp->pcsnum[i];
@@ -263,14 +266,13 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 
 		if (temp == 0 || ((temp & (1 << bFaultStatus)) != 0))
 		{
-			printf("lcdid=%d pcsid=%d 有故障 temp=%x\n", id_thread, pcsid, temp);
+			sys_debug("lcdid=%d pcsid=%d 有故障 temp=%x\n", id_thread, pcsid, temp);
 			g_emu_status_lcd.status_pcs[id_thread].flag_err[pcsid - 1] = 1;
 			if (g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[pcsid - 1] == 1)
 			{
 
 				lcdyx_err_status[id_thread] |= (pcsid - 1);
-				printf("lcdid=%d pcsid=%d 有故障 temp=%x 需要停机\n", id_thread, pcsid, temp);
-				time_now();
+				sys_debug("lcdid=%d pcsid=%d 有故障 temp=%x 需要停机\n", id_thread, pcsid, temp);
 			}
 		}
 		else
@@ -288,6 +290,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 		g_lcdyx_err_status[id_thread] = lcdyx_err_status[id_thread];
 
 		lcdyx_err_status[id_thread] = 0;
+		flag_recv = 1;
 	}
 
 	// printf("pcsid=%d flag_recv_pcs[%d]=%x flag_RecvNeed_PCS[%d]=%x flag_recv_lcd=%x g_flag_RecvNeed_LCD=%x\n ", pcsid, id_thread, flag_recv_pcs[id_thread], id_thread, flag_RecvNeed_PCS[id_thread], flag_recv_lcd, g_flag_RecvNeed_LCD);
@@ -310,7 +313,7 @@ int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len)
 			flag_recv_pcs[i] = 0;
 		flag_recv_lcd = 0;
 	}
-	return 0;
+	return flag_recv;
 }
 
 int SaveZjyxData(int id_thread, unsigned short *pzjyx, unsigned char len)

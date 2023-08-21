@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.json": "json",
+    "*.scss": "scss",
+    "modbus.h": "c"
+  }
+}

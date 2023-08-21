@@ -24,8 +24,9 @@
 #define BOX_SwitchD2_OFF 13			  // 开关柜D2分闸
 #define EMS_PW_SETTING 14			  // 有功功率
 #define EMS_QW_SETTING 15			  // 无功功率
-#define ONE_FM_PW_SETTING 16		  // 一次调频有功功率
-#define ONE_FM_QW_SETTING 17		  // 一次调频无功功率
+#define POWER_FACTOR_SETTING 16		  // 功率因数设置
+#define ONE_FM_PW_SETTING 17		  // 一次调频有功功率
+#define ONE_FM_QW_SETTING 18		  // 一次调频无功功率
 
 typedef struct
 {
@@ -112,8 +113,6 @@ int countPwAdj(int lcdid, int pcsid, short PW, int flag_soc);
 // int setStatusStart_Stop(void);
 int setStatusStart_Stop(int lcdid);
 int findCurPcsidForStart_Stop(int id_thread);
-
-void time_now(void);
 
 // int checkBmsStatus(int lcdid, int pcsid,int sn);
 

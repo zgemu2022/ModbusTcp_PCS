@@ -31,6 +31,12 @@ extern "C"
 #define sys_debug(x, ...)
 #endif
 
+#define _LCD_BAMS_ 1 // LCD模块系统相关调试
+#if (_LCD_BAMS_ == 1)
+#define bms_debug(x, ...) log_debug_new(TITLE_MAIN, "[BMS]" #x "\n", ##__VA_ARGS__) // 12345
+#else
+#define bms_debug(x, ...)
+#endif
 #ifdef __cplusplus
 }
 

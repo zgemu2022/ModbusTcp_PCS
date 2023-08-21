@@ -145,10 +145,9 @@ int check_adj_pw(unsigned char lcdid, unsigned char lcd_pcs_id, unsigned char sn
 	{
 
 		printf("充电开始 当前功率情况 lcdid=%d lcd_pcs_id=%d 最大放电：%d 最小充电：%d 遥测电压：%d \n", lcdid, lcd_pcs_id, mx_dpw, -mx_cpw, pw);
-		time_now();
 		if (pw > 0 && pw > mx_dpw)
 		{
-			printf("1111需要调整放电 当前功率情况  最大放电：%d 最小充电：%d 遥测电压：%d\n", mx_dpw, -mx_cpw, pw);
+			sys_debug("1111需要调整放电 当前功率情况  最大放电：%d 最小充电：%d 遥测电压：%d\n", mx_dpw, -mx_cpw, pw);
 			// bms_adj_pw_temp[lcdid] |= (1 << lcd_pcs_id);
 			g_emu_adj_lcd.adj_pcs[lcdid].val_pw[lcd_pcs_id] = mx_dpw;
 			g_emu_adj_lcd.flag_adj_pw_lcd[lcdid] = 1;
@@ -157,7 +156,7 @@ int check_adj_pw(unsigned char lcdid, unsigned char lcd_pcs_id, unsigned char sn
 		}
 		else if (pw < 0 && pw < -mx_cpw)
 		{
-			printf("2222需要调整充电 当前功率情况  最大放电：%d 最小充电：%d 遥测电压：%d lcdid=%d lcd_pcs_id=%d\n", mx_dpw, -mx_cpw, pw, lcdid, lcd_pcs_id);
+			sys_debug("2222需要调整充电 当前功率情况  最大放电：%d 最小充电：%d 遥测电压：%d lcdid=%d lcd_pcs_id=%d\n", mx_dpw, -mx_cpw, pw, lcdid, lcd_pcs_id);
 
 			// bms_adj_pw_temp[lcdid] |= (1 << lcd_pcs_id);
 			g_emu_adj_lcd.adj_pcs[lcdid].val_qw[lcd_pcs_id] = -mx_cpw;
@@ -210,10 +209,9 @@ void setting_ov_status(unsigned char bmsid, unsigned char pcsid_bms, unsigned sh
 			if (pw != 0)
 			{
 				bms_ov_status_temp[lcdid] |= (1 << lcd_pcs_id);
-				time_now();
 			}
 
-			printf("setting_ov_status aaabbbcccc\n");
+			sys_debug("setting_ov_status aaabbbcccc\n");
 		}
 		else if (single_mi_vol <= pPara_Modtcp->Minimum_individual_voltage)
 		{
@@ -222,14 +220,13 @@ void setting_ov_status(unsigned char bmsid, unsigned char pcsid_bms, unsigned sh
 			if (pw != 0)
 			{
 				bms_ov_status_temp[lcdid] |= (1 << lcd_pcs_id);
-				time_now();
 			}
-			printf("setting_ov_status aaabbbcccc\n");
+			sys_debug("setting_ov_status aaabbbcccc\n");
 		}
 		else
 		{
 			bms_err_status_temp[lcdid] |= (1 << lcd_pcs_id);
-			printf("出现电池簇故障！！！\n");
+			sys_debug("出现电池簇故障！！！\n");
 		}
 	}
 	printf("setting_ov_status 44444 lcdid=%d  lcd_pcs_id=%d  flag_recv_pcs[lcdid]=%x flag_RecvNeed_PCS[lcdid]=%x\n", lcdid, lcd_pcs_id, flag_recv_pcs[lcdid], flag_RecvNeed_PCS[lcdid]);
@@ -239,23 +236,21 @@ void setting_ov_status(unsigned char bmsid, unsigned char pcsid_bms, unsigned sh
 
 		if (bms_ov_status[lcdid] == 0 && bms_ov_status_temp[lcdid] != 0)
 		{
-			time_now();
 			bms_ov_status[lcdid] = bms_ov_status_temp[lcdid];
 			bms_ov_status_temp[lcdid] = 0;
-			printf("setting_ov_status 11111 lcdid=%d %x  %x  \n", lcdid, bms_ov_status[lcdid], bms_ov_status_temp[lcdid]);
+			sys_debug("setting_ov_status 11111 lcdid=%d %x  %x  \n", lcdid, bms_ov_status[lcdid], bms_ov_status_temp[lcdid]);
 		}
 		else
-			printf("setting_ov_status 00000   lcdid=%d  %x  %x  \n", lcdid, bms_ov_status[lcdid], bms_ov_status_temp[lcdid]);
+			sys_debug("setting_ov_status 00000   lcdid=%d  %x  %x  \n", lcdid, bms_ov_status[lcdid], bms_ov_status_temp[lcdid]);
 
 		if (bms_err_status[lcdid] == 0 && bms_err_status_temp[lcdid] != 0)
 		{
-			time_now();
 			bms_err_status[lcdid] = bms_err_status_temp[lcdid];
 			bms_err_status_temp[lcdid] = 0;
-			printf("setting_ov_status bbbbb lcdid=%d %x  %x  \n", lcdid, bms_err_status[lcdid], bms_err_status_temp[lcdid]);
+			sys_debug("setting_ov_status bbbbb lcdid=%d %x  %x  \n", lcdid, bms_err_status[lcdid], bms_err_status_temp[lcdid]);
 		}
 		else
-			printf("setting_ov_status aaaaa   lcdid=%d  %x  %x  \n", lcdid, bms_err_status[lcdid], bms_err_status_temp[lcdid]);
+			sys_debug("setting_ov_status aaaaa   lcdid=%d  %x  %x  \n", lcdid, bms_err_status[lcdid], bms_err_status_temp[lcdid]);
 	}
 
 	flag_temp = check_adj_pw(lcdid, lcd_pcs_id, sn, mx_dpw, mx_cpw, pw);

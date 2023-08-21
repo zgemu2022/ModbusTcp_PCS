@@ -13,6 +13,7 @@ typedef struct
 extern LCD_YC_YX_DATA g_YxData[];
 extern LCD_YC_YX_DATA g_YcData[];
 extern unsigned char g_lcdyx_err_status[];
+extern unsigned char g_lcd_need_status[];
 int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len);
 int SaveYxData(int id_thread, int pcsid, unsigned short *pyx, unsigned char len);
 int SaveZjyxData(int id_thread, unsigned short *pzjyx, unsigned char len);

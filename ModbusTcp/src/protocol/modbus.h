@@ -72,6 +72,8 @@ typedef struct
 	unsigned short numdata;		// 数据个数
 
 } PcsData_send; // 当前发送到led数据，发送前记录，作为接收对比依据
+
+extern int flag_SendMult[];
 extern PcsData_send g_send_data[];
 // extern unsigned short pq_pcspw_set[6][2];//整机设置为PQ后、设置pcs为恒功率模式，再设置功率值
 // extern unsigned short pq_pcscur_set[6][2];//整机设置为PQ后、设置pcs为恒流模式，再设置电流值
@@ -83,7 +85,9 @@ extern unsigned short pqpcs_cur_set[];	// 恒流模式 电流给定设置0.1A正
 extern unsigned short vsgpcs_pw_set[];	   // VSG模式 有功给定设置
 extern unsigned short pq_vsg_pcs_qw_set[]; // PQ或VSG模式 无功
 extern unsigned short pcs_on_off_set[];	   // 开机关机
+extern unsigned short pcs_power_factor[];  // 功率因数设置
 extern post_list_t *post_list_l;
+
 // extern unsigned short lcd_pcs_remote_switch[]; // 各模块 开/关机
 enum LCD_WORK_STATE // LCD当前工作状态
 {
@@ -115,10 +119,17 @@ enum LCD_WORK_STATE // LCD当前工作状态
 
 	LCD_PQ_STP_PWVAL_ALL = 31, // EMS下发整机有功功率，LCD调节
 	LCD_PCS_START_ALL = 32,	   // 整机启动所有pcs
+	LCD_PCS_STOP_ALL = 33,	   // 整机停止所有pcs
+	LCD_PCS_STOP_YXERR = 34,   // 遥信故障情况下关机
 
-	LCD_PCS_STOP_YXERR = 33, // 遥信故障情况下关机
+	LCD_PCS_BMAS_OV = 35, // 充电电压超过阈值进入待机
 
-	LCD_PCS_BMAS_OV = 34, // 充电电压超过阈值进入待机
+	LCD_PF_SETTING_ALL = 36, // 功率因数下发
+
+	LCD_SEND_BEAT = 37, // 发送心跳
+
+	// LCD_PCS_YX = 35,
+	// LCD_PCS_YC = 36,
 
 	LCD_DO_NOTHING = 0xfe, // 什么都不做
 	LCD_RUNNING = 0xff,	   // 正常工作中，循环抄取遥信遥测
@@ -160,10 +171,12 @@ typedef struct
 	int pq_pw_total_last;
 	int pq_cur_total_last;
 	int pq_qw_total_last;
+	int power_factor_last;
 
 	int pq_pw_total;
 	int pq_cur_total;
 	int pq_qw_total;
+	int power_factor;
 	// short pq_pw[MAX_LCD_NUM][MAX_PCS_NUM];	// PQ，恒功率模式下pcs模块功率值
 	// short pq_cur[MAX_LCD_NUM][MAX_PCS_NUM]; // PQ、恒流模式下pcs模块电流值
 
@@ -208,7 +221,7 @@ extern int curTaskId[];
 extern int curPcsId[];
 extern unsigned int g_num_frame[];
 extern int lcd_state[];
-
+extern int lcd_state_last[];
 int AnalysModbus(int id_thread, unsigned char *pdata, int len, int flag);
 int myprintbuf(int len, unsigned char *buf);
 int myprintbuf_pcs(int len, unsigned char *buf);
@@ -217,4 +230,6 @@ int ReadNumPCS(int id_thread);
 int setTime(int id_threa);
 int doFun03Tasks(int id_thread, int *p_pcsid);
 int SetLcdFun06(int id_thread, unsigned short reg_addr, unsigned short val);
+int SetLcdFun06_1(int id_thread, int pcsid, unsigned short reg_addr, unsigned short val);
+int ReadPcsYx_Yc(int lcdid, int pcsid, int flag);
 #endif
