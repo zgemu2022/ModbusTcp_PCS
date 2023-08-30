@@ -651,12 +651,10 @@ int AnalysModbus_one(int id_thread, unsigned char *pdata, int len)
 
 		if (regAddr == 0x3056)
 		{
-			printf("lcdid=%d 心跳帧返回！！！\n", id_thread);
+			printf("心跳帧lcdid=%d返回！！！lcd_state[id_thread]=%d\n", id_thread, lcd_state[id_thread]);
 			modbus_sockt_timer[id_thread] = MX_HEART_BEAT;
 			lcd_state[id_thread] = LCD_RUNNING;
-			curTaskId[id_thread] = 0;
-			curPcsId[id_thread] = 0;
-
+			printf("当前的pcsid=%d\n", curPcsId[id_thread]);
 			return 0;
 		}
 	}
@@ -694,6 +692,7 @@ int AnalysModbus_one(int id_thread, unsigned char *pdata, int len)
 						else
 							lcd_state[i] = LCD_RUNNING;
 					}
+					printf("EMU PCS总数量=%d lcd_state[i]=%x \n", total_pcsnum, lcd_state[i]);
 				}
 				printf("EMU PCS总数量=%d\n", total_pcsnum);
 				init_emu_op_para();
@@ -1015,20 +1014,42 @@ int AnalysModbus_one(int id_thread, unsigned char *pdata, int len)
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PCS_STOP_BMS_ERR)
 	{
-		if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) // 启动或停止
+		printf("bms故障停止后收到 regAddr  %x\n", regAddr);
+		int pcsid = countPcsid(id_thread, &pcs_on_off_set[0], regAddr);
+		if (pcsid != 0xff)
+			bms_err_status[id_thread] &= ~(1 << pcsid);
+		if (bms_err_status[id_thread] == 0)
 		{
-			curTaskId[id_thread]++;
-			g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] = 0;
-			bms_err_status[id_thread] &= ~(1 << curPcsId[id_thread]);
-			sys_debug("06 返回bms_ov_status[%d]:%d \n", id_thread, bms_ov_status[id_thread]);
-			g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[curPcsId[id_thread]] = 0;
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+			printf("bms故障停止完成！！！！！！！！\n");
 		}
-		else
-			printf("注意：ov 停止程序出错！！！！\n");
+
+		// if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) // 启动或停止
+		// {
+		// 	curTaskId[id_thread]++;
+		// 	g_emu_action_lcd.action_pcs[id_thread].flag_start_stop_pcs[curPcsId[id_thread]] = 0;
+		// 	bms_err_status[id_thread] &= ~(1 << curPcsId[id_thread]);
+		// 	sys_debug("06 返回bms_ov_status[%d]:%d \n", id_thread, bms_ov_status[id_thread]);
+		// 	g_emu_status_lcd.status_pcs[id_thread].flag_start_stop[curPcsId[id_thread]] = 0;
+		// }
+		// else
+		// 	printf("注意：ov 停止程序出错！！！！\n");
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PCS_STOP_YXERR)
 	{
-
+		printf("故障停止后收到 regAddr  %x\n", regAddr);
+		int pcsid = countPcsid(id_thread, &pcs_on_off_set[0], regAddr);
+		if (pcsid != 0xff)
+			g_lcdyx_err_status[id_thread] &= ~(1 << pcsid);
+		if (g_lcdyx_err_status[id_thread] == 0)
+		{
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+			printf("故障停止完成！！！！！！！！\n");
+		}
 		// if (regAddr == pcs_on_off_set[curPcsId[id_thread]]) // 启动或停止
 		// {
 		// 	curTaskId[id_thread]++;
@@ -1042,15 +1063,28 @@ int AnalysModbus_one(int id_thread, unsigned char *pdata, int len)
 	}
 	else if (funid == 6 && lcd_state[id_thread] == LCD_PCS_BMAS_OV)
 	{
-		if (regAddr == pqpcs_pw_set[curPcsId[id_thread]]) // 电压越限待机返回
-		{
-			curTaskId[id_thread]++;
-			bms_ov_status[id_thread] &= ~(1 << curPcsId[id_thread]);
+		printf("电压越限待机返回 regAddr  %x\n", regAddr);
+		int pcsid = countPcsid(id_thread, &pcs_on_off_set[0], regAddr);
+		if (pcsid != 0xff)
+			bms_ov_status[id_thread] &= ~(1 << pcsid);
 
-			sys_debug("06 返回 电压越限待机返回bms_ov_status[%d]:%d \n", id_thread, bms_ov_status[id_thread]);
+		if (bms_ov_status[id_thread] == 0)
+		{
+			curTaskId[id_thread] = 0;
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+			printf("电压越限待机返回完成！！！！！！！！\n");
 		}
-		else
-			sys_debug("注意：ov 电压越限待机出错！！！！\n");
+
+		// if (regAddr == pqpcs_pw_set[curPcsId[id_thread]]) // 电压越限待机返回
+		// {
+		// 	curTaskId[id_thread]++;
+		// 	bms_ov_status[id_thread] &= ~(1 << curPcsId[id_thread]);
+
+		// 	sys_debug("06 返回 电压越限待机返回bms_ov_status[%d]:%d \n", id_thread, bms_ov_status[id_thread]);
+		// }
+		// else
+		// 	sys_debug("注意：ov 电压越限待机出错！！！！\n");
 	}
 
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_PCS_START_STOP_ONE))
@@ -1101,23 +1135,37 @@ int AnalysModbus_one(int id_thread, unsigned char *pdata, int len)
 	}
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_ADJUST_PCS_PW))
 	{
-		if (regAddr == pqpcs_pw_set[curPcsId[id_thread]] || regAddr == vsgpcs_pw_set[curPcsId[id_thread]]) // 按策略要求调节无功功率
+
+		printf("按策略要求调节有功功率返回 regAddr  %x\n", regAddr);
+		int pcsid = countPcsid(id_thread, &pqpcs_pw_set[0], regAddr);
+		if (pcsid != 0xff)
+			flag_adj_pw[id_thread] &= ~(1 << pcsid);
+
+		if (flag_adj_pw[id_thread] == 0)
 		{
 			curTaskId[id_thread] = 0;
-			g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] = 0;
-			g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_pw[curPcsId[id_thread]] = 0;
-			curPcsId[id_thread]++;
-			if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
-			{
-				curTaskId[id_thread] = 0;
-				curPcsId[id_thread] = 0;
-				g_emu_adj_lcd.flag_adj_pw_lcd[id_thread] = 0;
-				lcd_state[id_thread] = LCD_RUNNING;
-			}
-			printf("lcdid=%d pcsid=%d 按策略要求调节有功功率！！！\n", id_thread, curPcsId[id_thread]);
+			curPcsId[id_thread] = 0;
+			lcd_state[id_thread] = LCD_RUNNING;
+			printf("按策略要求调节有功功率完成！！！！！！！！\n");
 		}
-		else
-			printf("注意：lcdid=%d pcsid=%d 按策略要求调节有功功率程序出错！！！\n", id_thread, curPcsId[id_thread]);
+
+		// if (regAddr == pqpcs_pw_set[curPcsId[id_thread]] || regAddr == vsgpcs_pw_set[curPcsId[id_thread]]) // 按策略要求调节无功功率
+		// {
+		// 	curTaskId[id_thread] = 0;
+		// 	g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] = 0;
+		// 	g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_pw[curPcsId[id_thread]] = 0;
+		// 	curPcsId[id_thread]++;
+		// 	if (curPcsId[id_thread] >= Para_Modtcp.pcsnum[id_thread])
+		// 	{
+		// 		curTaskId[id_thread] = 0;
+		// 		curPcsId[id_thread] = 0;
+		// 		g_emu_adj_lcd.flag_adj_pw_lcd[id_thread] = 0;
+		// 		lcd_state[id_thread] = LCD_RUNNING;
+		// 	}
+		// 	printf("lcdid=%d pcsid=%d 按策略要求调节有功功率！！！\n", id_thread, curPcsId[id_thread]);
+		// }
+		// else
+		// 	printf("注意：lcdid=%d pcsid=%d 按策略要求调节有功功率程序出错！！！\n", id_thread, curPcsId[id_thread]);
 	}
 
 	else if (funid == 6 && (lcd_state[id_thread] == LCD_ADJUST_PCS_QW))
@@ -1286,7 +1334,7 @@ int doFun03Tasks(int id_thread, int *p_pcsid)
 	else
 	{
 		g_send_data[id_thread].flag_waiting = 1;
-		// printf("任务包发送成功！！！！");
+		printf("doFun03Tasks 任务包发送成功！！！！ pcsid=%d\n", *p_pcsid);
 	}
 	return 0;
 

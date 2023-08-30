@@ -200,7 +200,7 @@ int SaveYcData(int id_thread, int pcsid, unsigned short *pyc, unsigned char len)
 
 	if (flag_recv_lcd == g_flag_RecvNeed_LCD)
 	{
-		// printf("888888888888 pcsid=%d\n", pcsid);
+		printf("SaveYcData 888888888888 flag_recv_lcd=%x\n", flag_recv_lcd);
 		//	for (i = 0; i < MAX_PCS_NUM; i++)
 		flag_recv_lcd = 0;
 		// if (setStatusStart_Stop() == 0)

@@ -14,6 +14,7 @@ BmsData_Newest bmsdata_cur[PORTNUM_MAX][18];
 BmsData_Newest bmsdata_bak[PORTNUM_MAX][18];
 unsigned char bms_ov_status[6] = {0, 0, 0, 0, 0, 0};
 unsigned char bms_err_status[6] = {0, 0, 0, 0, 0, 0};
+unsigned char flag_adj_pw[6] = {0, 0, 0, 0, 0, 0};
 int checkBmsForStart(int sn)
 {
 	unsigned short status_bms;
@@ -159,7 +160,7 @@ int check_adj_pw(unsigned char lcdid, unsigned char lcd_pcs_id, unsigned char sn
 			sys_debug("2222需要调整充电 当前功率情况  最大放电：%d 最小充电：%d 遥测电压：%d lcdid=%d lcd_pcs_id=%d\n", mx_dpw, -mx_cpw, pw, lcdid, lcd_pcs_id);
 
 			// bms_adj_pw_temp[lcdid] |= (1 << lcd_pcs_id);
-			g_emu_adj_lcd.adj_pcs[lcdid].val_qw[lcd_pcs_id] = -mx_cpw;
+			g_emu_adj_lcd.adj_pcs[lcdid].val_pw[lcd_pcs_id] = -mx_cpw;
 
 			g_emu_adj_lcd.flag_adj_pw_lcd[lcdid] = 1;
 			g_emu_adj_lcd.adj_pcs[lcdid].flag_adj_pw[lcd_pcs_id] = 1;
@@ -182,7 +183,7 @@ void setting_ov_status(unsigned char bmsid, unsigned char pcsid_bms, unsigned sh
 	printf("uuuuiiii\n");
 	temp_pw = g_YcData[sn].pcs_data[Active_power];
 	pw = (temp_pw % 256) * 256 + temp_pw / 256;
-	//	pw = -190;
+	// pw = -190;
 	pw *= 10;
 	static unsigned char flag_recv_pcs[] = {0, 0, 0, 0, 0, 0};
 	static unsigned char bms_ov_status_temp[] = {0, 0, 0, 0, 0, 0};
@@ -262,12 +263,6 @@ void setting_ov_status(unsigned char bmsid, unsigned char pcsid_bms, unsigned sh
 	if (flag_recv_pcs[lcdid] == flag_RecvNeed_PCS[lcdid])
 	{
 		flag_recv_pcs[lcdid] = 0;
-
-		// if (flag > 0)
-		// {
-		// 	setStatusPw(lcdid);
-		// }
-		// flag = 0;
 	}
 }
 
@@ -382,7 +377,7 @@ void bams_Init(void)
 
 		para_bams.baud[i] = 9600;
 		para_bams.devid[i] = 1;
-		para_bams.pcs_num[i] = 6;
+		para_bams.pcs_num[i] = 15;
 	}
 	// 打开动态链接库
 	handle = dlopen(LIB_MODBMS_PATH, RTLD_LAZY);

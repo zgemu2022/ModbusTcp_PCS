@@ -1,6 +1,7 @@
 #ifndef _OUTPUT_H_
 #define _OUTPUT_H_
 #include "modbus_tcp_main.h"
+
 typedef struct
 {
 	unsigned char lcdnum;
@@ -8,7 +9,7 @@ typedef struct
 
 	unsigned short balance_rate;
 	int flag_RecvNeed_LCD;
-} PARA_61850; // 从LCD到61850模块的结构
+} PARA_61850; // 从主控传到61850模块的结构
 
 extern LCD_YC_YX_DATA g_YxData[];
 extern LCD_YC_YX_DATA g_YcData[];

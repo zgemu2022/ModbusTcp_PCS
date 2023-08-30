@@ -126,7 +126,7 @@ enum LCD_WORK_STATE // LCD当前工作状态
 
 	LCD_PF_SETTING_ALL = 36, // 功率因数下发
 
-	LCD_SEND_BEAT = 37, // 发送心跳
+	// LCD_SEND_BEAT = 37, // 发送心跳
 
 	// LCD_PCS_YX = 35,
 	// LCD_PCS_YC = 36,

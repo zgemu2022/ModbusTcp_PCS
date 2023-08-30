@@ -27,18 +27,19 @@ int g_comm_qmegid[MAX_LCD_NUM];
 unsigned int g_num_frame[] = {1, 1, 1, 1, 1, 1};
 int send_heat_beat(int id_thread)
 {
-	printf("LCD:%d 发送心跳帧\n", id_thread);
+	printf("心跳帧lcdid=%d发送 pcsid=%d lcd_state[id_thread]=%d\n", id_thread, curPcsId[id_thread], lcd_state[id_thread]);
 	static unsigned short beatnum[] = {0, 0, 0, 0, 0, 0};
 	unsigned short regaddr = 0x3056;
 	unsigned short val = beatnum[id_thread];
 	int ret;
-	// modbus_sockt_timer[id_thread]=0x7fffffff;
+	modbus_sockt_timer[id_thread] = 0x7fffffff;
 	ret = SetLcdFun06(id_thread, regaddr, val);
 	beatnum[id_thread]++;
 	if (beatnum[id_thread] >= 1000)
 		beatnum[id_thread] = 0;
 	return ret;
 }
+
 void *Modbus_SendMulti_thread(void *arg) // 25
 {
 	int id_thread = (int)arg;
@@ -157,23 +158,95 @@ void *Modbus_SendMulti_thread(void *arg) // 25
 						val = 0x00ff;
 
 						SetLcdFun06(id_thread, reg_addr, val);
+						usleep(10);
+					}
+				}
+			}
+			else if (lcd_state[id_thread] == LCD_PCS_STOP_BMS_ERR && flag_SendMult[id_thread] == 1)
+			{
+				int i = 0;
+				unsigned char temp = bms_err_status[id_thread];
+				//	g_lcd_need_status[id_thread] = g_lcdyx_err_status[id_thread];
+				printf("bbbb temp:%d \n", temp);
+				for (i = 0; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
+				{
+					if ((temp & 1 << i) > 0)
+					{
+						reg_addr = pcs_on_off_set[i];
+						sys_debug("LCD:%d err关机 ...\n", id_thread);
+						val = 0x00ff;
+
+						SetLcdFun06(id_thread, reg_addr, val);
+						usleep(10);
+					}
+				}
+			}
+			else if (lcd_state[id_thread] == LCD_PCS_BMAS_OV && flag_SendMult[id_thread] == 1)
+			{
+				int i = 0;
+				unsigned char temp = bms_ov_status[id_thread];
+				//	g_lcd_need_status[id_thread] = g_lcdyx_err_status[id_thread];
+				printf("bbbb temp:%d \n", temp);
+				for (i = 0; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
+				{
+					if ((temp & 1 << i) > 0)
+					{
+						reg_addr = pqpcs_pw_set[i];
+						sys_debug("LCD:%d 设置0功率 ...\n", id_thread);
+						val = 0;
+
+						SetLcdFun06(id_thread, reg_addr, val);
+						usleep(10);
+					}
+				}
+			}
+			else if (lcd_state[id_thread] == LCD_ADJUST_PCS_PW && flag_SendMult[id_thread] == 1)
+			{
+				printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
+				int i = 0;
+				unsigned char temp; // = g_lcdyx_err_status[id_thread];
+				for (i = 0; i < pPara_Modtcp->pcsnum[id_thread]; i++)
+				{
+					if (g_emu_adj_lcd.adj_pcs[id_thread].flag_adj_pw[i] == 1)
+					{
+						flag_adj_pw[id_thread] |= (1 << i);
+					}
+				}
+				temp = flag_adj_pw[id_thread];
+				for (i = 0; i < pPara_Modtcp->pcsnum[id_thread]; i++)
+				{
+					if ((temp & 1 << i) > 0)
+					{
+
+						reg_addr = pqpcs_pw_set[i];
+						val = g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] / 10;
+
+						if (val > pPara_Modtcp->sys_max_pw)
+							val = pPara_Modtcp->sys_max_pw;
+						if (val < -pPara_Modtcp->sys_max_pw)
+							val = -pPara_Modtcp->sys_max_pw;
+
+						SetLcdFun06(id_thread, reg_addr, val);
 					}
 				}
 			}
 		}
-
+		// if (modbus_sockt_timer[id_thread] == 0) // && lcd_state[id_thread] == LCD_RUNNING)
+		// {
+		// 	send_heat_beat(id_thread);
+		// }
 		usleep(10);
 	}
 }
 
-void RunAccordingtoStatus1(int id_thread)
+void RunAccordingtoStatus(int id_thread)
 {
+	// printf("\n\nLCD:%d lcd_state[id_thread]=%d  modbus_sockt_timer=%x %d\n", id_thread, lcd_state[id_thread],modbus_sockt_timer[id_thread],modbus_sockt_timer[id_thread]);
 	int ret = 1;
-	int i;
-	if (lcd_state[id_thread] == lcd_state_last[id_thread])
-		return;
+	ret = ret;
 	switch (lcd_state[id_thread])
 	{
+
 		// case LCD_PCS_YX:
 		// {
 		// 	printf("LCD:%d  doFun03Tasks!!!!YX\n", id_thread);
@@ -189,38 +262,6 @@ void RunAccordingtoStatus1(int id_thread)
 		// 	flag_SendMult[id_thread] = 1;
 		// }
 		// break;
-
-	case LCD_SET_TIME:
-	{
-		printf("lcd_state[%d]:%d \n", id_thread, lcd_state[id_thread]);
-		printf("初始化时间...\n");
-		ret = setTime(id_thread);
-		lcd_state_last[id_thread] = lcd_state[id_thread];
-	}
-	break;
-	case LCD_INIT:
-	{
-		printf("LCD:%d 初始化...\n", id_thread);
-		ret = ReadNumPCS(id_thread);
-		lcd_state_last[id_thread] = lcd_state[id_thread];
-	}
-	break;
-
-	case LCD_DO_NOTHING:
-		break;
-	default:
-		printf("注意：出现未经定义的状态！！！%d\n", lcd_state[id_thread]);
-		break;
-	}
-}
-
-void RunAccordingtoStatus(int id_thread)
-{
-	// printf("\n\nLCD:%d lcd_state[id_thread]=%d  modbus_sockt_timer=%x %d\n", id_thread, lcd_state[id_thread],modbus_sockt_timer[id_thread],modbus_sockt_timer[id_thread]);
-	int ret = 1;
-	ret = ret;
-	switch (lcd_state[id_thread])
-	{
 	case LCD_RUNNING:
 	{
 		printf("LCD:%d  doFun03Tasks!!!!\n", id_thread);
@@ -458,31 +499,37 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PCS_STOP_BMS_ERR:
 	{
-		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
-		unsigned short val;
-		int i = 0;
-		unsigned char temp = bms_err_status[id_thread];
+		if (lcd_state[id_thread] == bms_err_status[id_thread])
+			return;
+		printf(" 停止BMS出现故障的 pcs LCD:%d \n", id_thread);
+		lcd_state_last[id_thread] = lcd_state[id_thread];
+		flag_SendMult[id_thread] = 1;
 
-		printf("aaaa temp:%d \n", temp);
-		for (i = curPcsId[id_thread]; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
-		{
-			if ((temp & 1 << i) > 0)
-			{
-				regaddr = pcs_on_off_set[i];
-				sys_debug("LCD:%d ov关机 ...\n", id_thread);
-				val = 0x00ff;
-				curPcsId[id_thread] = i;
-				ret = SetLcdFun06(id_thread, regaddr, val);
-				break;
-			}
-		}
+		// unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		// unsigned short val;
+		// int i = 0;
+		// unsigned char temp = bms_err_status[id_thread];
 
-		if (i >= pPara_Modtcp->pcsnum[id_thread])
-		{
-			curPcsId[id_thread] = 0;
-			curTaskId[id_thread] = 0;
-			lcd_state[id_thread] = LCD_RUNNING;
-		}
+		// printf("aaaa temp:%d \n", temp);
+		// for (i = curPcsId[id_thread]; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
+		// {
+		// 	if ((temp & 1 << i) > 0)
+		// 	{
+		// 		regaddr = pcs_on_off_set[i];
+		// 		sys_debug("LCD:%d ov关机 ...\n", id_thread);
+		// 		val = 0x00ff;
+		// 		curPcsId[id_thread] = i;
+		// 		ret = SetLcdFun06(id_thread, regaddr, val);
+		// 		break;
+		// 	}
+		// }
+
+		// if (i >= pPara_Modtcp->pcsnum[id_thread])
+		// {
+		// 	curPcsId[id_thread] = 0;
+		// 	curTaskId[id_thread] = 0;
+		// 	lcd_state[id_thread] = LCD_RUNNING;
+		// }
 	}
 	break;
 	case LCD_PCS_STOP_YXERR:
@@ -571,56 +618,68 @@ void RunAccordingtoStatus(int id_thread)
 	break;
 	case LCD_PCS_BMAS_OV: // 充电电压超过阈值进入待机--下发0功率
 	{
-		unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
-		unsigned short val;
-		int i = 0;
-		unsigned char temp = bms_ov_status[id_thread];
 
-		printf("bbbb temp:%d \n", temp);
-		for (i = curPcsId[id_thread]; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
-		{
-			if ((temp & 1 << i) > 0)
-			{
-				regaddr = pqpcs_pw_set[i];
-				sys_debug("LCD:%d pcsid=%d 过压待机 ...\n", id_thread, i);
-				val = 0;
-				curPcsId[id_thread] = i;
-				ret = SetLcdFun06(id_thread, regaddr, val);
-				break;
-			}
-		}
+		if (lcd_state[id_thread] == lcd_state_last[id_thread])
+			return;
+		printf(" 充电电压超过阈值进入待机--下发0功率 LCD:%d \n", id_thread);
+		lcd_state_last[id_thread] = lcd_state[id_thread];
+		flag_SendMult[id_thread] = 1;
+		// unsigned short regaddr; // = pq_pcspw_set[curPcsId][curTaskId];
+		// unsigned short val;
+		// int i = 0;
+		// unsigned char temp = bms_ov_status[id_thread];
 
-		if (i >= pPara_Modtcp->pcsnum[id_thread])
-		{
-			curPcsId[id_thread] = 0;
-			curTaskId[id_thread] = 0;
-			lcd_state[id_thread] = LCD_RUNNING;
-		}
+		// printf("bbbb temp:%d \n", temp);
+		// for (i = curPcsId[id_thread]; i <= pPara_Modtcp->pcsnum[id_thread]; i++)
+		// {
+		// 	if ((temp & 1 << i) > 0)
+		// 	{
+		// 		regaddr = pqpcs_pw_set[i];
+		// 		sys_debug("LCD:%d pcsid=%d 过压待机 ...\n", id_thread, i);
+		// 		val = 0;
+		// 		curPcsId[id_thread] = i;
+		// 		ret = SetLcdFun06(id_thread, regaddr, val);
+		// 		break;
+		// 	}
+		// }
+
+		// if (i >= pPara_Modtcp->pcsnum[id_thread])
+		// {
+		// 	curPcsId[id_thread] = 0;
+		// 	curTaskId[id_thread] = 0;
+		// 	lcd_state[id_thread] = LCD_RUNNING;
+		// }
 	}
 	break;
 
 	case LCD_ADJUST_PCS_PW: // 按策略要求调节有功功率
 	{
-		unsigned short regaddr;
-		short val;
-		int flag = 0;
-		printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
-		if (findCurPcsidForAdjPw(id_thread) == 1)
-		{
-			if (g_emu_op_para.OperatingMode == PQ)
-				regaddr = pqpcs_pw_set[curPcsId[id_thread]];
-			else if (g_emu_op_para.OperatingMode == VSG)
-				regaddr = vsgpcs_pw_set[curPcsId[id_thread]];
-			val = g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] / 10;
+		if (lcd_state[id_thread] == lcd_state_last[id_thread])
+			return;
+		printf(" 按策略要求调节有功功率 LCD:%d \n", id_thread);
+		lcd_state_last[id_thread] = lcd_state[id_thread];
+		flag_SendMult[id_thread] = 1;
 
-			if (val > pPara_Modtcp->sys_max_pw)
-				val = pPara_Modtcp->sys_max_pw;
-			if (val < -pPara_Modtcp->sys_max_pw)
-				val = -pPara_Modtcp->sys_max_pw;
+		// unsigned short regaddr;
+		// short val;
+		// int flag = 0;
+		// printf("LCD:%d 按策略要求调节有功功率 ...\n", id_thread);
+		// if (findCurPcsidForAdjPw(id_thread) == 1)
+		// {
+		// 	if (g_emu_op_para.OperatingMode == PQ)
+		// 		regaddr = pqpcs_pw_set[curPcsId[id_thread]];
+		// 	else if (g_emu_op_para.OperatingMode == VSG)
+		// 		regaddr = vsgpcs_pw_set[curPcsId[id_thread]];
+		// 	val = g_emu_adj_lcd.adj_pcs[id_thread].val_pw[curPcsId[id_thread]] / 10;
 
-			printf("LCD:%d PCSID:%d 按策略要求调节有功功率 ...val=%d\n", id_thread, curPcsId[id_thread], val);
-			ret = SetLcdFun06(id_thread, regaddr, val);
-		}
+		// 	if (val > pPara_Modtcp->sys_max_pw)
+		// 		val = pPara_Modtcp->sys_max_pw;
+		// 	if (val < -pPara_Modtcp->sys_max_pw)
+		// 		val = -pPara_Modtcp->sys_max_pw;
+
+		// 	printf("LCD:%d PCSID:%d 按策略要求调节有功功率 ...val=%d\n", id_thread, curPcsId[id_thread], val);
+		// 	ret = SetLcdFun06(id_thread, regaddr, val);
+		// }
 	}
 	break;
 
@@ -643,9 +702,9 @@ void RunAccordingtoStatus(int id_thread)
 		}
 	}
 	break;
-	case LCD_SEND_BEAT:
-		send_heat_beat(id_thread);
-		break;
+	// case LCD_SEND_BEAT:
+	// 	send_heat_beat(id_thread);
+	// 	break;
 	case LCD_DO_NOTHING:
 		break;
 	default:
@@ -710,11 +769,11 @@ write_loop:
 		// 	lcd_state[id_thread] = LCD_SEND_BEAT;
 		// 	goto myloop;
 		// }
-		// if (modbus_sockt_timer[id_thread] == 0 && lcd_state[id_thread] == LCD_RUNNING)
-		// {
-		// 	send_heat_beat(id_thread);
-		// }
-		// else
+		if (modbus_sockt_timer[id_thread] == 0 && lcd_state[id_thread] == LCD_RUNNING)
+		{
+			send_heat_beat(id_thread);
+		}
+		else
 		{
 			if (setStatusPw(id_thread) == 1)
 				goto myloop;
@@ -732,16 +791,17 @@ write_loop:
 				lcd_state[id_thread] = LCD_PCS_BMAS_OV;
 				curPcsId[id_thread] = 0;
 			}
-			else if (g_lcdyx_err_status[id_thread] > 0 && lcd_state[id_thread] == LCD_RUNNING)
-			{
-				lcd_debug("bbbb故障停机err g_lcdyx_err_status[%d]:%x \n", id_thread, g_lcdyx_err_status[id_thread]);
-				lcd_state[id_thread] = LCD_PCS_STOP_YXERR;
-				curPcsId[id_thread] = 0;
-			}
-			else if (modbus_sockt_timer[id_thread] == 0)
-			{
-				lcd_state[id_thread] = LCD_SEND_BEAT;
-			}
+			// else if (g_lcdyx_err_status[id_thread] > 0 && lcd_state[id_thread] == LCD_RUNNING)//为现场pcs当前情况增加，谨慎使用
+			// {
+			// 	lcd_debug("bbbb故障停机err g_lcdyx_err_status[%d]:%x \n", id_thread, g_lcdyx_err_status[id_thread]);
+			// 	lcd_state[id_thread] = LCD_PCS_STOP_YXERR;
+			// 	curPcsId[id_thread] = 0;
+			// }
+			// else if (modbus_sockt_timer[id_thread] == 0) // && lcd_state[id_thread] == LCD_RUNNING)
+			// {
+			// 	send_heat_beat(id_thread);
+			// 	continue;
+			// }
 
 		myloop:
 			RunAccordingtoStatus(id_thread);

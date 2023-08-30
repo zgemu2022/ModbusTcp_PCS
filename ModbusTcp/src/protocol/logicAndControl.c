@@ -246,11 +246,15 @@ int handleYkFromEms(YK_PARA *pYkPara)
 	break;
 	case POWER_FACTOR_SETTING:
 	{
-		int tem;
-		tem = *(int *)pYkPara->data;
-		printf("············ems下发的功率因数：%d", tem);
+
+		float tem;
+		tem = *(float *)pYkPara->data;
+		// int tem;
+		// tem = *(int *)pYkPara->data;
+		printf("············ems下发的功率因数：%f", tem);
+
 		g_emu_op_para.power_factor_last = g_emu_op_para.power_factor;
-		g_emu_op_para.power_factor = tem;
+		g_emu_op_para.power_factor = (int)(tem * 10);
 		printf("·········PQ···功率因数：%d\n", g_emu_op_para.power_factor);
 		for (i = 0; i < pPara_Modtcp->lcdnum_cfg; i++)
 		{
