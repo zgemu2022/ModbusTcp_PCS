@@ -34,6 +34,7 @@ int send_heat_beat(int id_thread)
 	int ret;
 	modbus_sockt_timer[id_thread] = 0x7fffffff;
 	ret = SetLcdFun06(id_thread, regaddr, val);
+	usleep(10);
 	beatnum[id_thread]++;
 	if (beatnum[id_thread] >= 1000)
 		beatnum[id_thread] = 0;
@@ -123,9 +124,9 @@ void *Modbus_SendMulti_thread(void *arg) // 25
 			{
 				short val1;
 
-				val = g_emu_op_para.power_factor;
+				val1 = g_emu_op_para.power_factor;
 				if (g_emu_op_para.power_factor > 1000)
-					val = 1000;
+					val1 = 1000;
 
 				flag_SendMult[id_thread] = 2;
 				g_lcd_need_status[id_thread] = 0;
@@ -264,7 +265,7 @@ void RunAccordingtoStatus(int id_thread)
 		// break;
 	case LCD_RUNNING:
 	{
-		printf("LCD:%d  doFun03Tasks!!!!\n", id_thread);
+		printf("doFun03Tasks!!!!LCD:%d pcsid=%d\n", id_thread, curPcsId[id_thread]);
 		ret = doFun03Tasks(id_thread, &curPcsId[id_thread]);
 	}
 	break;
@@ -273,6 +274,7 @@ void RunAccordingtoStatus(int id_thread)
 		printf("lcd_state[%d]:%d \n", id_thread, lcd_state[id_thread]);
 		printf("初始化时间...\n");
 		ret = setTime(id_thread);
+		lcd_state[id_thread] = LCD_DO_NOTHING;
 	}
 	break;
 	case LCD_INIT:
@@ -743,7 +745,7 @@ write_loop:
 	{
 		// printf("wait_flag:%d\n", wait_flag);
 		// ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 10);
-		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 20);
+		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 10);
 		if (ret_value >= 0)
 		{
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
