@@ -745,7 +745,7 @@ write_loop:
 	{
 		// printf("wait_flag:%d\n", wait_flag);
 		// ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 10);
-		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 10);
+		ret_value = os_rev_msgqueue(g_comm_qmegid[id_thread], &pmsg, sizeof(msgClient), 0, 100);
 		if (ret_value >= 0)
 		{
 			memcpy((char *)&pcsdata, pmsg.data, sizeof(MyData));
